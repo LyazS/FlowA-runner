@@ -6,7 +6,7 @@ from app.schemas.validation import ValidationResult
 from .basenode import FABaseNode
 
 
-class FANode_attached_node_output(FABaseNode):
+class FANode_code_interpreter(FABaseNode):
     def __init__(self, nodeinfo: VFNodeInfo):
         super().__init__(nodeinfo)
         pass
