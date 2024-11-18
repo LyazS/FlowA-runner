@@ -6,7 +6,7 @@ from pydantic import BaseModel
 import json
 
 
-class NodePayloadsData(BaseModel):
+class NodeContentData(BaseModel):
     label: str
     type: str
     key: str
@@ -16,8 +16,8 @@ class NodePayloadsData(BaseModel):
     pass
 
 
-class NodePayloads(BaseModel):
-    byId: Dict[str, NodePayloadsData]
+class NodeContents(BaseModel):
+    byId: Dict[str, NodeContentData]
     order: List[str]
     pass
 
@@ -106,20 +106,19 @@ class NodeData(BaseModel):
     flags: NodeFlags
     label: str
     placeholderlabel: str
-    parentNode: Optional[str] = None
     size: Optional[NodeSize] = None
     min_size: Optional[NodeSize] = None
     attaching: Optional[NodeAttaching] = None
     nesting: Optional[NodeNesting] = None
     connections: Optional[NodeConnections] = None
-    payloads: Optional[NodePayloads] = None
-    results: Optional[NodePayloads] = None
+    payloads: Optional[NodeContents] = None
+    results: Optional[NodeContents] = None
     pass
 
     def get(self, path: List[str]):
         pass
 
-    def getContent(self, content_name: str) -> NodePayloads:
+    def getContent(self, content_name: str) -> NodeContents:
         if content_name == "payloads":
             return self.payloads
         elif content_name == "results":
@@ -198,17 +197,24 @@ class VarItem(BaseModel):
     dtype: str
 
 
-class SelectOption(BaseModel):
+class VarSelectOption(BaseModel):
     label: str
     value: str
 
 
+class ValidationResult(BaseModel):
+    isValid: bool
+    message: str
+    pass
+
+
 class FABaseNode:
     def __init__(self, nodeinfo: VFNodeInfo):
-        tmpnodedata = nodeinfo.data
-        tmpnodedata.parentNode = nodeinfo.parentNode
-        self.nodedata: NodeData = tmpnodedata
-        self.nodetype: NodeType = tmpnodedata.ntype
+        self.id = nodeinfo.id
+        self.data: NodeData = nodeinfo.data
+        self.ntype: NodeType = nodeinfo.data.ntype
+        self.parentNode = nodeinfo.parentNode
+
         self.doneEvent = asyncio.Event()
         self.waitEvents: List[asyncio.Event] = []
         self.waitNodes: List["FABaseNode"] = []
@@ -252,18 +258,217 @@ class FABaseNode:
     def init(self, *args, **kwargs):
         pass
 
-    def fetchSelfConnections(self):
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+class FANode_attached_node_callbackFunc(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
         pass
 
-    def validate(self):
+    async def run(self):
         pass
 
+    def init(self, *args, **kwargs):
+        pass
 
-class FAFlowRunner:
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+class FANode_attached_node_callbackUser(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
+        pass
+
+    async def run(self):
+        pass
+
+    def init(self, *args, **kwargs):
+        pass
+
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+class FANode_attached_node_input(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
+        pass
+
+    async def run(self):
+        pass
+
+    def init(self, *args, **kwargs):
+        pass
+
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+class FANode_attached_node_output(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
+        pass
+
+    async def run(self):
+        pass
+
+    def init(self, *args, **kwargs):
+        pass
+
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+class FANode_code_interpreter(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
+        pass
+
+    async def run(self):
+        pass
+
+    def init(self, *args, **kwargs):
+        pass
+
+    def validateContent(
+        self, content_name: str, selfVars: List[str]
+    ) -> ValidationResult:
+        try:
+            for pid in self.data.getContent(content_name).order:
+                item: NodeContentData = self.data.getContent(content_name).byId[pid]
+                for var in item.data:
+                    if var["refdata"] not in selfVars:
+                        raise Exception("变量出错")
+                    pass
+        except Exception as e:
+            return ValidationResult(isValid=False, message=str(e))
+        return ValidationResult(isValid=True, message="")
+
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return self.validateContent("payloads", selfVars)
+
+
+class FANode_cond_branch(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
+        pass
+
+    async def run(self):
+        pass
+
+    def init(self, *args, **kwargs):
+        pass
+
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+class FANode_detach_run(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
+        pass
+
+    async def run(self):
+        pass
+
+    def init(self, *args, **kwargs):
+        pass
+
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+class FANode_iter_run(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
+        pass
+
+    async def run(self):
+        pass
+
+    def init(self, *args, **kwargs):
+        pass
+
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+class FANode_LLM_inference(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
+        pass
+
+    async def run(self):
+        pass
+
+    def init(self, *args, **kwargs):
+        pass
+
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+class FANode_text_input(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
+        pass
+
+    async def run(self):
+        pass
+
+    def init(self, *args, **kwargs):
+        pass
+
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+class FANode_text_print(FABaseNode):
+    def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
+        pass
+
+    async def run(self):
+        pass
+
+    def init(self, *args, **kwargs):
+        pass
+
+    def validate(self, selfVars: List[str]) -> ValidationResult:
+        return ValidationResult(isValid=True, message="")
+
+
+FANODECOLLECTION = {
+    NodeType.attached_node_callbackFunc: FANode_attached_node_callbackFunc,
+    NodeType.attached_node_callbackUser: FANode_attached_node_callbackUser,
+    NodeType.attached_node_input: FANode_attached_node_input,
+    NodeType.attached_node_output: FANode_attached_node_output,
+    NodeType.code_interpreter: FANode_code_interpreter,
+    NodeType.cond_branch: FANode_cond_branch,
+    NodeType.detach_run: FANode_detach_run,
+    NodeType.iter_run: FANode_iter_run,
+    NodeType.LLM_inference: FANode_LLM_inference,
+    NodeType.text_input: FANode_text_input,
+    NodeType.text_print: FANode_text_print,
+}
+
+
+class FAFlowEvaluator:
     def __init__(self):
         self.nodes: Dict[str, FABaseNode] = {}
-        self.graph = {}
+        self.connectGraph = {}
         pass
+
+    def get_handle_connections(self, nid, type, hid):
+        if nid in self.connectGraph:
+            if type == "source" and hid in self.connectGraph[nid]["source"]:
+                return self.connectGraph[nid]["source"][hid]
+            elif type == "target" and hid in self.connectGraph[nid]["target"]:
+                return self.connectGraph[nid]["target"][hid]
+        return None
 
     def recursive_find_variables(
         self,
@@ -284,9 +489,9 @@ class FAFlowRunner:
         the_node = self.nodes[nid]
 
         if find_all_input:
-            find_input = list(the_node.nodedata.connections.inputs.keys())
+            find_input = list(the_node.data.connections.inputs.keys())
         if find_all_output:
-            find_output = list(the_node.nodedata.connections.outputs.keys())
+            find_output = list(the_node.data.connections.outputs.keys())
 
         if find_self:
             result.extend(self.find_var_from_io(nid, "self", "self"))
@@ -311,28 +516,28 @@ class FAFlowRunner:
 
         # 根据类型获取connection数据
         if findtype == "self":
-            connection = the_node.nodedata.connections.self[hid].data
+            connection = the_node.data.connections.self[hid].data
         elif findtype == "attach":
-            connection = the_node.nodedata.connections.attach[hid].data
+            connection = the_node.data.connections.attach[hid].data
         elif findtype == "input":
-            connection = the_node.nodedata.connections.inputs[hid].data
+            connection = the_node.data.connections.inputs[hid].data
         elif findtype == "output":
-            connection = the_node.nodedata.connections.outputs[hid].data
+            connection = the_node.data.connections.outputs[hid].data
 
         for c_data in connection.values():
             if c_data.type == NodeConnectionDataType.FromInner:
                 result.append(
                     VarItem(
                         nodeId=nid,
-                        nlabel=the_node.nodedata.label,
+                        nlabel=the_node.data.label,
                         dpath=c_data.path,
-                        dlabel=the_node.nodedata.getContent(c_data.path[0])
+                        dlabel=the_node.data.getContent(c_data.path[0])
                         .byId[c_data.path[1]]
                         .label,
-                        dkey=the_node.nodedata.getContent(c_data.path[0])
+                        dkey=the_node.data.getContent(c_data.path[0])
                         .byId[c_data.path[1]]
                         .key,
-                        dtype=the_node.nodedata.getContent(c_data.path[0])
+                        dtype=the_node.data.getContent(c_data.path[0])
                         .byId[c_data.path[1]]
                         .type,
                     )
@@ -342,8 +547,6 @@ class FAFlowRunner:
                 # 对于上一个节点，递归搜索上个节点的对应输出handle
                 in_hid = c_data.inputKey
                 edges = self.get_handle_connections(nid, "target", in_hid)
-                print(f"handle id: {in_hid}, edges count: {len(edges)}")
-
                 for edge in edges:
                     src_nid = edge["nid"]
                     src_hid = edge["hid"]
@@ -357,7 +560,7 @@ class FAFlowRunner:
                 # 对于子节点的处理
                 result.extend(
                     self.recursive_find_variables(
-                        the_node.nodedata.nesting.attached_nodes[c_data.atype].nid,
+                        the_node.data.nesting.attached_nodes[c_data.atype].nid,
                         c_data.atype == "output",
                         False,
                         False,
@@ -371,16 +574,16 @@ class FAFlowRunner:
                 # 如果是父节点，递归搜索父节点的所有输入handle
                 result.extend(
                     self.recursive_find_variables(
-                        the_node.nodedata.parentNode, False, True, True, [], False, []
+                        the_node.parentNode, False, True, True, [], False, []
                     )
                 )
 
         return result
 
-    async def eval(self, flowdata: FlowData):
+    async def eval(self, flowdata: FlowData) -> Dict[str, ValidationResult]:
         # 初始化所有节点
         for nodeinfo in flowdata.nodes:
-            node = FABaseNode(nodeinfo)
+            node = FANODECOLLECTION[NodeType(nodeinfo.data.ntype)](nodeinfo)
             self.nodes[nodeinfo.id] = node
             pass
         # 构建节点连接关系
@@ -388,56 +591,50 @@ class FAFlowRunner:
             if edgeinfo.source in self.nodes and edgeinfo.target in self.nodes:
                 source_handle = edgeinfo.sourceHandle
                 target_handle = edgeinfo.targetHandle
-                if edgeinfo.source not in self.graph:
-                    self.graph[edgeinfo.source] = {"source": {}, "target": {}}
+                if edgeinfo.source not in self.connectGraph:
+                    self.connectGraph[edgeinfo.source] = {"source": {}, "target": {}}
                     pass
-                if source_handle not in self.graph[edgeinfo.source]:
-                    self.graph[edgeinfo.source]["source"][source_handle] = []
+                if source_handle not in self.connectGraph[edgeinfo.source]:
+                    self.connectGraph[edgeinfo.source]["source"][source_handle] = []
                     pass
-                self.graph[edgeinfo.source]["source"][source_handle].append(
+                self.connectGraph[edgeinfo.source]["source"][source_handle].append(
                     {"nid": edgeinfo.target, "hid": target_handle}
                 )
                 pass
-                if edgeinfo.target not in self.graph:
-                    self.graph[edgeinfo.target] = {"source": {}, "target": {}}
+                if edgeinfo.target not in self.connectGraph:
+                    self.connectGraph[edgeinfo.target] = {"source": {}, "target": {}}
                     pass
-                if target_handle not in self.graph[edgeinfo.target]:
-                    self.graph[edgeinfo.target]["target"][target_handle] = []
+                if target_handle not in self.connectGraph[edgeinfo.target]:
+                    self.connectGraph[edgeinfo.target]["target"][target_handle] = []
                     pass
-                self.graph[edgeinfo.target]["target"][target_handle].append(
+                self.connectGraph[edgeinfo.target]["target"][target_handle].append(
                     {"nid": edgeinfo.source, "hid": source_handle}
                 )
                 pass
+        # 逐个节点验证，主要验证变量是否合法
+        validNodes = {}
         for nid in self.nodes.keys():
             node = self.nodes[nid]
-            selfVarsList = self.recursive_find_variables(
+            selfVarItems = self.recursive_find_variables(
                 nid, True, False, False, [], False, []
             )
             selfVars = [
-                {
-                    "label": f"{item.nlabel}/{item.dlabel}/{item.dkey}/{item.dtype}",
-                    "value": f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}",
-                }
-                for item in selfVarsList
+                f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}"
+                for item in selfVarItems
             ]
-            print(f"node {nid} selfVars: {selfVars}")
+            print(f"node {node.data.label} selfVars: {selfVars}")
+            validNodes[node.id] = node.validate(selfVars)
         pass
-
-    def get_handle_connections(self, nid, type, hid):
-        if nid in self.graph:
-            if type == "source" and hid in self.graph[nid]["source"]:
-                return self.graph[nid]["source"][hid]
-            elif type == "target" and hid in self.graph[nid]["target"]:
-                return self.graph[nid]["target"][hid]
-        return None
+        return validNodes
 
 
-fr = FAFlowRunner()
-with open(
-    "test.json",
-    "r",
-    encoding="utf-8",
-) as f:
-    flowdata = json.loads(f.read())
-    asyncio.run(fr.eval(FlowData.model_validate(flowdata)))
-    pass
+if __name__ == "__main__":
+    ffe = FAFlowEvaluator()
+    with open(
+        "test.json",
+        "r",
+        encoding="utf-8",
+    ) as f:
+        flowdata = json.loads(f.read())
+        asyncio.run(ffe.eval(FlowData.model_validate(flowdata)))
+        pass
