@@ -1,5 +1,5 @@
 from typing import Dict, List
-from app.schemas.farequest import VarItem, ValidationResult
+from app.schemas.farequest import VarItem, ValidationError
 from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData
 from app.nodes import FABaseNode, FANODECOLLECTION
 
@@ -16,7 +16,7 @@ class FAValidator:
                 return self.connectGraph[nid]["source"][hid]
             elif type == "target" and hid in self.connectGraph[nid]["target"]:
                 return self.connectGraph[nid]["target"][hid]
-        return None
+        return []
 
     def recursive_find_variables(
         self,
@@ -128,7 +128,7 @@ class FAValidator:
 
         return result
 
-    async def validate(self, flowdata: VFlowData) -> Dict[str, ValidationResult]:
+    async def validate(self, flowdata: VFlowData) -> Dict[str, ValidationError]:
         # 初始化所有节点
         for nodeinfo in flowdata.nodes:
             node = (FANODECOLLECTION[nodeinfo.data.ntype])(nodeinfo)
@@ -160,7 +160,7 @@ class FAValidator:
                 )
                 pass
         # 逐个节点验证，主要验证变量是否合法
-        validNodes = {}
+        validNodes: Dict[str, ValidationError] = {}
         for nid in self.nodes.keys():
             node = self.nodes[nid]
             selfVarItems = self.recursive_find_variables(
@@ -170,7 +170,8 @@ class FAValidator:
                 f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}"
                 for item in selfVarItems
             ]
-            print(f"node {node.data.label} selfVars: {selfVars}")
-            validNodes[node.id] = node.validate(selfVars)
+            validation = node.validate(selfVars)
+            if validation:
+                validNodes[node.id] = node.validate(selfVars)
         pass
         return validNodes

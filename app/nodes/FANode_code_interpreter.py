@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Union
 import asyncio
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
-from app.schemas.vfnode import VFNodeInfo, VFNodeContentData
-from app.schemas.farequest import ValidationResult
+from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
+from app.schemas.farequest import ValidationError
 from .basenode import FABaseNode
 
 
@@ -17,19 +17,31 @@ class FANode_code_interpreter(FABaseNode):
     def init(self, *args, **kwargs):
         pass
 
-    def validateContent(
-        self, content_name: str, selfVars: List[str]
-    ) -> ValidationResult:
+    def validateContent(self, content_name: str, selfVars: List[str]) -> List[str]:
+        error_msgs = []
         try:
             for pid in self.data.getContent(content_name).order:
                 item: VFNodeContentData = self.data.getContent(content_name).byId[pid]
-                for var in item.data:
-                    if var["refdata"] not in selfVars:
-                        raise Exception("变量出错")
+                if item.type == VFNodeContentDataType.CodeInput:
+                    for var in item.data:
+                        if var["refdata"] not in selfVars:
+                            error_msgs.append(f"变量未定义{var['refdata']}")
+                        pass
+                elif item.type == VFNodeContentDataType.CodePython:
+                    if not isinstance(item.data, str):
+                        error_msgs.append(f"Python代码格式错误")
                     pass
+                elif item.type == VFNodeContentDataType.CodeJavascipt:
+                    if not isinstance(item.data, str):
+                        error_msgs.append(f"JavaScript代码格式错误")
+                    pass
+            return error_msgs
         except Exception as e:
-            return ValidationResult(isValid=False, message=str(e))
-        return ValidationResult(isValid=True, message="")
+            error_msgs.append(f"获取{content_name}内容失败:{str(e)}")
+            return error_msgs
 
-    def validate(self, selfVars: List[str]) -> ValidationResult:
-        return self.validateContent("payloads", selfVars)
+    def validate(self, selfVars: List[str]) -> ValidationError:
+        errors_payloads = self.validateContent("payloads", selfVars)
+        if len(errors_payloads) > 0:
+            return ValidationError(nid=self.id, errors=errors_payloads)
+        return None

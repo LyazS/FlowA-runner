@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Union
 import asyncio
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeInfo
-from app.schemas.farequest import ValidationResult
+from app.schemas.farequest import ValidationError
 from .basenode import FABaseNode
 
 
@@ -17,5 +17,5 @@ class FANode_cond_branch(FABaseNode):
     def init(self, *args, **kwargs):
         pass
 
-    def validate(self, selfVars: List[str]) -> ValidationResult:
-        return ValidationResult(isValid=True, message="")
+    def validate(self, selfVars: List[str]) -> Union[ValidationError, None]:
+        return None

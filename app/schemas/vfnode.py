@@ -6,9 +6,30 @@ from pydantic import BaseModel
 import json
 
 
+class VFNodeContentDataType(Enum):
+    String = "String"
+    Number = "Number"
+    Boolean = "Boolean"
+    Array = "Array"
+    Object = "Object"
+    File = "File"
+    CodeInput = "CodeInput"
+    CodePython = "CodePython"
+    CodeJavaScript = "CodeJavaScript"
+    ConditionDict = "ConditionDict"
+    IterIndex = "IterIndex"
+    LLMInput = "LLMInput"
+    ArrayPrompt = "ArrayPrompt"
+    ArrayString = "ArrayString"
+    ArrayNumber = "ArrayNumber"
+    ArrayBoolean = "ArrayBoolean"
+    ArrayFile = "ArrayFile"
+    pass
+
+
 class VFNodeContentData(BaseModel):
     label: str
-    type: str
+    type: VFNodeContentDataType
     key: str
     data: Any
     hid: Optional[str] = None
@@ -124,6 +145,7 @@ class VFNodeData(BaseModel):
         elif content_name == "results":
             return self.results
 
+
 class VFNodePosition(BaseModel):
     x: float
     y: float
@@ -155,5 +177,3 @@ class VFlowData(BaseModel):
     nodes: List[VFNodeInfo]
     edges: List[VFEdgeInfo]
     pass
-
-

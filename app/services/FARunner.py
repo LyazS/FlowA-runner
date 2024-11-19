@@ -1,5 +1,5 @@
 from typing import Dict, List
-from app.schemas.farequest import VarItem, ValidationResult
+from app.schemas.farequest import VarItem, ValidationError
 from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData
 from app.nodes import FABaseNode, FANODECOLLECTION
 
@@ -10,7 +10,7 @@ class FARunner:
         self.connectGraph = {}
         pass
 
-    async def run(self, flowdata: VFlowData) -> Dict[str, ValidationResult]:
+    async def run(self, flowdata: VFlowData) -> Dict[str, ValidationError]:
         # 初始化所有节点
         for nodeinfo in flowdata.nodes:
             node = (FANODECOLLECTION[nodeinfo.data.ntype])(nodeinfo)

@@ -3,7 +3,8 @@
 
 from fastapi import APIRouter
 
-from app.api import validate_flow
+from app.api import validate_flow, run_flow
 
 api_router = APIRouter()
 api_router.include_router(validate_flow.router, prefix="/api", tags=["api"])
+api_router.include_router(run_flow.router, prefix="/api", tags=["api"])
