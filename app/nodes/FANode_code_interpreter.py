@@ -31,7 +31,7 @@ class FANode_code_interpreter(FABaseNode):
                     if not isinstance(item.data, str):
                         error_msgs.append(f"Python代码格式错误")
                     pass
-                elif item.type == VFNodeContentDataType.CodeJavascipt:
+                elif item.type == VFNodeContentDataType.CodeJavaScript:
                     if not isinstance(item.data, str):
                         error_msgs.append(f"JavaScript代码格式错误")
                     pass
