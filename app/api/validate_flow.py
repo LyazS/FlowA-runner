@@ -2,8 +2,9 @@ from typing import List, Dict
 import asyncio
 from fastapi import APIRouter
 from app.core.config import settings
-from app.schemas.vfnode import VFlowData, FARunRequest
-from app.services.FAWorker import FAValidator
+from app.schemas.vfnode import VFlowData
+from app.schemas.farequest import FARunRequest
+from app.services.FAValidator import FAValidator
 
 router = APIRouter()
 

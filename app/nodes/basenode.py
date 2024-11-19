@@ -1,49 +1,50 @@
 from typing import List
 import asyncio
-from app.schemas.node import NodeData, NodeStatus, NodeWaitType
+from app.schemas.fanode import FANodeStatus, FANodeWaitType
+from app.schemas.vfnode import VFNodeData
 from app.schemas.vfnode import VFNodeInfo
-from app.schemas.validation import ValidationResult
+from app.schemas.farequest import ValidationResult
 
 
 class FABaseNode:
     def __init__(self, nodeinfo: VFNodeInfo):
         self.id = nodeinfo.id
-        self.data: NodeData = nodeinfo.data
+        self.data: VFNodeData = nodeinfo.data
         self.ntype: str = nodeinfo.data.ntype
         self.parentNode = nodeinfo.parentNode
 
         self.doneEvent = asyncio.Event()
         self.waitEvents: List[asyncio.Event] = []
         self.waitNodes: List["FABaseNode"] = []
-        self.status: NodeStatus = NodeStatus.Pending
+        self.status: FANodeStatus = FANodeStatus.Pending
 
-        self.waitType = NodeWaitType.AND
+        self.waitType = FANodeWaitType.AND
         pass
 
     async def _run(self):
         await asyncio.gather(*(event.wait() for event in self.waitEvents))
-        waitFunc = all if self.waitType == NodeWaitType.AND else any
+        waitFunc = all if self.waitType == FANodeWaitType.AND else any
         hasError = waitFunc(
-            [node.status == NodeStatus.Error for node in self.waitNodes]
+            [node.status == FANodeStatus.Error for node in self.waitNodes]
         )
         hasCanceled = waitFunc(
-            [node.status == NodeStatus.Canceled for node in self.waitNodes]
+            [node.status == FANodeStatus.Canceled for node in self.waitNodes]
         )
 
         # 前置节点出错或取消，本节点取消运行
         if hasError or hasCanceled:
-            self.status = NodeStatus.Canceled
+            self.status = FANodeStatus.Canceled
             self.doneEvent.set()
             return
 
         try:
             # 前置节点全部成功，本节点运行
-            self.status = NodeStatus.Running
+            self.status = FANodeStatus.Running
             await self.run()
-            self.status = NodeStatus.Success
+            self.status = FANodeStatus.Success
             pass
         except Exception as e:
-            self.status = NodeStatus.Error
+            self.status = FANodeStatus.Error
             raise e
         finally:
             self.doneEvent.set()

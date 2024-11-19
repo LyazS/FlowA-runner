@@ -1,8 +1,8 @@
 from typing import List
 import asyncio
-from app.schemas.node import NodeData, NodeStatus, NodeWaitType, NodeContentData
-from app.schemas.vfnode import VFNodeInfo
-from app.schemas.validation import ValidationResult
+from app.schemas.fanode import FANodeStatus, FANodeWaitType
+from app.schemas.vfnode import VFNodeInfo, VFNodeContentData
+from app.schemas.farequest import ValidationResult
 from .basenode import FABaseNode
 
 
@@ -22,7 +22,7 @@ class FANode_code_interpreter(FABaseNode):
     ) -> ValidationResult:
         try:
             for pid in self.data.getContent(content_name).order:
-                item: NodeContentData = self.data.getContent(content_name).byId[pid]
+                item: VFNodeContentData = self.data.getContent(content_name).byId[pid]
                 for var in item.data:
                     if var["refdata"] not in selfVars:
                         raise Exception("变量出错")

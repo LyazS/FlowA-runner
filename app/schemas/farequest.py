@@ -1,5 +1,7 @@
 from typing import List
 from pydantic import BaseModel
+from .vfnode import VFlowData
+
 
 class VarItem(BaseModel):
     nodeId: str
@@ -18,4 +20,11 @@ class VarSelectOption(BaseModel):
 class ValidationResult(BaseModel):
     isValid: bool
     message: str
+    pass
+
+
+class FARunRequest(BaseModel):
+    vflow: VFlowData
+    task_uuid: str
+    user_uuid: str
     pass

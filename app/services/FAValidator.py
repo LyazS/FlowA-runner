@@ -1,7 +1,6 @@
 from typing import Dict, List
-from app.schemas.validation import VarItem, ValidationResult
-from app.schemas.node import NodeConnectionDataType
-from app.schemas.vfnode import VFlowData
+from app.schemas.farequest import VarItem, ValidationResult
+from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData
 from app.nodes import FABaseNode, FANODECOLLECTION
 
 
@@ -74,7 +73,7 @@ class FAValidator:
             connection = the_node.data.connections.outputs[hid].data
 
         for c_data in connection.values():
-            if c_data.type == NodeConnectionDataType.FromInner:
+            if c_data.type == VFNodeConnectionDataType.FromInner:
                 result.append(
                     VarItem(
                         nodeId=nid,
@@ -92,7 +91,7 @@ class FAValidator:
                     )
                 )
 
-            elif c_data.type == NodeConnectionDataType.FromOuter:
+            elif c_data.type == VFNodeConnectionDataType.FromOuter:
                 # 对于上一个节点，递归搜索上个节点的对应输出handle
                 in_hid = c_data.inputKey
                 edges = self.get_handle_connections(nid, "target", in_hid)
@@ -105,7 +104,7 @@ class FAValidator:
                         )
                     )
 
-            elif c_data.type == NodeConnectionDataType.FromAttached:
+            elif c_data.type == VFNodeConnectionDataType.FromAttached:
                 # 对于子节点的处理
                 result.extend(
                     self.recursive_find_variables(
@@ -119,7 +118,7 @@ class FAValidator:
                     )
                 )
 
-            elif c_data.type == NodeConnectionDataType.FromParent:
+            elif c_data.type == VFNodeConnectionDataType.FromParent:
                 # 如果是父节点，递归搜索父节点的所有输入handle
                 result.extend(
                     self.recursive_find_variables(

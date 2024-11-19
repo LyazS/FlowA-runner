@@ -1,7 +1,128 @@
-from typing import List, Optional
+import asyncio
+import uuid
+from typing import List, Any, Dict, Optional
+from enum import Enum
 from pydantic import BaseModel
-from .node import NodeData
+import json
 
+
+class VFNodeContentData(BaseModel):
+    label: str
+    type: str
+    key: str
+    data: Any
+    hid: Optional[str] = None
+    oid: Optional[str] = None
+    pass
+
+
+class VFNodeContents(BaseModel):
+    byId: Dict[str, VFNodeContentData]
+    order: List[str]
+    pass
+
+
+class VFNodeConnectionDataType(Enum):
+    FromOuter = "FromOuter"
+    FromAttached = "FromAttached"
+    FromParent = "FromParent"
+    FromInner = "FromInner"
+    pass
+
+
+class VFNodeConnectionData(BaseModel):
+    type: VFNodeConnectionDataType
+    inputKey: Optional[str] = None
+    atype: Optional[str] = None
+    path: Optional[List[str]] = None
+    useid: Optional[List[str]] = None
+    pass
+
+
+class VFNodeConnectionType(Enum):
+    self = "self"
+    attach = "attach"
+    inputs = "inputs"
+    outputs = "outputs"
+    callbackUsers = "callbackUsers"
+    callbackFuncs = "callbackFuncs"
+    pass
+
+
+class VFNodeConnection(BaseModel):
+    label: str
+    data: Dict[str, VFNodeConnectionData]
+    pass
+
+
+class VFNodeConnections(BaseModel):
+    self: Optional[Dict[str, VFNodeConnection]] = None
+    attach: Optional[Dict[str, VFNodeConnection]] = None
+    inputs: Optional[Dict[str, VFNodeConnection]] = None
+    outputs: Optional[Dict[str, VFNodeConnection]] = None
+    callbackUsers: Optional[Dict[str, VFNodeConnection]] = None
+    callbackFuncs: Optional[Dict[str, VFNodeConnection]] = None
+    pass
+
+
+class VFNodeFlags(BaseModel):
+    isNested: bool
+    isAttached: bool
+    isDisabled: bool
+
+
+class VFNodeAttaching(BaseModel):
+    type: str
+    pos: str
+
+
+class VFNodeAttachedNode(BaseModel):
+    ntype: str
+    nid: str
+    apos: str
+
+
+class VFNodePadding(BaseModel):
+    top: int
+    bottom: int
+    left: int
+    right: int
+
+
+class VFNodeSize(BaseModel):
+    width: float
+    height: float
+
+
+class VFNodeNesting(BaseModel):
+    pad: VFNodePadding
+    attached_pad: VFNodePadding
+    attached_nodes: Dict[str, VFNodeAttachedNode]
+
+
+class VFNodeData(BaseModel):
+    ntype: str
+    vtype: str
+    flags: VFNodeFlags
+    label: str
+    placeholderlabel: str
+    size: Optional[VFNodeSize] = None
+    min_size: Optional[VFNodeSize] = None
+    attaching: Optional[VFNodeAttaching] = None
+    nesting: Optional[VFNodeNesting] = None
+    connections: Optional[VFNodeConnections] = None
+    payloads: Optional[VFNodeContents] = None
+    results: Optional[VFNodeContents] = None
+    pass
+
+    def get(self, path: List[str]):
+        pass
+
+    def getContent(self, content_name: str) -> VFNodeContents:
+        if content_name == "payloads":
+            return self.payloads
+        elif content_name == "results":
+            return self.results
 
 class VFNodePosition(BaseModel):
     x: float
@@ -13,7 +134,7 @@ class VFNodeInfo(BaseModel):
     id: str
     type: str
     position: VFNodePosition
-    data: NodeData
+    data: VFNodeData
     parentNode: Optional[str] = None
     pass
 
@@ -36,8 +157,3 @@ class VFlowData(BaseModel):
     pass
 
 
-class FARunRequest(BaseModel):
-    vflow: VFlowData
-    task_uuid: str
-    user_uuid: str
-    pass
