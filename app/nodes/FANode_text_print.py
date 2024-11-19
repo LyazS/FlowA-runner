@@ -27,6 +27,8 @@ class FANode_text_print(FABaseNode):
                         if refdata not in selfVars:
                             error_msgs.append(f"变量未定义{refdata}")
                         pass
+                else:
+                    error_msgs.append(f"payloads内容类型错误{item.type}")
             return error_msgs
         except Exception as e:
             error_msgs.append(f"获取payloads内容失败:{str(e)}")

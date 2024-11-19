@@ -35,6 +35,8 @@ class FANode_code_interpreter(FABaseNode):
                     if not isinstance(item.data, str):
                         error_msgs.append(f"JavaScript代码格式错误")
                     pass
+                else:
+                    error_msgs.append(f"类型错误:{item.type}")
             return error_msgs
         except Exception as e:
             error_msgs.append(f"获取{content_name}内容失败:{str(e)}")
