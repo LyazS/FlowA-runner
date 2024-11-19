@@ -2,6 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from .node import NodeData
 
+
 class VFNodePosition(BaseModel):
     x: float
     y: float
@@ -35,3 +36,8 @@ class VFlowData(BaseModel):
     pass
 
 
+class FARunRequest(BaseModel):
+    vflow: VFlowData
+    task_uuid: str
+    user_uuid: str
+    pass

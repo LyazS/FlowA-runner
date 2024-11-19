@@ -8,6 +8,7 @@ from .basenode import FABaseNode
 
 class FANode_iter_run(FABaseNode):
     def __init__(self, nodeinfo: VFNodeInfo):
+        super().__init__(nodeinfo)
         pass
 
     async def run(self):

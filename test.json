@@ -1,916 +1,308 @@
 {
-    "nodes": [
-        {
-            "id": "cc5e9db976fb4f839c2a1fc6be8a8cff",
-            "type": "basenode",
-            "initialized": false,
-            "position": {
-                "x": 107,
-                "y": 200
-            },
-            "data": {
-                "ntype": "text_input",
-                "vtype": "basenode",
-                "size": {
-                    "width": 88,
-                    "height": 38
-                },
-                "label": "文本输入",
-                "placeholderlabel": "文本输入",
-                "flags": {
-                    "isNested": false,
-                    "isAttached": false,
-                    "isDisabled": false
-                },
-                "connections": {
-                    "self": {
-                        "self": {
-                            "label": "self",
-                            "data": {}
-                        }
-                    },
-                    "attach": {
-                        "attach": {
-                            "label": "attach",
-                            "data": {}
-                        }
-                    },
-                    "inputs": {},
-                    "callbackUsers": {},
-                    "callbackFuncs": {},
-                    "outputs": {
-                        "output": {
-                            "label": "output",
-                            "data": {
-                                "8c9d589870254199b7072c444d93ddb1": {
-                                    "type": "FromInner",
-                                    "path": [
-                                        "payloads",
-                                        "899ed75cef7943ba955c6de0a0aabe70"
-                                    ],
-                                    "useid": []
-                                }
-                            }
-                        }
-                    },
-                    "outputs-uitype": "tagoutputs"
-                },
-                "payloads": {
-                    "byId": {
-                        "899ed75cef7943ba955c6de0a0aabe70": {
-                            "label": "内容",
-                            "type": "String",
-                            "key": "text",
-                            "data": "",
-                            "uitype": "textinput"
-                        }
-                    },
-                    "order": [
-                        "899ed75cef7943ba955c6de0a0aabe70"
-                    ]
-                },
-                "results": {
-                    "byId": {},
-                    "order": []
-                },
-                "state": {
-                    "isProcessing": false,
-                    "error": null,
-                    "lastUpdated": null
-                },
-                "config": {
-                    "timeout": 30000,
-                    "retryAttempts": 0,
-                    "cacheResults": false
-                }
-            },
-            "style": {
-                "width": "88px",
-                "height": "38px"
-            }
-        },
-        {
-            "id": "842f235b8a624b28837abdcdae96b268",
-            "type": "basenode",
-            "initialized": false,
-            "position": {
-                "x": 204.63022105604728,
-                "y": 330.17373344415273
-            },
-            "data": {
-                "ntype": "iter_run",
-                "vtype": "basenode",
-                "size": {
-                    "width": 210.82522465167438,
-                    "height": 231.33495506966506
-                },
-                "label": "迭代运行",
-                "placeholderlabel": "迭代运行",
-                "flags": {
-                    "isNested": true,
-                    "isAttached": false,
-                    "isDisabled": false
-                },
-                "min_size": {
-                    "width": 200,
-                    "height": 200
-                },
-                "nesting": {
-                    "pad": {
-                        "top": 60,
-                        "bottom": 40,
-                        "left": 60,
-                        "right": 60
-                    },
-                    "attached_pad": {
-                        "top": 30,
-                        "bottom": 25,
-                        "left": 17,
-                        "right": 17
-                    },
-                    "attached_nodes": {
-                        "input": {
-                            "ntype": "attached_node_input",
-                            "nid": "9cf23c4a88284c33b8745038640f276f",
-                            "apos": "top-left"
-                        },
-                        "callbackUser": {
-                            "ntype": "attached_node_callbackUser",
-                            "nid": "156e04fe26c144aa9db782bf3d195a84",
-                            "apos": "top-right"
-                        },
-                        "output": {
-                            "ntype": "attached_node_output",
-                            "nid": "f3b457b29dad423aaec1e2bef4431078",
-                            "apos": "bottom-right"
-                        },
-                        "callbackFunc": {
-                            "ntype": "attached_node_callbackFunc",
-                            "nid": "c87d08266f9e480cb3ad6f443f2b890f",
-                            "apos": "bottom-left"
-                        }
-                    }
-                },
-                "connections": {
-                    "self": {
-                        "self": {
-                            "label": "self",
-                            "data": {
-                                "1b9df4714ba44ff1bf0e6fe45392f41b": {
-                                    "type": "FromAttached",
-                                    "atype": "output",
-                                    "useid": []
-                                }
-                            }
-                        }
-                    },
-                    "attach": {
-                        "attach": {
-                            "label": "attach",
-                            "data": {
-                                "6e401a37b84d4b009ab902d1e9a25205": {
-                                    "type": "FromInner",
-                                    "path": [
-                                        "payloads",
-                                        "9769c1dcf7234ba69bfb391fc7de5424"
-                                    ],
-                                    "useid": []
-                                },
-                                "bd197eaf4958497dbfa2fabe41609f41": {
-                                    "type": "FromOuter",
-                                    "inputKey": "input"
-                                }
-                            }
-                        }
-                    },
-                    "inputs": {
-                        "input": {
-                            "label": "input",
-                            "data": {}
-                        }
-                    },
-                    "callbackUsers": {
-                        "callbackUser": {
-                            "label": "callbackUser",
-                            "data": {}
-                        }
-                    },
-                    "callbackFuncs": {
-                        "callbackFunc": {
-                            "label": "callbackFunc",
-                            "data": {}
-                        }
-                    },
-                    "outputs": {
-                        "output": {
-                            "label": "output",
-                            "data": {
-                                "2f2dc6360e2c4782a9eb23978493c784": {
-                                    "type": "FromInner",
-                                    "path": [
-                                        "results",
-                                        "2752a680a601422f85efc4785ab9e503"
-                                    ],
-                                    "useid": []
-                                }
-                            }
-                        }
-                    },
-                    "outputs-uitype": "packoutputs"
-                },
-                "payloads": {
-                    "byId": {
-                        "9769c1dcf7234ba69bfb391fc7de5424": {
-                            "label": "迭代索引",
-                            "type": "IterIndex",
-                            "key": "iter_index",
-                            "data": null,
-                            "uitype": "texttag"
-                        }
-                    },
-                    "order": [
-                        "9769c1dcf7234ba69bfb391fc7de5424"
-                    ]
-                },
-                "results": {
-                    "byId": {
-                        "2752a680a601422f85efc4785ab9e503": {
-                            "label": "out",
-                            "type": "Array<String>",
-                            "key": "out",
-                            "data": "d29677596c504667911787123fd6e877/results/203e01ecc96644d0930662d9315c395b",
-                            "hid": "output",
-                            "oid": "2f2dc6360e2c4782a9eb23978493c784"
-                        }
-                    },
-                    "order": [
-                        "2752a680a601422f85efc4785ab9e503"
-                    ]
-                },
-                "state": {
-                    "isProcessing": false,
-                    "error": null,
-                    "lastUpdated": null
-                },
-                "config": {
-                    "timeout": 30000,
-                    "retryAttempts": 0,
-                    "cacheResults": false
-                }
-            },
-            "style": {
-                "width": "210.82522465167438px",
-                "height": "231.33495506966506px"
-            }
-        },
-        {
-            "id": "9cf23c4a88284c33b8745038640f276f",
-            "type": "attached_node",
-            "draggable": false,
-            "selectable": false,
-            "initialized": false,
-            "position": {
-                "x": 3,
-                "y": 23
-            },
-            "data": {
-                "ntype": "attached_node_input",
-                "vtype": "attached_node",
-                "size": {
-                    "width": 28,
-                    "height": 14
-                },
-                "label": "附属节点",
-                "placeholderlabel": "附属节点",
-                "flags": {
-                    "isNested": false,
-                    "isAttached": true,
-                    "isDisabled": false
-                },
-                "attaching": {
-                    "type": "input",
-                    "pos": "top-left"
-                },
-                "connections": {
-                    "self": {
-                        "self": {
-                            "label": "self",
-                            "data": {}
-                        }
-                    },
-                    "attach": {
-                        "attach": {
-                            "label": "attach",
-                            "data": {}
-                        }
-                    },
-                    "inputs": {},
-                    "callbackUsers": {},
-                    "callbackFuncs": {},
-                    "outputs": {
-                        "output": {
-                            "label": "output",
-                            "data": {
-                                "91c2cba0b5ce48c188061b98e58f2a8e": {
-                                    "type": "FromParent"
-                                }
-                            }
-                        }
-                    },
-                    "outputs-uitype": ""
-                }
-            },
-            "style": {
-                "width": "28px",
-                "height": "14px"
-            },
-            "parentNode": "842f235b8a624b28837abdcdae96b268"
-        },
-        {
-            "id": "156e04fe26c144aa9db782bf3d195a84",
-            "type": "attached_node",
-            "draggable": false,
-            "selectable": false,
-            "initialized": false,
-            "position": {
-                "x": 179.82522465167438,
-                "y": 23
-            },
-            "data": {
-                "ntype": "attached_node_callbackUser",
-                "vtype": "attached_node",
-                "size": {
-                    "width": 28,
-                    "height": 14
-                },
-                "label": "附属节点",
-                "placeholderlabel": "附属节点",
-                "flags": {
-                    "isNested": false,
-                    "isAttached": true,
-                    "isDisabled": false
-                },
-                "attaching": {
-                    "type": "callbackUser",
-                    "pos": "top-right"
-                },
-                "connections": {
-                    "self": {
-                        "self": {
-                            "label": "self",
-                            "data": {}
-                        }
-                    },
-                    "attach": {
-                        "attach": {
-                            "label": "attach",
-                            "data": {}
-                        }
-                    },
-                    "inputs": {},
-                    "callbackUsers": {},
-                    "callbackFuncs": {},
-                    "outputs": {},
-                    "outputs-uitype": ""
-                }
-            },
-            "style": {
-                "width": "28px",
-                "height": "14px"
-            },
-            "parentNode": "842f235b8a624b28837abdcdae96b268"
-        },
-        {
-            "id": "f3b457b29dad423aaec1e2bef4431078",
-            "type": "attached_node",
-            "draggable": false,
-            "selectable": false,
-            "initialized": false,
-            "position": {
-                "x": 179.82522465167438,
-                "y": 199.33495506966506
-            },
-            "data": {
-                "ntype": "attached_node_output",
-                "vtype": "attached_node",
-                "size": {
-                    "width": 28,
-                    "height": 14
-                },
-                "label": "附属节点",
-                "placeholderlabel": "附属节点",
-                "flags": {
-                    "isNested": false,
-                    "isAttached": true,
-                    "isDisabled": false
-                },
-                "attaching": {
-                    "type": "output",
-                    "pos": "bottom-right"
-                },
-                "connections": {
-                    "self": {
-                        "self": {
-                            "label": "self",
-                            "data": {
-                                "72890993540947308bec1130245ac3ea": {
-                                    "type": "FromOuter",
-                                    "inputKey": "input"
-                                }
-                            }
-                        }
-                    },
-                    "attach": {
-                        "attach": {
-                            "label": "attach",
-                            "data": {}
-                        }
-                    },
-                    "inputs": {
-                        "input": {
-                            "label": "input",
-                            "data": {}
-                        }
-                    },
-                    "callbackUsers": {},
-                    "callbackFuncs": {},
-                    "outputs": {},
-                    "outputs-uitype": ""
-                }
-            },
-            "style": {
-                "width": "28px",
-                "height": "14px"
-            },
-            "parentNode": "842f235b8a624b28837abdcdae96b268"
-        },
-        {
-            "id": "c87d08266f9e480cb3ad6f443f2b890f",
-            "type": "attached_node",
-            "draggable": false,
-            "selectable": false,
-            "initialized": false,
-            "position": {
-                "x": 3,
-                "y": 199.33495506966506
-            },
-            "data": {
-                "ntype": "attached_node_callbackFunc",
-                "vtype": "attached_node",
-                "size": {
-                    "width": 28,
-                    "height": 14
-                },
-                "label": "附属节点",
-                "placeholderlabel": "附属节点",
-                "flags": {
-                    "isNested": false,
-                    "isAttached": true,
-                    "isDisabled": false
-                },
-                "attaching": {
-                    "type": "callbackFunc",
-                    "pos": "bottom-left"
-                },
-                "connections": {
-                    "self": {
-                        "self": {
-                            "label": "self",
-                            "data": {}
-                        }
-                    },
-                    "attach": {
-                        "attach": {
-                            "label": "attach",
-                            "data": {}
-                        }
-                    },
-                    "inputs": {},
-                    "callbackUsers": {},
-                    "callbackFuncs": {},
-                    "outputs": {},
-                    "outputs-uitype": ""
-                }
-            },
-            "style": {
-                "width": "28px",
-                "height": "14px"
-            },
-            "parentNode": "842f235b8a624b28837abdcdae96b268"
-        },
-        {
-            "id": "d29677596c504667911787123fd6e877",
-            "type": "basenode",
-            "initialized": false,
-            "position": {
-                "x": 60,
-                "y": 60
-            },
-            "data": {
-                "ntype": "code_interpreter",
-                "vtype": "basenode",
-                "size": {
-                    "width": 88,
-                    "height": 46
-                },
-                "label": "代码解释器",
-                "placeholderlabel": "代码解释器",
-                "flags": {
-                    "isNested": false,
-                    "isAttached": false,
-                    "isDisabled": false
-                },
-                "connections": {
-                    "self": {
-                        "self": {
-                            "label": "self",
-                            "data": {
-                                "b60fdc82768940e1b84f102eb868d05f": {
-                                    "type": "FromOuter",
-                                    "inputKey": "input"
-                                }
-                            }
-                        }
-                    },
-                    "attach": {
-                        "attach": {
-                            "label": "attach",
-                            "data": {}
-                        }
-                    },
-                    "inputs": {
-                        "input": {
-                            "label": "input",
-                            "data": {}
-                        }
-                    },
-                    "callbackUsers": {
-                        "callbackUser": {
-                            "label": "callbackUser",
-                            "data": {}
-                        }
-                    },
-                    "callbackFuncs": {
-                        "callbackFunc": {
-                            "label": "callbackFunc",
-                            "data": {}
-                        }
-                    },
-                    "outputs": {
-                        "output": {
-                            "label": "output",
-                            "data": {
-                                "ce0a574c1f1e4bc4b00965f743bb8524": {
-                                    "type": "FromInner",
-                                    "path": [
-                                        "results",
-                                        "203e01ecc96644d0930662d9315c395b"
-                                    ],
-                                    "useid": []
-                                },
-                                "656dcb90aea44e428e276c986e85144a": {
-                                    "type": "FromInner",
-                                    "path": [
-                                        "results",
-                                        "2afa3670a301460f99d5d9605e0a65df"
-                                    ],
-                                    "useid": []
-                                }
-                            }
-                        }
-                    },
-                    "outputs-uitype": "codeoutputs"
-                },
-                "payloads": {
-                    "byId": {
-                        "b4cd41e41cfb46e5a7124362c472865e": {
-                            "label": "输入变量",
-                            "type": "CodeInput",
-                            "key": "inputvars",
-                            "data": [
-                                {
-                                    "key": "arg1",
-                                    "refdata": "cc5e9db976fb4f839c2a1fc6be8a8cff/payloads/899ed75cef7943ba955c6de0a0aabe70"
-                                },
-                                {
-                                    "key": "arg2",
-                                    "refdata": "842f235b8a624b28837abdcdae96b268/payloads/9769c1dcf7234ba69bfb391fc7de5424"
-                                }
-                            ],
-                            "uitype": "codeinputs"
-                        },
-                        "4022b21868584b45b2f55d7b2f1e4bb6": {
-                            "label": "Python 代码",
-                            "type": "Code<Python>",
-                            "key": "code",
-                            "data": "#You can use numpy and cv2 by import\ndef main(arg1, arg2):\n    # do something\n    return {\n        \"output1\": arg1,\n        \"output2\": arg2\n    }",
-                            "uitype": "codeeditor"
-                        }
-                    },
-                    "order": [
-                        "b4cd41e41cfb46e5a7124362c472865e",
-                        "4022b21868584b45b2f55d7b2f1e4bb6"
-                    ]
-                },
-                "results": {
-                    "byId": {
-                        "203e01ecc96644d0930662d9315c395b": {
-                            "label": "output1",
-                            "type": "String",
-                            "key": "output1",
-                            "data": null,
-                            "hid": "output",
-                            "oid": "ce0a574c1f1e4bc4b00965f743bb8524"
-                        },
-                        "2afa3670a301460f99d5d9605e0a65df": {
-                            "label": "output2",
-                            "type": "String",
-                            "key": "output2",
-                            "data": null,
-                            "hid": "output",
-                            "oid": "656dcb90aea44e428e276c986e85144a"
-                        }
-                    },
-                    "order": [
-                        "203e01ecc96644d0930662d9315c395b",
-                        "2afa3670a301460f99d5d9605e0a65df"
-                    ]
-                },
-                "state": {
-                    "isProcessing": false,
-                    "error": null,
-                    "lastUpdated": null
-                },
-                "config": {
-                    "timeout": 30000,
-                    "retryAttempts": 0,
-                    "cacheResults": false
-                }
-            },
-            "style": {
-                "width": "88px",
-                "height": "46px"
-            },
-            "parentNode": "842f235b8a624b28837abdcdae96b268"
-        },
-        {
-            "id": "b1657c2c4097445aa4105acdf9da8e35",
-            "type": "basenode",
-            "initialized": false,
-            "position": {
-                "x": 62.825224651674375,
-                "y": 153.3349550696651
-            },
-            "data": {
-                "ntype": "text_input",
-                "vtype": "basenode",
-                "size": {
-                    "width": 88,
-                    "height": 38
-                },
-                "label": "文本输入1",
-                "placeholderlabel": "文本输入1",
-                "flags": {
-                    "isNested": false,
-                    "isAttached": false,
-                    "isDisabled": false
-                },
-                "connections": {
-                    "self": {
-                        "self": {
-                            "label": "self",
-                            "data": {}
-                        }
-                    },
-                    "attach": {
-                        "attach": {
-                            "label": "attach",
-                            "data": {}
-                        }
-                    },
-                    "inputs": {},
-                    "callbackUsers": {},
-                    "callbackFuncs": {},
-                    "outputs": {
-                        "output": {
-                            "label": "output",
-                            "data": {
-                                "8c9d589870254199b7072c444d93ddb1": {
-                                    "type": "FromInner",
-                                    "path": [
-                                        "payloads",
-                                        "899ed75cef7943ba955c6de0a0aabe70"
-                                    ],
-                                    "useid": []
-                                }
-                            }
-                        }
-                    },
-                    "outputs-uitype": "tagoutputs"
-                },
-                "payloads": {
-                    "byId": {
-                        "899ed75cef7943ba955c6de0a0aabe70": {
-                            "label": "内容",
-                            "type": "String",
-                            "key": "text",
-                            "data": "",
-                            "uitype": "textinput"
-                        }
-                    },
-                    "order": [
-                        "899ed75cef7943ba955c6de0a0aabe70"
-                    ]
-                },
-                "results": {
-                    "byId": {},
-                    "order": []
-                },
-                "state": {
-                    "isProcessing": false,
-                    "error": null,
-                    "lastUpdated": null
-                },
-                "config": {
-                    "timeout": 30000,
-                    "retryAttempts": 0,
-                    "cacheResults": false
-                }
-            },
-            "style": {
-                "width": "88px",
-                "height": "38px"
-            },
-            "parentNode": "842f235b8a624b28837abdcdae96b268"
-        },
-        {
-            "id": "66cc76cac7ab44aeb552bf38eb8ef3f9",
-            "type": "basenode",
-            "initialized": false,
-            "position": {
-                "x": 471.07757359647576,
-                "y": 457.4137178924528
-            },
-            "data": {
-                "ntype": "text_print",
-                "vtype": "basenode",
-                "size": {
-                    "width": 88,
-                    "height": 38
-                },
-                "label": "文本输出",
-                "placeholderlabel": "文本输出",
-                "flags": {
-                    "isNested": false,
-                    "isAttached": false,
-                    "isDisabled": false
-                },
-                "connections": {
-                    "self": {
-                        "self": {
-                            "label": "self",
-                            "data": {
-                                "f8f0e9d14c374977800955f0e62967ea": {
-                                    "type": "FromOuter",
-                                    "inputKey": "input"
-                                }
-                            }
-                        }
-                    },
-                    "attach": {
-                        "attach": {
-                            "label": "attach",
-                            "data": {}
-                        }
-                    },
-                    "inputs": {
-                        "input": {
-                            "label": "input",
-                            "data": {}
-                        }
-                    },
-                    "callbackUsers": {},
-                    "callbackFuncs": {},
-                    "outputs": {},
-                    "outputs-uitype": ""
-                },
-                "payloads": {
-                    "byId": {
-                        "33b5b8af89fd4f4bb60cc787c4ae98c2": {
-                            "label": "内容",
-                            "type": "Array<String>",
-                            "key": "text",
-                            "data": [
-                                "842f235b8a624b28837abdcdae96b268/results/2752a680a601422f85efc4785ab9e503"
-                            ],
-                            "uitype": "textprint"
-                        }
-                    },
-                    "order": [
-                        "33b5b8af89fd4f4bb60cc787c4ae98c2"
-                    ]
-                },
-                "results": {
-                    "byId": {},
-                    "order": []
-                },
-                "state": {
-                    "isProcessing": false,
-                    "error": null,
-                    "lastUpdated": null
-                },
-                "config": {
-                    "timeout": 30000,
-                    "retryAttempts": 0,
-                    "cacheResults": false
-                }
-            },
-            "style": {
-                "width": "88px",
-                "height": "38px"
-            }
-        }
-    ],
-    "edges": [
-        {
-            "id": "vueflow__edge-cc5e9db976fb4f839c2a1fc6be8a8cffoutput-842f235b8a624b28837abdcdae96b268input",
-            "type": "normal",
-            "source": "cc5e9db976fb4f839c2a1fc6be8a8cff",
-            "target": "842f235b8a624b28837abdcdae96b268",
-            "sourceHandle": "output",
-            "targetHandle": "input",
-            "data": {},
-            "label": "",
-            "sourceX": 190,
-            "sourceY": 230.5,
-            "targetX": 209.6302208435108,
-            "targetY": 337.6737066645595
-        },
-        {
-            "id": "vueflow__edge-b1657c2c4097445aa4105acdf9da8e35output-f3b457b29dad423aaec1e2bef4431078input",
-            "type": "normal",
-            "source": "b1657c2c4097445aa4105acdf9da8e35",
-            "target": "f3b457b29dad423aaec1e2bef4431078",
-            "sourceHandle": "output",
-            "targetHandle": "input",
-            "data": {},
-            "label": "",
-            "sourceX": 350.45544570772165,
-            "sourceY": 514.0086885138178,
-            "targetX": 387.6221327194404,
-            "targetY": 536.5086885138178
-        },
-        {
-            "id": "vueflow__edge-d29677596c504667911787123fd6e877output-f3b457b29dad423aaec1e2bef4431078input",
-            "type": "normal",
-            "source": "d29677596c504667911787123fd6e877",
-            "target": "f3b457b29dad423aaec1e2bef4431078",
-            "sourceHandle": "output",
-            "targetHandle": "input",
-            "data": {},
-            "label": "",
-            "sourceX": 347.6302210560473,
-            "sourceY": 428.67373344415273,
-            "targetX": 387.6221327194404,
-            "targetY": 536.5086885138178
-        },
-        {
-            "id": "vueflow__edge-9cf23c4a88284c33b8745038640f276foutput-d29677596c504667911787123fd6e877input",
-            "type": "normal",
-            "source": "9cf23c4a88284c33b8745038640f276f",
-            "target": "d29677596c504667911787123fd6e877",
-            "sourceHandle": "output",
-            "targetHandle": "input",
-            "data": {},
-            "label": "",
-            "sourceX": 232.46356456190665,
-            "sourceY": 360.17373344415273,
-            "targetX": 269.6302210560473,
-            "targetY": 397.67373344415273
-        },
-        {
-            "id": "vueflow__edge-842f235b8a624b28837abdcdae96b268output-66cc76cac7ab44aeb552bf38eb8ef3f9input",
-            "type": "normal",
-            "source": "842f235b8a624b28837abdcdae96b268",
-            "target": "66cc76cac7ab44aeb552bf38eb8ef3f9",
-            "sourceHandle": "output",
-            "targetHandle": "input",
-            "data": {},
-            "label": "",
-            "sourceX": 410.45283490077395,
-            "sourceY": 554.0067527336213,
-            "targetX": 476.0775999509961,
-            "targetY": 464.9137176799163
-        }
-    ],
-    "position": [
-        -21.126033866266255,
-        -119.43038529613818
-    ],
-    "zoom": 1.1486983549970347,
-    "viewport": {
-        "x": -21.126033866266255,
-        "y": -119.43038529613818,
-        "zoom": 1.1486983549970347
-    }
+  "end_step": "end",
+  "end_reason": "success",
+  "fatal_error": "",
+  "prepaid_fee": "user_id:31, prepaid fee:0.2800000000000000058286708793",
+  "check_balance": "user_id:31, balance:0.220000",
+  "input_novel": "明冉是箴明惹不起的豪门千金，有钱有势任性妄为。\n楚原是出了名的特招生。\n特别贫困，特别聪明，特别孤傲，穿洗得发白的旧衣鞋。\n偏偏明冉看上了他。\n少女的爱炙热猛烈，高高在上，不容拒绝。\n一场意外父母双亡，明冉从公主变灰姑娘。\n楚原却只冷冷看着惶惶无措的她：“这是你的报应。”\n明冉这才知道，他恨她。\n后来，她消失了。\n十年后，楚原成为商界翻云覆雨的奇才。\n接近而立之年还未婚，自称不婚主义。\n没人知晓，他时常做梦。\n梦里少女娇艳如瑰，献宝似的从书包里拿出小笼包，撒娇叫他：阿原。\n这是他儿时最爱，她想方设法找到了早已不做生意的老板，央求人家做了一笼。\n梦醒，他抽了整夜的烟，梦里那一声声“阿原”犹如在耳。\n一次美术展上，他对着一幅女人的自画像红了眼眶。\n圈内皆传，她是霍家掌权人一手扶持的艺术家，亦是准霍太太，明冉。\n楚原当晚饮酒胃出血紧急送往医院。\n画展庆功宴上，有人看见楚原将明冉拉进了一旁的休息间。\n里面传来激烈的响动，惊得众人破门而入。\n在众人震惊目光中，楚原满身狼狈，眼含痛苦几近哀求：“冉冉，我后悔了，回到我身边好不好。”\n明冉将他推开态度冷漠：“楚总，求晚了。”\n后来他与她抵足缠绵时求她一句“我爱你”。\n明冉嗤笑：“楚总，各取所需，谈情就没意思了。”\n楚原从醉酒后的明冉身上发现了她的秘密。\n当初她纹在腰间的爱意，至今都未曾洗掉。\n他轻吐烟圈，手指掐上她的软腰：“不是不爱我了，嗯？”\n多年后，我演不爱你，无奈演技拙劣。",
+  "RecognizeNovelType": "{\n    \"type\": \"现代都市\"\n}",
+  "PreSplitNovel1": "1. 明冉是豪门千金，楚原是特困生，明冉对楚原产生爱慕。\n2. 明冉父母双亡，生活剧变，楚原冷眼旁观并称这是她的报应。\n3. 明冉消失，楚原成为商界奇才，但常梦见明冉。\n4. 楚原在美术展上看到明冉的自画像，情绪激动。\n5. 楚原因明冉的消息饮酒过度导致胃出血。\n6. 楚原在画展庆功宴上将明冉拉入休息间，表达后悔之情。\n7. 明冉拒绝楚原的复合请求，称求晚了。\n8. 楚原在亲密时刻试图让明冉说“我爱你”，但明冉表示只是各取所需。\n9. 楚原发现明冉腰间未洗掉的纹身，揭示她仍未忘记他。",
+  "PreSplitNovel2": "1. 明冉是豪门千金，楚原是特困生。\n2. 明冉对楚原产生爱慕。\n3. 明冉父母双亡，生活剧变。\n4. 楚原冷眼旁观明冉的困境，称这是她的报应。\n5. 明冉消失。\n6. 楚原成为商界奇才。\n7. 楚原常梦见明冉。\n8. 楚原在美术展上看到明冉的自画像，情绪激动。\n9. 楚原因明冉的消息饮酒过度导致胃出血。\n10. 楚原在画展庆功宴上将明冉拉入休息间。\n11. 楚原表达后悔之情，请求明冉回到他身边。\n12. 明冉拒绝楚原的复合请求，称求晚了。\n13. 楚原在亲密时刻试图让明冉说“我爱你”。\n14. 明冉表示只是各取所需，不谈感情。\n15. 楚原发现明冉腰间未洗掉的纹身。\n16. 楚原揭示明冉仍未忘记他。",
+  "GetCharacterName1": "|序号|情节|人物角色|\n|---|---|---|\n|1|明冉是豪门千金，楚原是特困生|[明冉],[楚原]|\n|2|明冉对楚原产生爱慕|[明冉],[楚原]|\n|3|明冉父母双亡，生活剧变|[明冉]|\n|4|楚原冷眼旁观明冉的困境，称这是她的报应|[楚原],[明冉]|\n|5|明冉消失|[明冉]|\n|6|楚原成为商界奇才|[楚原]|\n|7|楚原常梦见明冉|[楚原],[明冉]|\n|8|楚原在美术展上看到明冉的自画像，情绪激动|[楚原],[明冉]|\n|9|楚原因明冉的消息饮酒过度导致胃出血|[楚原],[明冉]|\n|10|楚原在画展庆功宴上将明冉拉入休息间|[楚原],[明冉]|\n|11|楚原表达后悔之情，请求明冉回到他身边|[楚原],[明冉]|\n|12|明冉拒绝楚原的复合请求，称求晚了|[明冉],[楚原]|\n|13|楚原在亲密时刻试图让明冉说“我爱你”|[楚原],[明冉]|\n|14|明冉表示只是各取所需，不谈感情|[明冉],[楚原]|\n|15|楚原发现明冉腰间未洗掉的纹身|[楚原],[明冉]|\n|16|楚原揭示明冉仍未忘记他|[楚原],[明冉]|",
+  "GetCharacterName2": "|序号|情节|人物角色|\n|---|---|---|\n|1|明冉是豪门千金，楚原是特困生|[明冉],[楚原]|\n|2|明冉对楚原产生爱慕|[明冉],[楚原]|\n|3|明冉父母双亡，生活剧变|[明冉]|\n|4|楚原冷眼旁观明冉的困境，称这是她的报应|[楚原],[明冉]|\n|5|明冉消失|[明冉]|\n|6|楚原成为商界奇才|[楚原]|\n|7|楚原常梦见明冉|[楚原],[明冉]|\n|8|楚原在美术展上看到明冉的自画像，情绪激动|[楚原],[明冉]|\n|9|楚原因明冉的消息饮酒过度导致胃出血|[楚原],[明冉]|\n|10|楚原在画展庆功宴上将明冉拉入休息间|[楚原],[明冉]|\n|11|楚原表达后悔之情，请求明冉回到他身边|[楚原],[明冉]|\n|12|明冉拒绝楚原的复合请求，称求晚了|[明冉],[楚原]|\n|13|楚原在亲密时刻试图让明冉说“我爱你”|[楚原],[明冉]|\n|14|明冉表示只是各取所需，不谈感情|[明冉],[楚原]|\n|15|楚原发现明冉腰间未洗掉的纹身|[楚原],[明冉]|\n|16|楚原揭示明冉仍未忘记他|[楚原],[明冉]|",
+  "FixSplitNovel": "|序号|情节|\n|---|---|\n|1|明冉是豪门千金，楚原是特困生|\n|2|明冉对楚原产生爱慕|\n|3|明冉父母双亡，生活剧变|\n|4|楚原冷眼旁观明冉的困境，称这是她的报应|\n|5|明冉消失|\n|6|楚原成为商界奇才|\n|7|楚原常梦见明冉|\n|8|楚原在美术展上看到明冉的自画像，情绪激动|\n|9|楚原因明冉的消息饮酒过度导致胃出血|\n|10|楚原在画展庆功宴上将明冉拉入休息间|\n|11|楚原表达后悔之情，请求明冉回到他身边|\n|12|明冉拒绝楚原的复合请求，称求晚了|\n|13|楚原在亲密时刻试图让明冉说“我爱你”|\n|14|明冉表示只是各取所需，不谈感情|\n|15|楚原发现明冉腰间未洗掉的纹身|\n|16|楚原揭示明冉仍未忘记他|",
+  "GetPlaceName": "|序号|事件|场景环境|大致地点|细分地点|\n|---|---|---|---|---|\n|1|明冉是豪门千金，楚原是特困生|内景|明家豪宅|客厅|\n|2|明冉对楚原产生爱慕|外景|城市公园|湖边长椅|\n|3|明冉父母双亡，生活剧变|内景|明家豪宅|书房|\n|4|楚原冷眼旁观明冉的困境，称这是她的报应|外景|城市街道|咖啡馆外|\n|5|明冉消失|外景|城市机场|候机大厅|\n|6|楚原成为商界奇才|内景|楚原办公室|会议室|\n|7|楚原常梦见明冉|内景|楚原公寓|卧室|\n|8|楚原在美术展上看到明冉的自画像，情绪激动|外景|艺术展览馆|画廊|\n|9|楚原因明冉的消息饮酒过度导致胃出血|内景|高级餐厅|包厢|\n|10|楚原在画展庆功宴上将明冉拉入休息间|内景|艺术展览馆|休息室|\n|11|楚原表达后悔之情，请求明冉回到他身边|内景|艺术展览馆|休息室|\n|12|明冉拒绝楚原的复合请求，称求晚了|内景|艺术展览馆|休息室|\n|13|楚原在亲密时刻试图让明冉说“我爱你”|内景|楚原公寓|卧室|\n|14|明冉表示只是各取所需，不谈感情|内景|楚原公寓|卧室|\n|15|楚原发现明冉腰间未洗掉的纹身|内景|楚原公寓|浴室|\n|16|楚原揭示明冉仍未忘记他|内景|楚原公寓|卧室|",
+  "CheckisPlaceNameBlank": ["{\n    \"is_noknown\": false\n}"],
+  "GetPlaceNameBlank": [],
+  "FixPlaceNameBlank": [],
+  "DesignStoryboards": [
+    "|行号|文案|场景|配图|\n|---|---|---|---|\n|1|明冉是箴明惹不起的豪门千金，有钱有势任性妄为。|明家豪宅-客厅|宽敞的客厅内，装饰豪华，水晶吊灯投射出璀璨的光芒。[明冉]坐在一张精致的沙发上，身穿华丽的礼服，手中拿着一杯香槟，眼神中透露出一种不可一世的傲慢。周围是昂贵的艺术品和家具，显示出她的豪门身份。|\n|2|楚原是出了名的特招生。|城市公园-湖边长椅|城市公园的湖边，阳光透过树叶洒在长椅上。[楚原]坐在长椅的一端，穿着朴素的衣物，手中拿着一本书，目光专注地阅读。湖水波光粼粼，周围是散步的市民和嬉戏的儿童，形成鲜明对比。|\n|3|特别贫困，特别聪明，特别孤傲，穿洗得发白的旧衣鞋。|城市公园-湖边长椅|[楚原]依旧坐在湖边的长椅上，身上的衣物虽然洗得发白，但整洁干净。他的眼神深邃，透露出一种与众不同的智慧和孤傲。周围的环境宁静，只有偶尔的鸟鸣和湖水轻拍岸边的声音。|\n|4|偏偏明冉看上了他。|城市公园-湖边长椅|[明冉]站在湖边，目光锁定在[楚原]身上。她的表情中带着一丝好奇和兴趣，手中拿着一杯咖啡，似乎在思考着什么。[楚原]依旧专注于手中的书，没有注意到[明冉]的注视。|\n|5|少女的爱炙热猛烈，高高在上，不容拒绝。|城市公园-湖边长椅|[明冉]走到[楚原]面前，眼神坚定，手中拿着一束鲜花。她的姿态高傲，仿佛在宣告她的爱意不容拒绝。[楚原]抬起头，目光中带着一丝惊讶，但依旧保持着冷静。|\n|6|一场意外父母双亡，明冉从公主变灰姑娘。|明家豪宅-书房|书房内，书籍和文件散落一地，窗帘紧闭，光线昏暗。[明冉]坐在书桌前，神情憔悴，眼中含泪。她的手中握着一张父母的照片，周围的环境显得冷清和凄凉。|\n|7|楚原却只冷冷看着惶惶无措的她：“这是你的报应。”|城市街道-咖啡馆外|咖啡馆外，[楚原]站在街边，目光冷峻地看着[明冉]。他的表情冷漠，嘴角带着一丝嘲讽。[明冉]站在对面，神情惶恐，似乎在寻求帮助，但[楚原]的目光中没有一丝同情。|\n|8|明冉这才知道，他恨她。|城市街道-咖啡馆外|[明冉]站在咖啡馆外，目光中带着震惊和痛苦。她的手中握着一杯咖啡，微微颤抖。[楚原]依旧站在对面，目光冷酷，仿佛在宣告他的恨意。周围的行人匆匆而过，没有人注意到这一幕。|\n|9|后来，她消失了。|城市机场-候机大厅|候机大厅内，人群熙熙攘攘，广播声此起彼伏。[明冉]站在安检口前，背着一个简单的背包，目光坚定。她的身影逐渐消失在人群中，周围的环境显得繁忙而冷漠。|\n|10|十年后，楚原成为商界翻云覆雨的奇才。|楚原办公室-会议室|宽敞的会议室内，[楚原]坐在长桌的一端，身穿西装，目光锐利。他的身后是一面巨大的落地窗，窗外是繁华的城市景象。会议桌上摆放着各种文件和笔记本电脑，显示出他的商业成就。|",
+    "|行号|文案|场景|配图|\n|---|---|---|---|\n|11|接近而立之年还未婚，自称不婚主义。|楚原办公室-会议室|宽敞的会议室内，[楚原]坐在长桌的一端，身穿西装，目光锐利。他的身后是一面巨大的落地窗，窗外是繁华的城市景象。会议桌上摆放着各种文件和笔记本电脑，显示出他的商业成就。[楚原]的脸上带着一丝冷漠，似乎在宣告他的不婚主义立场。|\n|12|没人知晓，他时常做梦。|楚原公寓-卧室|夜晚，[楚原]的公寓卧室里，窗帘紧闭，房间内只有一盏昏黄的台灯亮着。[楚原]躺在床上，眉头紧锁，似乎在梦中经历着什么。床头柜上摆放着几本书和一杯未喝完的水，显示出他日常的孤独生活。|",
+    "|行号|文案|场景|配图|\n|---|---|---|---|\n|13|梦里少女娇艳如瑰，献宝似的从书包里拿出小笼包，撒娇叫他：阿原。|楚原公寓-卧室|夜晚，[楚原]的公寓卧室里，窗帘紧闭，房间内只有一盏昏黄的台灯亮着。[楚原]躺在床上，眉头紧锁，似乎在梦中经历着什么。床头柜上摆放着几本书和一杯未喝完的水，显示出他日常的孤独生活。在梦中，[明冉]站在床边，手中捧着一笼小笼包，脸上带着娇艳的笑容，眼神中充满了期待和撒娇的神情。她轻轻地叫着：“阿原。”|\n|14|这是他儿时最爱，她想方设法找到了早已不做生意的老板，央求人家做了一笼。|楚原公寓-卧室|夜晚，[楚原]的公寓卧室里，窗帘紧闭，房间内只有一盏昏黄的台灯亮着。[楚原]躺在床上，眉头紧锁，似乎在梦中经历着什么。床头柜上摆放着几本书和一杯未喝完的水，显示出他日常的孤独生活。在梦中，[明冉]站在床边，手中捧着一笼小笼包，脸上带着娇艳的笑容，眼神中充满了期待和撒娇的神情。她轻轻地叫着：“阿原。”小笼包的香气在梦中弥漫开来，仿佛能闻到那熟悉的味道。|",
+    "|行号|文案|场景|配图|\n|---|---|---|---|\n|15|梦醒，他抽了整夜的烟，梦里那一声声“阿原”犹如在耳。|楚原公寓-卧室|夜晚，[楚原]的公寓卧室里，窗帘紧闭，房间内弥漫着淡淡的烟雾。[楚原]坐在床边，手中夹着一支烟，烟头闪烁着微弱的红光。他的脸上带着疲惫和迷茫，耳边仿佛还回响着梦中[明冉]的呼唤声：“阿原。”床头柜上散落着几个烟蒂，显示出他整夜未眠的状态。|\n|16|一次美术展上，他对着一幅女人的自画像红了眼眶。|艺术展览馆-画廊|艺术展览馆的画廊内，灯光柔和，墙上挂满了各种艺术作品。[楚原]站在一幅女人的自画像前，目光凝视着画中的[明冉]，眼中泛起泪光。画中的[明冉]眼神温柔，仿佛在注视着[楚原]。周围的观众在欣赏其他作品，没有人注意到[楚原]的情绪波动。|",
+    "|行号|文案|场景|配图|\n|---|---|---|---|\n|17|圈内皆传，她是霍家掌权人一手扶持的艺术家，亦是准霍太太，明冉。|艺术展览馆-画廊|艺术展览馆的画廊内，灯光柔和，墙上挂满了各种艺术作品。[明冉]站在一幅自画像前，身穿优雅的长裙，手中拿着画笔，脸上带着自信的微笑。她的身边站着[霍家掌权人]，身穿西装，目光中透露出对[明冉]的欣赏和支持。周围的观众在低声交谈，似乎在讨论[明冉]的身份和成就。|\n|18|楚原当晚饮酒胃出血紧急送往医院。|高级餐厅-包厢|夜晚，高级餐厅的包厢内，灯光昏暗，桌上摆放着未吃完的菜肴和几瓶空酒瓶。[楚原]趴在桌子上，脸色苍白，额头上布满冷汗。他的手边散落着几张纸巾，显示出他刚刚经历的痛苦。服务员和餐厅经理站在一旁，神情紧张，准备随时提供帮助。救护车的灯光在窗外闪烁，医护人员迅速进入包厢，将[楚原]抬上担架，送往医院。|",
+    "|行号|文案|场景|配图|\n|---|---|---|---|\n|19|画展庆功宴上，有人看见楚原将明冉拉进了一旁的休息间。|艺术展览馆-休息室|艺术展览馆的庆功宴上，灯光璀璨，宾客们举杯交谈。[楚原]突然走到[明冉]身边，轻轻拉住她的手腕，将她带向一旁的休息间。[明冉]略显惊讶，但很快跟随[楚原]的步伐。休息间的门轻轻关上，留下门外好奇的目光。|\n|20|里面传来激烈的响动，惊得众人破门而入。|艺术展览馆-休息室|休息间内，[楚原]和[明冉]面对面站立，气氛紧张。突然，一声响动打破了宁静，似乎是物品被撞倒的声音。门外的宾客们听到响动，面面相觑，最终决定破门而入。门被猛地推开，众人看到[楚原]和[明冉]站在房间中央，周围散落着一些被撞倒的家具和物品。两人的表情复杂，似乎刚刚经历了激烈的对话或争执。|",
+    "|行号|文案|场景|配图|\n|---|---|---|---|\n|21|在众人震惊目光中，楚原满身狼狈，眼含痛苦几近哀求：“冉冉，我后悔了，回到我身边好不好。”|艺术展览馆-休息室|艺术展览馆的休息室内，灯光柔和，墙壁上挂着几幅艺术作品。[楚原]站在房间中央，衣衫略显凌乱，脸上带着深深的痛苦和哀求的神情，眼中闪烁着泪光。他的手微微颤抖，试图靠近[明冉]。周围的家具和物品散落一地，显示出刚刚的激烈争执。门外的宾客们透过门缝，震惊地看着这一幕。|\n|22|明冉将他推开态度冷漠：“楚总，求晚了。”|艺术展览馆-休息室|艺术展览馆的休息室内，灯光柔和，墙壁上挂着几幅艺术作品。[明冉]站在[楚原]面前，神情冷漠，眼神坚定。她轻轻推开[楚原]，动作果断而坚决。[楚原]被推得后退几步，脸上露出更加痛苦的表情。门外的宾客们透过门缝，继续关注着这一幕，气氛紧张而压抑。|",
+    "|行号|文案|场景|配图|\n|---|---|---|---|\n|23|后来他与她抵足缠绵时求她一句“我爱你”。|楚原公寓-卧室|夜晚，[楚原]的公寓卧室里，灯光柔和，床头灯散发出温暖的光芒。[楚原]和[明冉]躺在床上，身体紧贴，气氛暧昧。[楚原]的眼神中带着一丝恳求，轻轻地靠近[明冉]，试图从她口中听到那句“我爱你”。床单微微皱起，显示出刚刚的亲密接触。|\n|24|明冉嗤笑：“楚总，各取所需，谈情就没意思了。”|楚原公寓-卧室|夜晚，[楚原]的公寓卧室里，灯光柔和，床头灯散发出温暖的光芒。[明冉]躺在床上，脸上带着一丝嘲讽的笑容，眼神中透露出冷漠和疏离。她轻轻推开[楚原]，语气冷淡地说出那句“楚总，各取所需，谈情就没意思了。”床单微微皱起，显示出刚刚的亲密接触。|",
+    "|行号|文案|场景|配图|\n|---|---|---|---|\n|25|楚原从醉酒后的明冉身上发现了她的秘密。|楚原公寓-卧室|夜晚，[楚原]的公寓卧室里，灯光昏暗，床头灯散发出柔和的光线。[楚原]坐在床边，低头看着躺在床上的[明冉]，她的脸颊泛红，显然是醉酒的状态。[楚原]轻轻掀开[明冉]的衣角，露出她腰间的一处纹身，纹身的图案清晰可见，显示出她的秘密。房间内弥漫着淡淡的酒气，床单微微皱起，显示出刚刚的亲密接触。|\n|26|当初她纹在腰间的爱意，至今都未曾洗掉。|楚原公寓-浴室|夜晚，[楚原]的公寓浴室内，灯光柔和，镜子前摆放着一些洗漱用品。[明冉]站在镜子前，轻轻解开衣衫，露出腰间的一处纹身。纹身的图案在灯光下显得格外清晰，显示出她对[楚原]的爱意。[明冉]的手指轻轻抚摸着纹身，眼神中透露出一丝复杂的情感。浴室内的水汽逐渐弥漫，镜子上也开始出现雾气。|",
+    "|行号|文案|场景|配图|\n|---|---|---|---|\n|27|他轻吐烟圈，手指掐上她的软腰：“不是不爱我了，嗯？”|楚原公寓-卧室|夜晚，[楚原]的公寓卧室里，灯光柔和，床头灯散发出温暖的光芒。[楚原]坐在床边，手中夹着一支点燃的香烟，轻吐烟圈，烟雾在空气中缓缓升起。他的手指轻轻掐在[明冉]的软腰上，眼神中带着一丝挑逗和质疑。[明冉]站在床边，腰间被掐住的地方微微凹陷，脸上带着复杂的表情，似乎在回应[楚原]的质问。床单微微皱起，显示出刚刚的亲密接触。|\n|28|多年后，我演不爱你，无奈演技拙劣。|城市街道-咖啡馆外|白天，城市街道上，阳光透过树叶洒在地面上，形成斑驳的光影。[明冉]独自坐在咖啡馆外的露天座位上，手中拿着一杯咖啡，眼神中透露出深深的无奈和疲惫。她的脸上带着一丝苦笑，似乎在回忆过去的种种。周围的行人匆匆而过，偶尔有人投来好奇的目光，但[明冉]似乎完全沉浸在自己的世界里。桌上的咖啡杯微微冒着热气，显示出她刚刚坐下不久。|"
+  ],
+  "DesignScenes": {
+    "明家豪宅-客厅": "{\n    \"scene_type\": \"内景\",\n    \"scene_design\": \"一间宽敞豪华的客厅，天花板高挑，装饰着华丽的水晶吊灯。墙壁上挂着几幅名贵的油画，地面铺着厚实的波斯地毯。客厅中央摆放着一组高档真皮沙发，沙发前是一张大理石茶几，上面摆放着精致的茶具和鲜花。左侧角落有一架钢琴，右侧则是一面巨大的落地窗，窗外可以看到精心打理的花园。整个客厅充满了现代都市的奢华气息。\"\n}",
+    "城市公园-湖边长椅": "{\n    \"scene_type\": \"外景\",\n    \"scene_design\": \"城市公园的湖边，湖水清澈，微风拂过，波光粼粼。湖边有一条长椅，周围绿树成荫，草坪修剪整齐。远处可以看到城市的高楼大厦，天空湛蓝，阳光透过树叶洒在地上，形成斑驳的光影。\"\n}",
+    "明家豪宅-书房": "{\n    \"scene_type\": \"内景\",\n    \"scene_design\": \"一间宽敞的书房，装饰豪华，墙壁上挂着名贵的油画。书架上摆满了精装书籍，书桌由红木制成，上面摆放着一台笔记本电脑和几本打开的文件。书桌旁有一张舒适的皮质椅子，书房的角落里有一张小沙发和一张茶几，茶几上放着一套精致的茶具。\"\n}",
+    "城市街道-咖啡馆外": "{\n    \"scene_type\": \"外景\",\n    \"scene_design\": \"现代都市的街道上，一家时尚的咖啡馆外，摆放着几张露天的桌椅，桌子上铺着简约风格的桌布，椅子是舒适的木质椅。咖啡馆的招牌在阳光下闪闪发光，旁边是一排绿植，增添了几分生机。街道上行人匆匆，车辆偶尔经过，整体氛围显得繁忙而又不失宁静。\"\n}",
+    "城市机场-候机大厅": "{\n    \"scene_type\": \"内景\",\n    \"scene_design\": \"宽敞明亮的候机大厅，现代化的设计风格，大厅中央悬挂着巨大的LED显示屏，显示着航班信息。大厅两侧是舒适的候机座椅，座椅旁设有充电插座和免费Wi-Fi标识。大厅内设有多个自助服务台，方便旅客办理登机手续。大厅的一角是咖啡厅和便利店，提供各种饮品和小吃。\"\n}",
+    "楚原办公室-会议室": "{\n    \"scene_type\": \"内景\",\n    \"scene_design\": \"一间现代化的会议室，墙壁采用玻璃隔断，透光性好，室内光线明亮。会议桌为长方形，桌面光滑，摆放着几台笔记本电脑和文件夹。会议室一角设有投影仪和白板，方便进行商务演示。整体装饰简洁，色调以灰白为主，显得专业而冷静。\"\n}",
+    "楚原公寓-卧室": "{\n    \"scene_type\": \"内景\",\n    \"scene_design\": \"一间现代风格的卧室，整体色调以深灰色和黑色为主，显得沉稳而冷峻。床头柜上摆放着一盏简约的台灯，旁边是一盒未开封的香烟和一只打火机。床头墙上挂着一幅抽象画，画中色彩对比强烈，似乎隐喻着主人内心的复杂情感。床边散落着几本商业杂志和一份未完成的文件，显示出主人忙碌的生活状态。整个房间显得整洁但略显冷清，透露出一种孤独和压抑的氛围。\"\n}",
+    "艺术展览馆-画廊": "{\n    \"scene_type\": \"内景\",\n    \"scene_design\": \"现代艺术展览馆的画廊，宽敞明亮，墙壁上挂满了各种风格的艺术作品，包括油画、素描和雕塑。画廊中央摆放着几张简约的展示台，上面陈列着小型艺术品和画册。地面铺设着深色的木地板，灯光柔和，营造出一种艺术氛围。角落里有一排舒适的休息椅，供参观者休息和欣赏作品。\"\n}",
+    "高级餐厅-包厢": "{\n    \"scene_type\": \"内景\",\n    \"scene_design\": \"一间豪华的高级餐厅包厢，装饰典雅，墙壁上挂着精美的艺术画作。包厢中央摆放着一张长方形餐桌，桌上铺着洁白的桌布，摆放着精致的餐具和一瓶高档红酒。包厢的一角有一个小型的吧台，吧台上摆放着各种酒瓶和酒杯。包厢的灯光柔和，营造出一种温馨而私密的氛围。\"\n}",
+    "艺术展览馆-休息室": "{\n    \"scene_type\": \"内景\",\n    \"scene_design\": \"一间现代艺术展览馆内的休息室，墙壁上挂着几幅抽象艺术画作，房间中央摆放着一张舒适的沙发和一张小茶几，茶几上放着一瓶未开封的红酒和两个高脚杯。房间的一角有一个小书架，上面摆放着几本艺术相关的书籍和杂志。整个房间的灯光柔和，营造出一种私密而安静的氛围。\"\n}",
+    "楚原公寓-浴室": "{\n    \"scene_type\": \"内景\",\n    \"scene_design\": \"现代风格的浴室，宽敞明亮，配备有大型玻璃淋浴间和独立浴缸。墙壁上贴着白色瓷砖，地面铺着防滑大理石。浴室柜上摆放着各种高档洗浴用品，镜子前有一张化妆台，上面放着各种化妆品和香水。浴室角落里有一个小型洗衣机和烘干机。整体设计简洁而时尚，充满现代都市的气息。\"\n}"
+  },
+  "GetCharacterNums": [
+    "step1: 这个场景有1个人物角色。\nstep2: 分镜画面关注的人物角色有1个。\nstep3: 关注的人物角色是[明冉]。\nstep4: 画面中，[明冉]坐在一张精致的沙发上，身穿华丽的礼服，手中拿着一杯香槟，眼神中透露出一种不可一世的傲慢。",
+    "step1: 这个场景有1个人物角色。\nstep2: 分镜画面关注的人物角色是1个。\nstep3: 设计一个画面，只出现这一个人物。\nstep4: 画面中，[楚原]坐在湖边的长椅上，穿着朴素的衣物，手中拿着一本书，目光专注地阅读。阳光透过树叶洒在他身上，湖水波光粼粼，周围的环境宁静。",
+    "step1: 这个场景有1个人物角色。\nstep2: 分镜画面关注的人物角色是[楚原]。\nstep3: 由于关注的人物角色是一个人物，设计一个画面，只出现这一个人物。\nstep4: 画面中，[楚原]独自坐在湖边的长椅上，身穿洗得发白的旧衣鞋，眼神深邃，透露出一种与众不同的智慧和孤傲。周围的环境宁静，只有偶尔的鸟鸣和湖水轻拍岸边的声音。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色是[明冉]。\nstep3: 由于关注的人物角色是一个人物，因此设计一个画面，只出现[明冉]。\nstep4: [明冉]站在湖边，目光锁定在远处，表情中带着一丝好奇和兴趣，手中拿着一杯咖啡，似乎在思考着什么。",
+    "step1: 这个场景有两个人物角色：[明冉]和[楚原]。\nstep2: 分镜画面关注的人物角色有两个：[明冉]和[楚原]。\nstep3: 由于是两个人物，设计一个两人互动的画面。\nstep4: 画面中，[明冉]站在[楚原]面前，眼神坚定，手中拿着一束鲜花。她的姿态高傲，仿佛在宣告她的爱意不容拒绝。[楚原]抬起头，目光中带着一丝惊讶，但依旧保持着冷静。",
+    "step1: 这个场景有1个人物角色。\nstep2: 分镜画面关注的人物角色是[明冉]。\nstep3: 关注的人物角色是一个人物，因此设计一个画面，只出现这一个人物。\nstep4: 画面中，[明冉]坐在书桌前，神情憔悴，眼中含泪。她的手中握着一张父母的照片，周围的环境显得冷清和凄凉。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色有两个：[楚原]和[明冉]。\nstep3: 由于关注的人物角色是两个，因此设计一个两人互动的画面。\nstep4: 画面中，[楚原]站在街边，目光冷峻地看着[明冉]。他的表情冷漠，嘴角带着一丝嘲讽。[明冉]站在对面，神情惶恐，似乎在寻求帮助，但[楚原]的目光中没有一丝同情。",
+    "step1: 这个场景有两个人物角色：[明冉]和[楚原]。\nstep2: 分镜画面关注的人物角色有两个：[明冉]和[楚原]。\nstep3: 由于是两个人物，设计一个两人互动的画面。\nstep4: 画面中，[明冉]站在咖啡馆外，目光中带着震惊和痛苦，手中握着一杯咖啡，微微颤抖。[楚原]站在对面，目光冷酷，仿佛在宣告他的恨意。",
+    "step1: 这个场景有2个人物角色：[明冉]和[楚原]。\nstep2: 分镜画面关注的人物角色是[明冉]。\nstep3: 关注的人物角色是一个人物，即[明冉]。\nstep4: 画面中，[明冉]站在安检口前，背着一个简单的背包，目光坚定。她的身影逐渐消失在人群中。",
+    "step1: 这个场景有1个人物角色，即[楚原]。\nstep2: 分镜画面关注的人物角色是[楚原]。\nstep3: 由于关注的人物角色是一个人物，因此设计一个画面，只出现这一个人物。\nstep4: 画面描述：宽敞的会议室内，[楚原]坐在长桌的一端，身穿西装，目光锐利。他的身后是一面巨大的落地窗，窗外是繁华的城市景象。会议桌上摆放着各种文件和笔记本电脑，显示出他的商业成就。",
+    "step1: 这个场景有1个人物角色。\nstep2: 分镜画面关注的人物角色是[楚原]。\nstep3: 关注的人物角色是一个人物，设计一个画面只出现这一个人物。\nstep4: 宽敞的会议室内，[楚原]坐在长桌的一端，身穿西装，目光锐利。他的身后是一面巨大的落地窗，窗外是繁华的城市景象。会议桌上摆放着各种文件和笔记本电脑，显示出他的商业成就。[楚原]的脸上带着一丝冷漠，似乎在宣告他的不婚主义立场。",
+    "step1: 这个场景有1个人物角色，即[楚原]。\nstep2: 分镜画面关注的人物角色是[楚原]。\nstep3: 由于关注的人物角色是一个人物，因此设计一个画面，只出现这一个人物。\nstep4: 夜晚，[楚原]的公寓卧室里，窗帘紧闭，房间内只有一盏昏黄的台灯亮着。[楚原]躺在床上，眉头紧锁，似乎在梦中经历着什么。床头柜上摆放着几本书和一杯未喝完的水，显示出他日常的孤独生活。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色是[明冉]。\nstep3: 由于关注的人物角色是一个人物，设计一个画面只出现[明冉]。\nstep4: 画面描述：[明冉]站在床边，手中捧着一笼小笼包，脸上带着娇艳的笑容，眼神中充满了期待和撒娇的神情。她轻轻地叫着：“阿原。”",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色是[明冉]。\nstep3: 设计一个画面，只出现[明冉]。\nstep4: 画面描述：夜晚，[明冉]站在床边，手中捧着一笼小笼包，脸上带着娇艳的笑容，眼神中充满了期待和撒娇的神情。她轻轻地叫着：“阿原。”小笼包的香气在梦中弥漫开来，仿佛能闻到那熟悉的味道。",
+    "step1: 这个场景有1个人物角色：[楚原]。\nstep2: 分镜画面关注的人物角色是1个：[楚原]。\nstep3: 关注的人物角色是一个人物，设计一个画面，只出现这一个人物。\nstep4: 画面描述：夜晚，[楚原]的公寓卧室里，窗帘紧闭，房间内弥漫着淡淡的烟雾。[楚原]坐在床边，手中夹着一支烟，烟头闪烁着微弱的红光。他的脸上带着疲惫和迷茫，耳边仿佛还回响着梦中[明冉]的呼唤声：“阿原。”床头柜上散落着几个烟蒂，显示出他整夜未眠的状态。",
+    "step1: 这个场景有2个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色是[楚原]。\nstep3: 设计一个画面，只出现[楚原]。\nstep4: 艺术展览馆的画廊内，灯光柔和，[楚原]站在一幅女人的自画像前，目光凝视着画中的[明冉]，眼中泛起泪光。",
+    "step1: 这个场景有3个人物角色：[明冉]、[霍家掌权人]、周围的观众。\nstep2: 分镜画面关注的人物角色有2个：[明冉]和[霍家掌权人]。\nstep3: 由于关注的人物角色是两个有互动的人物，因此设计一个两人互动的画面。\nstep4: 画面描述：[明冉]站在一幅自画像前，身穿优雅的长裙，手中拿着画笔，脸上带着自信的微笑。她的身边站着[霍家掌权人]，身穿西装，目光中透露出对[明冉]的欣赏和支持。",
+    "step1: 这个场景有3个人物角色：[楚原]、服务员、餐厅经理。\nstep2: 分镜画面关注的人物角色是[楚原]。\nstep3: 由于关注的人物角色是一个人物，因此设计一个画面，只出现这一个人物。\nstep4: 画面描述：夜晚，高级餐厅的包厢内，灯光昏暗，桌上摆放着未吃完的菜肴和几瓶空酒瓶。[楚原]趴在桌子上，脸色苍白，额头上布满冷汗。他的手边散落着几张纸巾，显示出他刚刚经历的痛苦。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色是两个：[楚原]和[明冉]。\nstep3: 由于关注的人物角色是两个，设计一个两人互动的画面。\nstep4: [楚原]轻轻拉住[明冉]的手腕，将她带向一旁的休息间。[明冉]略显惊讶，但很快跟随[楚原]的步伐。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色有两个：[楚原]和[明冉]。\nstep3: 由于关注的人物角色是两个，因此设计一个两人互动的画面。\nstep4: 画面中，[楚原]和[明冉]面对面站立，气氛紧张。[楚原]的手微微颤抖，试图靠近[明冉]，而[明冉]则神情冷漠，眼神坚定。周围散落着一些被撞倒的家具和物品，显示出刚刚的激烈争执。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色是[楚原]。\nstep3: 设计一个画面只出现[楚原]。\nstep4: 画面描述：[楚原]站在房间中央，衣衫略显凌乱，脸上带着深深的痛苦和哀求的神情，眼中闪烁着泪光。他的手微微颤抖，试图靠近[明冉]。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色有两个：[楚原]和[明冉]。\nstep3: 由于关注的人物角色是两个，因此设计一个两人互动的画面。\nstep4: 画面描述：艺术展览馆的休息室内，灯光柔和，墙壁上挂着几幅艺术作品。[明冉]站在[楚原]面前，神情冷漠，眼神坚定。她轻轻推开[楚原]，动作果断而坚决。[楚原]被推得后退几步，脸上露出更加痛苦的表情。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色有两个：[楚原]和[明冉]。\nstep3: 由于关注的人物角色是两个人物，因此设计一个两人互动的画面。\nstep4: 画面描述：夜晚，[楚原]的公寓卧室里，灯光柔和，床头灯散发出温暖的光芒。[楚原]和[明冉]躺在床上，身体紧贴，气氛暧昧。[楚原]的眼神中带着一丝恳求，轻轻地靠近[明冉]，试图从她口中听到那句“我爱你”。床单微微皱起，显示出刚刚的亲密接触。",
+    "step1: 这个场景有两个人物角色：[明冉]和[楚原]。\nstep2: 分镜画面关注的人物角色有两个：[明冉]和[楚原]。\nstep3: 由于关注的人物角色是两个，因此设计一个两人互动的画面。\nstep4: 画面描述：夜晚，[楚原]的公寓卧室里，灯光柔和，床头灯散发出温暖的光芒。[明冉]躺在床上，脸上带着一丝嘲讽的笑容，眼神中透露出冷漠和疏离。她轻轻推开[楚原]，语气冷淡地说出那句“楚总，各取所需，谈情就没意思了。”床单微微皱起，显示出刚刚的亲密接触。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色有两个：[楚原]和[明冉]。\nstep3: 由于关注的人物角色是两个，因此设计一个两人互动的画面。\nstep4: 画面描述：[楚原]坐在床边，低头看着躺在床上的[明冉]，她的脸颊泛红，显然是醉酒的状态。[楚原]轻轻掀开[明冉]的衣角，露出她腰间的一处纹身，纹身的图案清晰可见，显示出她的秘密。房间内弥漫着淡淡的酒气，床单微微皱起，显示出刚刚的亲密接触。",
+    "step1: 这个场景有两个人物角色：[明冉]和[楚原]。\nstep2: 分镜画面关注的人物角色是[明冉]。\nstep3: 设计一个画面，只出现[明冉]。\nstep4: 夜晚，[楚原]的公寓浴室内，灯光柔和，镜子前摆放着一些洗漱用品。[明冉]站在镜子前，轻轻解开衣衫，露出腰间的一处纹身。纹身的图案在灯光下显得格外清晰，显示出她对[楚原]的爱意。[明冉]的手指轻轻抚摸着纹身，眼神中透露出一丝复杂的情感。浴室内的水汽逐渐弥漫，镜子上也开始出现雾气。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色有两个：[楚原]和[明冉]。\nstep3: 由于关注的人物角色是两个，因此设计一个两人互动的画面。\nstep4: 画面描述：夜晚，[楚原]的公寓卧室里，灯光柔和，床头灯散发出温暖的光芒。[楚原]坐在床边，手中夹着一支点燃的香烟，轻吐烟圈，烟雾在空气中缓缓升起。他的手指轻轻掐在[明冉]的软腰上，眼神中带着一丝挑逗和质疑。[明冉]站在床边，腰间被掐住的地方微微凹陷，脸上带着复杂的表情，似乎在回应[楚原]的质问。床单微微皱起，显示出刚刚的亲密接触。",
+    "step1: 这个场景有1个人物角色。\nstep2: 分镜画面关注的人物角色有1个。\nstep3: 关注的人物角色是[明冉]。\nstep4: 画面中，[明冉]独自坐在咖啡馆外的露天座位上，手中拿着一杯咖啡，眼神中透露出深深的无奈和疲惫。她的脸上带着一丝苦笑，似乎在回忆过去的种种。"
+  ],
+  "GetCharacterList": [
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[明冉]\",\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[楚原]\",\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[明冉]\",\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[明冉]\",\n        \"[霍家掌权人]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[楚原]\",\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[楚原]\",\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[明冉]\",\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[楚原]\",\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[明冉]\",\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[楚原]\",\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[楚原]\",\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}"
+  ],
+  "JudgeBodyContact": [
+    null,
+    null,
+    null,
+    null,
+    "step1: 这个场景有两个人物角色：[明冉]和[楚原]。\nstep2: 分镜画面关注的人物角色有一个：[明冉]。\nstep3: 由于没有身体接触性质的互动，设计一个画面只出现一个人物。\nstep4: 画面中，[明冉]站在湖边，目光锁定在[楚原]身上。她的表情中带着一丝好奇和兴趣，手中拿着一杯咖啡，似乎在思考着什么。",
+    null,
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 该互动没有身体接触性质，因此分镜应该只关注一个人物。\nstep3: 选择关注的人物角色为[楚原]。\nstep4: 画面中，[楚原]站在街边，目光冷峻地看着前方。他的表情冷漠，嘴角带着一丝嘲讽。",
+    "step1: 这个场景有两个人物角色：[明冉]和[楚原]。\nstep2: 该互动没有身体接触性质，因此分镜应该只关注一个人物。\nstep3: 选择关注的人物角色为[明冉]。\nstep4: 画面中，[明冉]站在咖啡馆外，目光中带着震惊和痛苦，手中握着一杯咖啡，微微颤抖。",
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    "step1: 这个场景有3个人物角色：[明冉]、[霍家掌权人]、周围的观众。\nstep2: 该互动无身体接触性质，因此分镜应该只关注一个人物。\nstep3: 选择最主要的一个人物：[明冉]。\nstep4: 画面描述：[明冉]站在一幅自画像前，身穿优雅的长裙，手中拿着画笔，脸上带着自信的微笑。",
+    null,
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色是两个：[楚原]和[明冉]。该互动有身体接触性质。\nstep3: 由于关注的人物角色是两个，设计一个两人互动的画面。\nstep4: [楚原]轻轻拉住[明冉]的手腕，将她带向一旁的休息间。[明冉]略显惊讶，但很快跟随[楚原]的步伐。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色是一个：[楚原]。因为虽然有两个人物，但互动没有明显的身体接触性质。\nstep3: 由于关注的人物角色是一个，因此设计一个画面，只出现这一个人物。\nstep4: 画面中，[楚原]站在房间中央，衣衫略显凌乱，脸上带着深深的痛苦和哀求的神情，眼中闪烁着泪光。他的手微微颤抖，试图靠近[明冉]。周围散落着一些被撞倒的家具和物品，显示出刚刚的激烈争执。",
+    null,
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色有两个：[楚原]和[明冉]。\nstep3: 该互动有身体接触性质，因此设计一个两人互动的画面。\nstep4: 画面描述：艺术展览馆的休息室内，灯光柔和，墙壁上挂着几幅艺术作品。[明冉]站在[楚原]面前，神情冷漠，眼神坚定。她轻轻推开[楚原]，动作果断而坚决。[楚原]被推得后退几步，脸上露出更加痛苦的表情。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色有两个：[楚原]和[明冉]。该互动有身体接触性质。\nstep3: 由于关注的人物角色是两个人物，并且有身体接触性质的互动，因此设计一个两人互动的画面。\nstep4: 画面描述：夜晚，[楚原]的公寓卧室里，灯光柔和，床头灯散发出温暖的光芒。[楚原]和[明冉]躺在床上，身体紧贴，气氛暧昧。[楚原]的眼神中带着一丝恳求，轻轻地靠近[明冉]，试图从她口中听到那句“我爱你”。床单微微皱起，显示出刚刚的亲密接触。",
+    "step1: 这个场景有两个人物角色：[明冉]和[楚原]。\nstep2: 分镜画面关注的人物角色有一个：[明冉]。因为虽然有互动，但互动没有身体接触性质。\nstep3: 由于关注的人物角色是一个，因此设计一个画面，只出现这一个人物。\nstep4: 画面描述：夜晚，[楚原]的公寓卧室里，灯光柔和，床头灯散发出温暖的光芒。[明冉]躺在床上，脸上带着一丝嘲讽的笑容，眼神中透露出冷漠和疏离。她轻轻推开[楚原]，语气冷淡地说出那句“楚总，各取所需，谈情就没意思了。”床单微微皱起，显示出刚刚的亲密接触。",
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色有两个：[楚原]和[明冉]。\nstep3: 该互动有身体接触性质，因此设计一个两人互动的画面。\nstep4: 画面描述：[楚原]坐在床边，低头看着躺在床上的[明冉]，她的脸颊泛红，显然是醉酒的状态。[楚原]轻轻掀开[明冉]的衣角，露出她腰间的一处纹身，纹身的图案清晰可见，显示出她的秘密。房间内弥漫着淡淡的酒气，床单微微皱起，显示出刚刚的亲密接触。",
+    null,
+    "step1: 这个场景有两个人物角色：[楚原]和[明冉]。\nstep2: 分镜画面关注的人物角色有两个：[楚原]和[明冉]。\nstep3: 由于关注的人物角色是两个，并且有身体接触性质的互动，因此设计一个两人互动的画面。\nstep4: 画面描述：夜晚，[楚原]的公寓卧室里，灯光柔和，床头灯散发出温暖的光芒。[楚原]坐在床边，手中夹着一支点燃的香烟，轻吐烟圈，烟雾在空气中缓缓升起。他的手指轻轻掐在[明冉]的软腰上，眼神中带着一丝挑逗和质疑。[明冉]站在床边，腰间被掐住的地方微微凹陷，脸上带着复杂的表情，似乎在回应[楚原]的质问。床单微微皱起，显示出刚刚的亲密接触。",
+    null
+  ],
+  "GetCharacterList2": [
+    null,
+    null,
+    null,
+    null,
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    null,
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    null,
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[楚原]\",\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[楚原]\"\n    ]\n}",
+    null,
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[明冉]\",\n        \"[楚原]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[楚原]\",\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 1,\n    \"Characters\": [\n        \"[明冉]\"\n    ]\n}",
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[楚原]\",\n        \"[明冉]\"\n    ]\n}",
+    null,
+    "{\n    \"CharacterCount\": 2,\n    \"Characters\": [\n        \"[楚原]\",\n        \"[明冉]\"\n    ]\n}",
+    null
+  ],
+  "CreateCharacterAction": [
+    "{\n    \"光线\": \"柔和的室内灯光\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"坐在客厅中央的沙发上\",\n            \"身体动作\": \"优雅地靠在沙发背上\",\n            \"手部动作\": \"手持香槟杯，轻轻摇晃\",\n            \"面部表情\": \"傲慢、自信\",\n            \"人物道具\": [\n                \"香槟杯\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"自然光，阳光透过树叶形成斑驳的光影\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"坐在湖边长椅的一端\",\n            \"身体动作\": \"坐在长椅上，身体微微前倾\",\n            \"手部动作\": \"左手持书，右手轻轻翻页\",\n            \"面部表情\": \"专注、沉思\",\n            \"人物道具\": [\n                \"书\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"自然光，阳光透过树叶形成斑驳的光影\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"坐在湖边长椅上\",\n            \"身体动作\": \"坐姿，身体微微前倾\",\n            \"手部动作\": \"双手交叉放在膝盖上\",\n            \"面部表情\": \"深邃、孤傲\",\n            \"人物道具\": []\n        }\n    }\n}",
+    "{\n    \"光线\": \"自然光，阳光透过树叶形成斑驳的光影\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"站在湖边长椅旁\",\n            \"身体动作\": \"站立，身体微微前倾\",\n            \"手部动作\": \"右手持咖啡杯，左手自然下垂\",\n            \"面部表情\": \"好奇和兴趣\",\n            \"人物道具\": [\n                \"咖啡杯\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"自然光，阳光透过树叶形成斑驳的光影\",\n    \"拍摄角度\": \"正面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"站在湖边长椅前\",\n            \"身体动作\": \"站立，姿态高傲\",\n            \"手部动作\": \"手持一束鲜花\",\n            \"面部表情\": \"眼神坚定\",\n            \"人物道具\": [\n                \"鲜花\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"昏暗的光线\",\n    \"拍摄角度\": \"低角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"坐在书桌前的皮质椅子上\",\n            \"身体动作\": \"身体微微前倾，双手握着父母的照片\",\n            \"手部动作\": \"双手紧握照片\",\n            \"面部表情\": \"神情憔悴，眼中含泪\",\n            \"人物道具\": [\n                \"父母的照片\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"自然光\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"站在咖啡馆外的街边\",\n            \"身体动作\": \"站立\",\n            \"手部动作\": \"双手插在口袋里\",\n            \"面部表情\": \"冷漠、嘲讽\",\n            \"人物道具\": []\n        }\n    }\n}",
+    "{\n    \"光线\": \"自然光\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"站在咖啡馆外的左侧\",\n            \"身体动作\": \"站立\",\n            \"手部动作\": \"握着一杯咖啡\",\n            \"面部表情\": \"震惊和痛苦\",\n            \"人物道具\": [\n                \"咖啡\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"自然光\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"站在安检口前\",\n            \"身体动作\": \"站立\",\n            \"手部动作\": \"手握背包带\",\n            \"面部表情\": \"坚定\",\n            \"人物道具\": [\n                \"背包\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"自然光线\",\n    \"拍摄角度\": \"正面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"坐在会议桌的一端\",\n            \"身体动作\": \"身体微微前倾，双手放在桌面上\",\n            \"手部动作\": \"右手握住一支钢笔，左手轻轻翻阅文件\",\n            \"面部表情\": \"目光锐利，表情专注\",\n            \"人物道具\": [\n                \"钢笔\",\n                \"文件\",\n                \"笔记本电脑\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"明亮的光线\",\n    \"拍摄角度\": \"正面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"坐在会议桌的一端\",\n            \"身体动作\": \"坐在椅子上，身体微微前倾\",\n            \"手部动作\": \"双手交叉放在桌面上\",\n            \"面部表情\": \"冷漠\",\n            \"人物道具\": [\n                \"笔记本电脑\",\n                \"文件夹\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"昏黄的台灯光线\",\n    \"拍摄角度\": \"低角度\",\n    \"拍摄景别\": \"近景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"躺在床上\",\n            \"身体动作\": \"平躺，眉头紧锁\",\n            \"手部动作\": \"双手放在身体两侧\",\n            \"面部表情\": \"紧锁眉头，表现出内心的复杂情感\",\n            \"人物道具\": [\n                \"未喝完的水\",\n                \"几本书\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"昏黄的台灯光线\",\n    \"拍摄角度\": \"低角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"站在床边\",\n            \"身体动作\": \"站立\",\n            \"手部动作\": \"双手捧着一笼小笼包\",\n            \"面部表情\": \"娇艳的笑容，眼神中充满期待和撒娇的神情\",\n            \"人物道具\": [\n                \"小笼包\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的暖色调光线\",\n    \"拍摄角度\": \"低角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"站在床边\",\n            \"身体动作\": \"站立，双手捧着小笼包\",\n            \"手部动作\": \"双手捧着小笼包，手指微微弯曲\",\n            \"面部表情\": \"娇艳的笑容，眼神中充满期待和撒娇\",\n            \"人物道具\": [\n                \"小笼包\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"昏暗的光线\",\n    \"拍摄角度\": \"低角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"坐在床边\",\n            \"身体动作\": \"身体微微前倾\",\n            \"手部动作\": \"手中夹着一支烟\",\n            \"面部表情\": \"疲惫和迷茫\",\n            \"人物道具\": [\n                \"香烟\",\n                \"打火机\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的光线\",\n    \"拍摄角度\": \"正面角度\",\n    \"拍摄景别\": \"近景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"站在女人的自画像前\",\n            \"身体动作\": \"站立\",\n            \"手部动作\": \"双手自然下垂\",\n            \"面部表情\": \"眼中泛起泪光\",\n            \"人物道具\": []\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的光线\",\n    \"拍摄角度\": \"正面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"站在自画像前\",\n            \"身体动作\": \"站立\",\n            \"手部动作\": \"手持画笔\",\n            \"面部表情\": \"自信的微笑\",\n            \"人物道具\": [\n                \"画笔\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"昏暗的光线\",\n    \"拍摄角度\": \"低角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"趴在餐桌中央\",\n            \"身体动作\": \"趴在桌子上\",\n            \"手部动作\": \"手无力地垂在桌边\",\n            \"面部表情\": \"痛苦、苍白\",\n            \"人物道具\": [\n                \"空酒瓶\",\n                \"散落的纸巾\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的光线\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"站在休息室门口\",\n            \"身体动作\": \"站立，轻轻拉住[明冉]的手腕\",\n            \"手部动作\": \"轻轻拉住[明冉]的手腕\",\n            \"面部表情\": \"微笑，眼神温柔\",\n            \"人物道具\": []\n        },\n        \"[明冉]\": {\n            \"位置\": \"站在[楚原]旁边\",\n            \"身体动作\": \"站立，跟随[楚原]的步伐\",\n            \"手部动作\": \"手腕被[楚原]轻轻拉住\",\n            \"面部表情\": \"略显惊讶，但很快转为顺从\",\n            \"人物道具\": []\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的光线\",\n    \"拍摄角度\": \"正面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"站在房间中央\",\n            \"身体动作\": \"站立\",\n            \"手部动作\": \"双手紧握成拳\",\n            \"面部表情\": \"愤怒\",\n            \"人物道具\": []\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的光线\",\n    \"拍摄角度\": \"正面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"站在房间中央\",\n            \"身体动作\": \"站立，微微前倾\",\n            \"手部动作\": \"双手微微颤抖，试图靠近\",\n            \"面部表情\": \"深深的痛苦和哀求，眼中闪烁着泪光\",\n            \"人物道具\": []\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的光线\",\n    \"拍摄角度\": \"正面角度\",\n    \"拍摄景别\": \"近景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"站在房间中央\",\n            \"身体动作\": \"站立\",\n            \"手部动作\": \"轻轻推开[楚原]\",\n            \"面部表情\": \"冷漠、眼神坚定\",\n            \"人物道具\": []\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的暖色调光线\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"躺在床的左侧\",\n            \"身体动作\": \"身体紧贴[明冉]\",\n            \"手部动作\": \"轻轻握住[明冉]的手\",\n            \"面部表情\": \"恳求\",\n            \"人物道具\": []\n        },\n        \"[明冉]\": {\n            \"位置\": \"躺在床的右侧\",\n            \"身体动作\": \"身体紧贴[楚原]\",\n            \"手部动作\": \"手被[楚原]轻轻握住\",\n            \"面部表情\": \"温柔\",\n            \"人物道具\": []\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的床头灯光\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"躺在床上\",\n            \"身体动作\": \"身体微微侧躺，面向镜头\",\n            \"手部动作\": \"右手轻轻推开[楚原]，左手放在床单上\",\n            \"面部表情\": \"嘲讽的笑容，眼神冷漠和疏离\",\n            \"人物道具\": [\n                \"床单\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的灯光\",\n    \"拍摄角度\": \"低角度\",\n    \"拍摄景别\": \"近景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"坐在床边\",\n            \"身体动作\": \"低头看着[明冉]\",\n            \"手部动作\": \"轻轻掀开[明冉]的衣角\",\n            \"面部表情\": \"专注、好奇\",\n            \"人物道具\": []\n        },\n        \"[明冉]\": {\n            \"位置\": \"躺在床上\",\n            \"身体动作\": \"平躺\",\n            \"手部动作\": \"手自然放在身体两侧\",\n            \"面部表情\": \"醉酒后的放松\",\n            \"人物道具\": []\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的灯光\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"站在镜子前\",\n            \"身体动作\": \"站立，轻轻解开衣衫\",\n            \"手部动作\": \"手指轻轻抚摸腰间的纹身\",\n            \"面部表情\": \"复杂的情感\",\n            \"人物道具\": [\n                \"纹身\"\n            ]\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的光线\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[楚原]\": {\n            \"位置\": \"坐在床边\",\n            \"身体动作\": \"坐在床边，身体微微前倾\",\n            \"手部动作\": \"手中夹着一支点燃的香烟，手指轻轻掐在[明冉]的软腰上\",\n            \"面部表情\": \"挑逗和质疑\",\n            \"人物道具\": [\n                \"香烟\",\n                \"打火机\"\n            ]\n        },\n        \"[明冉]\": {\n            \"位置\": \"站在床边\",\n            \"身体动作\": \"站立，身体微微前倾\",\n            \"手部动作\": \"手自然下垂\",\n            \"面部表情\": \"复杂的表情\",\n            \"人物道具\": []\n        }\n    }\n}",
+    "{\n    \"光线\": \"柔和的自然光\",\n    \"拍摄角度\": \"侧面角度\",\n    \"拍摄景别\": \"中景\",\n    \"人物角色\": {\n        \"[明冉]\": {\n            \"位置\": \"坐在咖啡馆外的露天座位上\",\n            \"身体动作\": \"身体微微前倾，靠在桌子上\",\n            \"手部动作\": \"右手握着咖啡杯，左手轻轻托着下巴\",\n            \"面部表情\": \"无奈和疲惫，带着一丝苦笑\",\n            \"人物道具\": [\n                \"咖啡杯\"\n            ]\n        }\n    }\n}"
+  ],
+  "GetCharacterError": [
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error",
+    "no error"
+  ],
+  "DesignCharacter": {
+    "明冉": "{\n    \"race\": {\n        \"species_is_human\": true,\n        \"species\": \"大小姐\"\n    },\n    \"features\": {\n        \"hair_style\": \"长发微卷，自然垂落至腰间\",\n        \"hair_color\": \"深棕色\",\n        \"skin_color\": \"白皙\",\n        \"age\": \"28岁\"\n    },\n    \"appearance\": {\n        \"clothes\": \"明冉穿着一件剪裁合体的黑色晚礼服，裙摆微微蓬松，展现出她优雅的身姿。礼服的领口和袖口镶嵌着精致的银色蕾丝，增添了一丝华丽感。腰间系着一条细长的银色腰带，凸显出她的纤细腰身。\",\n        \"accessories\": [\n            \"银色高跟鞋\",\n            \"简约的银色手链\",\n            \"小巧的珍珠耳环\"\n        ]\n    }\n}",
+    "楚原": "{\n    \"race\": {\n        \"species_is_human\": true,\n        \"species\": \"男性\"\n    },\n    \"features\": {\n        \"hair_style\": \"短发，整齐利落\",\n        \"hair_color\": \"深棕色\",\n        \"skin_color\": \"中等肤色\",\n        \"age\": \"接近而立之年\"\n    },\n    \"appearance\": {\n        \"clothes\": \"楚原穿着一套深色的商务西装，剪裁得体，展现出他成熟稳重的气质。西装外套是深灰色，内搭一件白色衬衫，领带是深蓝色条纹，显得正式而又不失个性。裤子是同色系的西裤，皮鞋擦得锃亮，整体给人一种商界精英的感觉。\",\n        \"accessories\": [\n            \"精致的腕表\",\n            \"简洁的领带夹\"\n        ]\n    }\n}"
+  },
+  "CreateSceneSDP": [
+    "明家豪宅-客厅: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene description: A spacious and luxurious living room with high ceilings, adorned with a magnificent crystal chandelier. Several valuable oil paintings hang on the walls, and the floor is covered with a thick Persian carpet. In the center of the living room is a set of high-end leather sofas, in front of which is a marble coffee table with exquisite tea sets and fresh flowers. In the left corner is a piano, and on the right is a large floor-to-window, outside of which is a meticulously maintained garden. The entire living room exudes the luxurious atmosphere of modern urban life.\",\n        \"Scene\": \"The scene is set in a modern urban environment. The living room is spacious and luxurious, with high ceilings that accentuate the grandeur of the space. A magnificent crystal chandelier hangs from the ceiling, casting a warm and inviting glow. The walls are adorned with several valuable oil paintings, each one a masterpiece in its own right. The floor is covered with a thick Persian carpet, adding a touch of elegance and comfort. In the center of the room, a set of high-end leather sofas is arranged around a marble coffee table. The table is beautifully set with exquisite tea sets and fresh flowers, creating a serene and inviting atmosphere. In the left corner of the room, a grand piano stands, ready to be played. On the right side, a large floor-to-ceiling window offers a stunning view of a meticulously maintained garden outside. The garden is lush and vibrant, with carefully tended plants and flowers. The entire living room is a testament to modern urban luxury, with every detail carefully considered to create a space of opulence and comfort.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"spacious living room,luxurious,high ceilings,crystal chandelier,valuable oil paintings,thick Persian carpet,high-end leather sofas,marble coffee table,exquisite tea sets,fresh flowers,grand piano,large floor-to-window,meticulously maintained garden,modern urban luxury\"\n    }\n}",
+    "城市公园-湖边长椅: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene description: By the lakeside of a city park, the lake water is clear, with a gentle breeze causing ripples. There is a bench by the lake, surrounded by lush trees and neatly trimmed grass. In the distance, the city''s skyscrapers can be seen, with a bright blue sky and sunlight filtering through the leaves, creating dappled light on the ground.\",\n        \"Scene\": \"The scene is set in a modern urban city park. The lakeside is serene, with clear water that reflects the gentle ripples caused by a light breeze. A wooden bench is placed by the water, surrounded by lush green trees and neatly trimmed grass. The trees provide a canopy of shade, with sunlight filtering through the leaves to create dappled patterns on the ground. In the distance, the towering skyscrapers of the city stand tall against a bright blue sky, contrasting with the natural beauty of the park.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"lakeside,city park,clear water,gentle breeze,ripples,wooden bench,lush trees,neatly trimmed grass,shade,sunlight,dappled light,skyscrapers,bright blue sky,natural beauty\"\n    }\n}",
+    "明家豪宅-书房: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene description: A spacious study, luxuriously decorated, with expensive oil paintings hanging on the walls. The bookshelves are filled with hardcover books. The desk is made of mahogany and has a laptop and several open files on it. Next to the desk is a comfortable leather chair. In the corner of the study, there is a small sofa and a coffee table, with a set of exquisite tea sets on the table.\",\n        \"Scene\": \"The scene is set in a modern urban environment. The study is spacious and luxuriously decorated. The walls are adorned with expensive oil paintings. The bookshelves are filled with hardcover books, neatly arranged. The desk, made of mahogany, is placed in the center of the room. On the desk, there is a laptop and several open files. Next to the desk is a comfortable leather chair. In the corner of the study, there is a small sofa and a coffee table. On the coffee table, there is a set of exquisite tea sets, adding a touch of elegance to the room.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"spacious study,luxurious decoration,expensive oil paintings,hardcover books,mahogany desk,laptop,open files,leather chair,small sofa,coffee table,exquisite tea sets\"\n    }\n}",
+    "城市街道-咖啡馆外: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene description: On the streets of a modern city, outside a fashionable café, there are several outdoor tables and chairs. The tables are covered with minimalist-style tablecloths, and the chairs are comfortable wooden ones. The café''s sign shines brightly in the sunlight, and next to it is a row of green plants, adding a touch of vitality. Pedestrians hurry by on the street, and vehicles occasionally pass by, creating an atmosphere that is busy yet peaceful.\",\n        \"Scene\": \"The scene is set in a bustling modern city. Outside a trendy café, several outdoor tables and chairs are arranged. The tables are draped with minimalist-style tablecloths, and the chairs are made of comfortable wooden frames. The café''s sign, made of polished metal, gleams brightly under the sunlight. Adjacent to the sign is a row of lush green plants, which add a refreshing and lively touch to the scene. The street is filled with hurried pedestrians and the occasional passing vehicle, creating a dynamic yet serene atmosphere.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"modern city,trendy café,outdoor tables,outdoor chairs,minimalist-style tablecloths,comfortable wooden chairs,polished metal sign,sunlight,lush green plants,hurried pedestrians,occasional vehicles,busy yet peaceful atmosphere\"\n    }\n}",
+    "城市机场-候机大厅: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene description: A spacious and bright airport waiting hall, with modern design style. A large LED display hangs in the center of the hall, showing flight information. On both sides of the hall are comfortable waiting seats, with charging sockets and free Wi-Fi signs next to the seats. There are multiple self-service counters in the hall, convenient for passengers to check in. In one corner of the hall is a coffee shop and convenience store, offering various drinks and snacks.\",\n        \"Scene\": \"The scene is set in a modern urban airport. The waiting hall is spacious and brightly lit, featuring a contemporary design. In the center of the hall, a massive LED display hangs from the ceiling, displaying real-time flight information. On either side of the hall, comfortable waiting seats are arranged, each equipped with charging sockets and signs indicating free Wi-Fi access. The hall also includes multiple self-service counters, allowing passengers to easily check in for their flights. In one corner of the hall, a coffee shop and convenience store are located, offering a variety of drinks and snacks to travelers.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"spacious waiting hall,modern design,LED display,flight information,comfortable waiting seats,charging sockets,free Wi-Fi,self-service counters,coffee shop,convenience store,drinks,snacks\"\n    }\n}",
+    "楚原办公室-会议室: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene description: A modern conference room with glass partitions on the walls, good light transmission, and bright indoor lighting. The conference table is rectangular, with a smooth surface, and several laptops and folders are placed on it. There is a projector and whiteboard in one corner of the conference room, convenient for business presentations. The overall decoration is simple, with a color scheme mainly in gray and white, giving a professional and calm impression.\",\n        \"Scene\": \"The scene is set in a modern urban environment. The conference room features glass partitions on the walls, allowing for excellent light transmission and bright indoor lighting. The conference table is rectangular and has a smooth surface. Several laptops and folders are neatly arranged on the table. In one corner of the conference room, there is a projector and a whiteboard, both of which are ready for business presentations. The overall decoration is simple, with a color scheme dominated by gray and white, creating a professional and calm atmosphere.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"modern conference room,glass partitions,bright lighting,rectangular conference table,smooth surface,laptops,folders,projector,whiteboard,gray and white color scheme,professional atmosphere\"\n    }\n}",
+    "楚原公寓-卧室: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene description: A modern-style bedroom with a color scheme dominated by dark gray and black, giving it a沉稳 and cold appearance. On the bedside table is a minimalist desk lamp, next to which is an unopened pack of cigarettes and a lighter. Hanging on the wall above the bed is an abstract painting with strong color contrasts, seemingly symbolizing the owner''s complex emotions. Scattered around the bed are several business magazines and an unfinished document, indicating the owner''s busy lifestyle. The entire room appears tidy but slightly desolate, exuding a sense of loneliness and oppression.\",\n        \"Scene\": \"The scene is set in a modern urban environment. The bedroom features a color scheme dominated by dark gray and black, creating a沉稳 and cold atmosphere. A minimalist desk lamp sits on the bedside table, accompanied by an unopened pack of cigarettes and a lighter. Above the bed, an abstract painting with strong color contrasts hangs on the wall, symbolizing the owner''s complex emotions. Around the bed, several business magazines and an unfinished document are scattered, reflecting the owner''s busy lifestyle. The room is tidy but slightly desolate, giving off a sense of loneliness and oppression.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"modern bedroom,dark gray,black,minimalist desk lamp,unopened pack of cigarettes,lighter,abstract painting,strong color contrasts,business magazines,unfinished document,tidy,desolate,loneliness,oppression\"\n    }\n}",
+    "艺术展览馆-画廊: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene description: A gallery in a modern art exhibition hall, spacious and bright, with walls covered in various styles of artwork, including oil paintings, sketches, and sculptures. In the center of the gallery, there are several minimalist display stands showcasing small artworks and art books. The floor is covered with dark wood flooring, and the lighting is soft, creating an artistic atmosphere. In one corner, there is a row of comfortable lounge chairs for visitors to rest and appreciate the artworks.\",\n        \"Scene\": \"The scene is set in a modern urban environment. The gallery within a contemporary art exhibition hall is spacious and well-lit, with walls adorned with a diverse array of artwork. These include vibrant oil paintings, intricate sketches, and three-dimensional sculptures. In the center of the gallery, several sleek, minimalist display stands are arranged, each holding small, exquisite artworks and art books. The floor is covered with dark, polished wood flooring, which contrasts beautifully with the soft, ambient lighting that bathes the space, enhancing the overall artistic ambiance. In one corner of the gallery, a row of plush, comfortable lounge chairs is provided, allowing visitors to relax and fully immerse themselves in the artistic experience.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"modern art exhibition hall,gallery,oil paintings,sketches,sculptures,minimalist display stands,small artworks,art books,dark wood flooring,soft lighting,comfortable lounge chairs,spacious,bright,artistic ambiance\"\n    }\n}",
+    "高级餐厅-包厢: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene description: A luxurious private dining room in a high-end restaurant, elegantly decorated with exquisite art paintings on the walls. In the center of the room is a rectangular dining table, covered with a clean white tablecloth, set with exquisite tableware and a bottle of high-end red wine. In one corner of the room is a small bar, stocked with various bottles of wine and glasses. The lighting in the room is soft, creating a warm and intimate atmosphere.\",\n        \"Scene\": \"The scene is set in a modern urban environment. The luxurious private dining room of a high-end restaurant is elegantly decorated. The walls are adorned with exquisite art paintings, adding a touch of sophistication. In the center of the room, a rectangular dining table is covered with a clean white tablecloth. The table is set with delicate tableware and a bottle of high-end red wine, ready for a fine dining experience. In one corner of the room, a small bar is stocked with various bottles of wine and glasses, offering a variety of choices for guests. The lighting in the room is soft and warm, creating an intimate and cozy atmosphere, perfect for private gatherings.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"luxurious private dining room,high-end restaurant,art paintings,rectangular dining table,white tablecloth,delicate tableware,high-end red wine,small bar,wine bottles,glasses,soft lighting,warm atmosphere,intimate atmosphere\"\n    }\n}",
+    "艺术展览馆-休息室: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene requirements: A lounge in a modern art gallery, with several abstract art paintings on the walls. In the center of the room, there is a comfortable sofa and a small coffee table, on which there is an unopened bottle of red wine and two wine glasses. In one corner of the room, there is a small bookshelf with several art-related books and magazines. The lighting in the entire room is soft, creating a private and quiet atmosphere.\",\n        \"Scene\": \"The scene is set in a modern urban environment. The location is a lounge within a contemporary art gallery. The walls are adorned with several abstract art paintings, each with bold colors and unique shapes. In the center of the room, there is a plush, comfortable sofa upholstered in a neutral fabric. Adjacent to the sofa is a small, sleek coffee table made of glass and metal. On the coffee table, there is an unopened bottle of red wine, still sealed with a cork, and two elegant wine glasses, each with a delicate stem. In one corner of the room, there is a compact bookshelf, filled with a variety of art-related books and glossy magazines. The lighting in the room is soft and diffused, casting a warm glow that enhances the private and tranquil ambiance of the space.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"abstract art paintings,comfortable sofa,small coffee table,red wine bottle,wine glasses,compact bookshelf,art-related books,glossy magazines,soft lighting,modern art gallery,neutral fabric,glass and metal coffee table,warm glow,private and tranquil ambiance\"\n    }\n}",
+    "楚原公寓-浴室: {\n    \"Scene_Designed_of_Illustrator\": {\n        \"Translation\": \"Scene style: Modern urban; Scene description: A modern-style bathroom, spacious and bright, equipped with a large glass shower enclosure and a standalone bathtub. The walls are tiled with white tiles, and the floor is covered with anti-slip marble. On the bathroom vanity are various high-end toiletries, and in front of the mirror is a makeup table with various cosmetics and perfumes. In one corner of the bathroom is a small washing machine and dryer. The overall design is simple and stylish, full of the atmosphere of modern urban life.\",\n        \"Scene\": \"The scene is set in a modern urban environment. The bathroom is spacious and bright, featuring a large glass shower enclosure and a standalone bathtub. The walls are covered with white tiles, creating a clean and minimalist look. The floor is made of anti-slip marble, ensuring safety. On the bathroom vanity, there are various high-end toiletries, reflecting a luxurious lifestyle. In front of the mirror, there is a makeup table with an array of cosmetics and perfumes, adding a touch of elegance. In one corner of the bathroom, a small washing machine and dryer are discreetly placed, catering to modern convenience. The overall design is simple yet stylish, exuding the essence of modern urban living.\"\n    },\n    \"SDP_Translator\": {\n        \"Scene\": \"modern bathroom,spacious,bright,large glass shower enclosure,standalone bathtub,white tiles,anti-slip marble,bathroom vanity,high-end toiletries,makeup table,cosmetics,perfumes,small washing machine,dryer,simple design,stylish,modern urban\"\n    }\n}"
+  ],
+  "CreateCharacterSDP": [
+    "明冉: {\n    \"Character_Designed\": {\n        \"Translation\": \"Modern urban setting; Character design: young lady, dark brown slightly curled long hair naturally falling to the waist, fair skin, 28 years old, Mingran is wearing a well-tailored black evening gown with a slightly puffy skirt, showcasing her elegant posture. The neckline and cuffs of the gown are adorned with exquisite silver lace, adding a touch of luxury. A slender silver belt is tied around her waist, highlighting her slender waistline. Silver high heels, a simple silver bracelet, and small pearl earrings.\",\n        \"Character\": \"The character is a 28-year-old young lady from a modern urban setting. She has dark brown, slightly curled long hair that naturally falls to her waist. Her skin is fair. Mingran is dressed in a well-tailored black evening gown with a slightly puffy skirt, which showcases her elegant posture. The neckline and cuffs of the gown are adorned with exquisite silver lace, adding a touch of luxury. Around her waist, she has a slender silver belt that highlights her slender waistline. She is also wearing silver high heels, a simple silver bracelet, and small pearl earrings.\"\n    },\n    \"SDP_Translator\": {\n        \"Character\": \"1young lady, dark brown long hair, slightly curled, waist length, fair skin, 28 years old, black evening gown, slightly puffy skirt, silver lace, silver belt, silver high heels, silver bracelet, pearl earrings\"\n    }\n}",
+    "楚原: {\n    \"Character_Designed\": {\n        \"Translation\": \"Modern urban setting; Character design: male, dark brown short hair, neat and tidy, medium skin tone, approaching the age of thirty, Chu Yuan wears a dark business suit, well-tailored, showcasing his mature and steady demeanor. The suit jacket is dark grey, with a white shirt underneath, and a dark blue striped tie, appearing formal yet individualistic. The trousers are of the same color scheme, and the leather shoes are polished to a shine, giving off an impression of a business elite. He also wears a fine wristwatch and a simple tie clip.\",\n        \"Character\": \"The character is a male approaching the age of thirty in a modern urban setting. He has dark brown short hair, neatly styled. His skin tone is medium. Chu Yuan is dressed in a dark business suit, well-tailored to reflect his mature and steady personality. The suit jacket is dark grey, paired with a white shirt and a dark blue striped tie, which adds a touch of formality and individuality. His trousers match the suit''s color scheme, and his leather shoes are polished to a high shine, enhancing his image as a business elite. Additionally, he wears a fine wristwatch and a simple tie clip.\"\n    },\n    \"SDP_Translator\": {\n        \"Character\": \"1male, dark brown short hair, neat hair, medium skin, approaching 30 years old, dark grey suit jacket, white shirt, dark blue striped tie, dark grey trousers, polished leather shoes, fine wristwatch, simple tie clip\"\n    }\n}"
+  ],
+  "CreateActionSDP": [
+    "0-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Elegantly leaning against the back of the sofa. - Hand action: Holding a champagne glass, gently shaking it. - Facial expression: Arrogant, confident. - Character props: Champagne glass.\",\n        \"CharacterDesign\": \"The character is elegantly leaning against the back of a modern urban sofa, with an arrogant and confident expression on their face. They are holding a champagne glass in one hand, gently shaking it, indicating a sense of leisure and superiority.\"\n    },\n    \"SDP_Translator\": \"elegantly leaning, sofa back, arrogant expression, confident expression, holding champagne glass, gently shaking champagne glass\"\n}",
+    "1-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Sitting on a bench, body slightly leaning forward. - Hand action: Left hand holding a book, right hand gently flipping the pages. - Facial expression: Focused, contemplative. - Character props: Book.\",\n        \"CharacterDesign\": \"The character is sitting on a bench in a modern urban setting, with their body slightly leaning forward. They are holding a book in their left hand and gently flipping the pages with their right hand. Their facial expression is focused and contemplative, indicating deep concentration and thought.\"\n    },\n    \"SDP_Translator\": \"sitting, bench, body leaning forward, holding book, flipping pages, focused expression, contemplative expression\"\n}",
+    "2-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Sitting posture, body slightly leaning forward. - Hand action: Both hands crossed on the knees. - Facial expression: Profound, aloof. - Character props: None.\",\n        \"CharacterDesign\": \"The character is sitting in a modern urban setting, with a body slightly leaning forward. Both hands are crossed and placed on the knees, and the facial expression is profound and aloof, indicating a sense of detachment and introspection.\"\n    },\n    \"SDP_Translator\": \"sitting, body leaning forward, hands crossed on knees, profound expression, aloof expression\"\n}",
+    "3-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing, body slightly leaning forward. - Hand action: Right hand holding a coffee cup, left hand naturally hanging down. - Facial expression: Curious and interested. - Character props: Coffee cup.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban setting, with their body slightly leaning forward, indicating curiosity and interest. The right hand is holding a coffee cup, while the left hand is naturally hanging down by their side.\"\n    },\n    \"SDP_Translator\": \"standing, body slightly leaning forward, holding coffee cup, curious and interested facial expression, hand naturally hanging down\"\n}",
+    "4-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing, posture arrogant. - Hand action: Holding a bouquet of flowers. - Facial expression: Steely gaze. - Character props: Flowers.\",\n        \"CharacterDesign\": \"The character stands tall and arrogantly in a modern urban setting, with a steely gaze. In one hand, they hold a bouquet of flowers, symbolizing a confident and assertive demeanor.\"\n    },\n    \"SDP_Translator\": \"standing, arrogant posture, holding bouquet of flowers, steely gaze\"\n}",
+    "5-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Slightly leaning forward, holding a photo of parents with both hands. - Hand action: Both hands tightly holding the photo. - Facial expression: Worn out expression, eyes filled with tears. - Character props: Photo of parents.\",\n        \"CharacterDesign\": \"The character is in a modern urban setting, slightly leaning forward with a worn out expression and eyes filled with tears. Both hands are tightly holding a photo of their parents, showing deep emotional attachment and possibly recent loss.\"\n    },\n    \"SDP_Translator\": \"slightly leaning forward, holding photo of parents, worn out expression, eyes filled with tears\"\n}",
+    "6-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing. - Hand action: Hands in pockets. - Facial expression: Cold, mocking. - Character props: None.\",\n        \"CharacterDesign\": \"The character stands in a modern urban setting, with a cold and mocking expression on their face. Both hands are casually placed in their pockets, giving off an aloof and disdainful demeanor.\"\n    },\n    \"SDP_Translator\": \"standing, modern urban, cold expression, mocking expression, hands in pockets\"\n}",
+    "7-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing. - Hand action: Holding a cup of coffee. - Facial expression: Shocked and pained. - Character props: Coffee.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban setting, holding a cup of coffee in one hand. Their face shows a mix of shock and pain, suggesting they have just experienced something unexpected and distressing.\"\n    },\n    \"SDP_Translator\": \"standing, urban setting, holding coffee, shocked expression, pained expression\"\n}",
+    "8-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing. - Hand action: Holding the backpack strap. - Facial expression: Determined. - Character props: Backpack.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban setting, with a determined expression on their face. They are holding the strap of a backpack with one hand, suggesting they are ready to move or take action.\"\n    },\n    \"SDP_Translator\": \"standing, urban setting, determined expression, holding backpack strap, backpack\"\n}",
+    "9-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Slightly leaning forward, hands on the table. - Hand action: Right hand holding a pen, left hand gently flipping through documents. - Facial expression: Sharp gaze, focused expression. - Character props: Pen, documents, laptop.\",\n        \"CharacterDesign\": \"The character is in a modern urban setting, slightly leaning forward with both hands on the table. The right hand is holding a pen, while the left hand is gently flipping through documents. The character''s gaze is sharp and expression is focused, indicating intense concentration on the task at hand. There is a laptop on the table, suggesting the character is working on a project or reviewing important documents.\"\n    },\n    \"SDP_Translator\": \"slightly leaning forward, hands on table, holding pen, flipping through documents, sharp gaze, focused expression, laptop\"\n}",
+    "10-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Sitting on a chair, body slightly leaning forward. - Hand action: Both hands crossed on the table. - Facial expression: Indifferent. - Character props: Laptop, folder.\",\n        \"CharacterDesign\": \"The character is seated in a modern urban setting, slightly leaning forward in a chair. Both hands are crossed and placed on the table, displaying an indifferent facial expression. On the table, there is a laptop and a folder, indicating a work or study environment.\"\n    },\n    \"SDP_Translator\": \"sitting, chair, body slightly leaning forward, hands crossed on table, indifferent expression, laptop, folder\"\n}",
+    "11-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Lying flat, eyebrows furrowed. - Hand action: Both hands placed on either side of the body. - Facial expression: Furrowed eyebrows, showing complex emotions. - Character props: Unfinished water, several books.\",\n        \"CharacterDesign\": \"The character is lying flat on a surface in a modern urban setting, with their eyebrows tightly furrowed, indicating deep contemplation or inner turmoil. Both hands are resting on either side of their body, relaxed yet tense. Next to them are an unfinished glass of water and several books, suggesting they were interrupted or are in a state of reflection.\"\n    },\n    \"SDP_Translator\": \"lying flat, furrowed eyebrows, hands on sides, unfinished water, several books\"\n}",
+    "12-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing. - Hand action: Holding a bamboo steamer with soup dumplings with both hands. - Facial expression: A charming smile, eyes filled with anticipation and a coquettish expression. - Character props: Bamboo steamer with soup dumplings.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban setting, holding a bamboo steamer filled with soup dumplings in both hands. Her face displays a charming smile, with her eyes reflecting a mix of anticipation and a playful, coquettish expression.\"\n    },\n    \"SDP_Translator\": \"standing, bamboo steamer with soup dumplings, charming smile, eyes filled with anticipation, coquettish expression\"\n}",
+    "13-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing, holding a small steamed bun with both hands. - Hand action: Holding a small steamed bun with both hands, fingers slightly bent. - Facial expression: A charming smile, eyes full of anticipation and coquetry. - Character props: Small steamed bun.\",\n        \"CharacterDesign\": \"The character stands in a modern urban setting, holding a small steamed bun with both hands. Her fingers are slightly bent around the bun, and she has a charming smile on her face. Her eyes are filled with anticipation and a hint of coquetry, suggesting she is eagerly waiting for someone or something.\"\n    },\n    \"SDP_Translator\": \"standing, holding small steamed bun with both hands, fingers slightly bent, charming smile, eyes full of anticipation and coquetry\"\n}",
+    "14-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Slightly leaning forward. - Hand action: Holding a cigarette between fingers. - Facial expression: Tired and confused. - Character props: Cigarette, lighter.\",\n        \"CharacterDesign\": \"The character is in a modern urban setting, slightly leaning forward with a tired and confused expression on their face. They are holding a cigarette between their fingers, possibly contemplating or taking a break, and a lighter is nearby, suggesting they might have just lit the cigarette.\"\n    },\n    \"SDP_Translator\": \"slightly leaning forward, holding cigarette, tired and confused expression, lighter\"\n}",
+    "15-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Standing. - Hand action: Hands naturally hanging down. - Facial expression: Eyes glistening with tears. - Character props: None.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban environment, with hands naturally hanging down by their sides. Their eyes are glistening with tears, suggesting a moment of emotional distress or reflection.\"\n    },\n    \"SDP_Translator\": \"standing, urban environment, eyes glistening with tears, hands naturally hanging down\"\n}",
+    "16-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing. - Hand action: Holding a paintbrush. - Facial expression: Confident smile. - Character props: Paintbrush.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban setting, holding a paintbrush in one hand. The character has a confident smile on their face, suggesting they are engaged in an artistic activity or are proud of their work.\"\n    },\n    \"SDP_Translator\": \"standing, modern urban, holding paintbrush, confident smile\"\n}",
+    "17-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Lying on the table. - Hand action: Hands hanging weakly by the side of the table. - Facial expression: Painful, pale. - Character props: Empty wine bottle, scattered tissues.\",\n        \"CharacterDesign\": \"The character is lying on a table in a modern urban setting, with a painful and pale expression on their face. Their hands are hanging weakly by the side of the table, and there is an empty wine bottle and scattered tissues on the table, suggesting a scene of emotional distress or physical exhaustion.\"\n    },\n    \"SDP_Translator\": \"lying, table, painful expression, pale, hand hanging, empty wine bottle, scattered tissues\"\n}",
+    "18-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Standing, gently holding [Ming Ran]''s wrist. - Hand action: Gently holding [Ming Ran]''s wrist. - Facial expression: Smiling, with gentle eyes. - Character props: None.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban setting, gently holding [Ming Ran]''s wrist with a soft smile on their face. Their eyes are gentle, reflecting a caring and tender demeanor.\"\n    },\n    \"SDP_Translator\": \"standing, gently holding wrist, smiling, gentle eyes\"\n}",
+    "18-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Standing, following the footsteps of [Chu Yuan]. - Hand action: Wrist being gently held by [Chu Yuan]. - Facial expression: Initially surprised, but quickly turns to compliance. - Character props: None.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban environment, following the footsteps of [Chu Yuan]. [Chu Yuan] is gently holding the character''s wrist, causing an initial look of surprise on the character''s face, which quickly transitions to a look of compliance.\"\n    },\n    \"SDP_Translator\": \"standing, following footsteps, wrist held gently, surprised expression, compliance expression\"\n}",
+    "19-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing. - Hand action: Both hands clenched into fists. - Facial expression: Angry. - Character props: None.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban setting, with an angry expression on their face. Both hands are tightly clenched into fists, indicating strong emotion or tension.\"\n    },\n    \"SDP_Translator\": \"standing, angry expression, clenched fists\"\n}",
+    "20-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Standing, slightly leaning forward. - Hand action: Both hands slightly trembling, trying to reach out. - Facial expression: Deep pain and pleading, eyes glistening with tears. - Character props: None.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban setting, slightly leaning forward. Both hands are trembling slightly as they attempt to reach out. The character''s face shows deep pain and pleading, with tears glistening in their eyes, indicating a desperate and emotional state.\"\n    },\n    \"SDP_Translator\": \"standing, slightly leaning forward, hands trembling, reaching out, deep pain, pleading, tears in eyes\"\n}",
+    "21-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing. - Hand action: Gently pushing [Chu Yuan]. - Facial expression: Indifferent, firm gaze. - Character props: None.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban setting, with an indifferent expression and a firm gaze. One hand is gently pushing [Chu Yuan], indicating a subtle but decisive action.\"\n    },\n    \"SDP_Translator\": \"standing, modern urban, indifferent expression, firm gaze, gently pushing [Chu Yuan]\"\n}",
+    "22-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Body pressed closely against [Ming Ran]. - Hand action: Gently holding [Ming Ran]''s hand. - Facial expression: Begging. - Character props: None.\",\n        \"CharacterDesign\": \"In a modern urban setting, the character is standing close to [Ming Ran], with their body pressed against them. The character''s hand is gently holding [Ming Ran]''s hand, and their facial expression shows a pleading look, indicating a request or a need for help.\"\n    },\n    \"SDP_Translator\": \"standing close, body pressed against [Ming Ran], gently holding hand, begging expression\"\n}",
+    "22-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Body pressed closely against [Chu Yuan]. - Hand action: Hand gently held by [Chu Yuan]. - Facial expression: Gentle. - Character props: None.\",\n        \"CharacterDesign\": \"In a modern urban setting, the character is standing closely against [Chu Yuan], with a gentle expression on their face. [Chu Yuan] is gently holding their hand, creating a tender and intimate moment.\"\n    },\n    \"SDP_Translator\": \"standing close, gentle expression, hand gently held\"\n}",
+    "23-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Slightly reclining, facing the camera. - Hand action: Right hand gently pushing away [Chu Yuan], left hand resting on the bedsheet. - Facial expression: Mocking smile, cold and distant eyes. - Character props: Bedsheet.\",\n        \"CharacterDesign\": \"The character is slightly reclining, facing the camera with a mocking smile on their face. Their right hand is gently pushing away [Chu Yuan], while the left hand rests on the bedsheet. The character''s eyes are cold and distant, reflecting a sense of detachment and disdain.\"\n    },\n    \"SDP_Translator\": \"slightly reclining, facing camera, mocking smile, cold and distant eyes, right hand pushing away, left hand on bedsheet\"\n}",
+    "24-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Looking down at [Ming Ran]. - Hand action: Gently lifting the hem of [Ming Ran]''s clothes. - Facial expression: Focused, curious. - Character props: None.\",\n        \"CharacterDesign\": \"The character is in a modern urban setting, looking down at [Ming Ran] with a focused and curious expression. One hand is gently lifting the hem of [Ming Ran]''s clothes, showing a sense of curiosity and attentiveness.\"\n    },\n    \"SDP_Translator\": \"looking down, focused expression, curious expression, hand lifting clothes hem\"\n}",
+    "24-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Lying flat. - Hand action: Hands naturally placed at the sides of the body. - Facial expression: Relaxed after being drunk. - Character props: None.\",\n        \"CharacterDesign\": \"The character is lying flat on a surface in a modern urban setting, with hands naturally placed at the sides of the body. The facial expression is relaxed, indicating a state of being drunk and at ease.\"\n    },\n    \"SDP_Translator\": \"lying flat, hands at sides, relaxed facial expression, drunk\"\n}",
+    "25-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing, gently unbuttoning the shirt. - Hand action: Fingers gently stroking the tattoo on the waist. - Facial expression: Complex emotions. - Character props: Tattoo.\",\n        \"CharacterDesign\": \"The character stands in a modern urban setting, gently unbuttoning their shirt. With one hand, they softly stroke the tattoo on their waist, while their face displays a mix of complex emotions, hinting at a deep personal connection to the tattoo.\"\n    },\n    \"SDP_Translator\": \"standing, unbuttoning shirt, fingers stroking tattoo, complex emotions, tattoo on waist\"\n}",
+    "26-[楚原]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban setting. Character description: - Body action: Sitting on the edge of the bed, body slightly leaning forward. - Hand action: Holding a lit cigarette between fingers, gently pinching [明冉]''s soft waist. - Facial expression: Flirtatious and questioning. - Character props: Cigarette, lighter.\",\n        \"CharacterDesign\": \"The character is sitting on the edge of a bed in a modern urban setting, with their body slightly leaning forward. They are holding a lit cigarette between their fingers and gently pinching [明冉]''s soft waist. Their facial expression is a mix of flirtation and questioning, suggesting a complex emotional state.\"\n    },\n    \"SDP_Translator\": \"sitting, bed edge, body leaning forward, holding lit cigarette, pinching soft waist, flirtatious and questioning expression, cigarette, lighter\"\n}",
+    "26-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Standing, body slightly leaning forward. - Hand action: Hands naturally hanging down. - Facial expression: Complex expression. - Character props: None.\",\n        \"CharacterDesign\": \"The character is standing in a modern urban setting, with their body slightly leaning forward. Their hands are naturally hanging down by their sides. The facial expression is complex, suggesting a mix of emotions or deep thought.\"\n    },\n    \"SDP_Translator\": \"standing, body leaning forward, hands hanging down, complex facial expression\"\n}",
+    "27-[明冉]: {\n    \"Character_Designed\": {\n        \"Translation\": \"Story background: Modern urban. Character description: - Body action: Slightly leaning forward, resting on the table. - Hand action: Right hand holding a coffee cup, left hand gently supporting the chin. - Facial expression: Helpless and tired, with a hint of bitter smile. - Character props: Coffee cup.\",\n        \"CharacterDesign\": \"The character is in a modern urban setting, slightly leaning forward and resting on a table. The right hand is holding a coffee cup, while the left hand is gently supporting the chin. The facial expression shows a mix of helplessness and fatigue, accompanied by a hint of a bitter smile, suggesting a sense of weariness and resignation.\"\n    },\n    \"SDP_Translator\": \"leaning forward, resting on table, holding coffee cup, supporting chin, helpless and tired expression, bitter smile\"\n}"
+  ],
+  "CreateExtraSDP": [
+    "{\n    \"output\": [\n        \"Gentle indoor lighting\",\n        \"side angle\",\n        \"medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Natural light, sunlight filtering through leaves creates dappled light and shadow\",\n        \"side angle\",\n        \"medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Natural light, sunlight filtering through leaves creates dappled light and shadow\",\n        \"side angle\",\n        \"medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Natural light, sunlight filtering through leaves creates dappled light and shadow\",\n        \"side angle\",\n        \"medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Natural light, sunlight filtering through leaves creates dappled light and shadow\",\n        \"Front angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Dim lighting\",\n        \"Low angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Natural light\",\n        \"Side angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Natural light\",\n        \"Side angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Natural light\",\n        \"Side angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Natural light\",\n        \"Front angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Bright light\",\n        \"Positive angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Dim desk lamp light\",\n        \"Low angle\",\n        \"Close-up\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Dim desk lamp light\",\n        \"Low angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft warm tone light\",\n        \"Low angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Dim lighting\",\n        \"Low angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft light\",\n        \"Front angle\",\n        \"Close-up\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft light\",\n        \"Front angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Dim light\",\n        \"Low angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft light\",\n        \"Side angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft light\",\n        \"Front angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft light\",\n        \"Front angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft light\",\n        \"Front angle\",\n        \"Close-up\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft warm tone light\",\n        \"Side angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Gentle bedside light\",\n        \"Side angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft lighting\",\n        \"Low angle\",\n        \"Close-up\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft lighting\",\n        \"Side angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft light\",\n        \"Side angle\",\n        \"Medium shot\"\n    ]\n}",
+    "{\n    \"output\": [\n        \"Soft natural light\",\n        \"Side angle\",\n        \"Medium shot\"\n    ]\n}"
+  ]
 }

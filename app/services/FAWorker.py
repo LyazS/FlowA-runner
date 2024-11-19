@@ -5,7 +5,7 @@ from app.schemas.vfnode import VFlowData
 from app.nodes import FABaseNode, FANODECOLLECTION
 
 
-class FAEvaluator:
+class FAValidator:
     def __init__(self):
         self.nodes: Dict[str, FABaseNode] = {}
         self.connectGraph = {}
@@ -129,10 +129,10 @@ class FAEvaluator:
 
         return result
 
-    async def eval(self, flowdata: VFlowData) -> Dict[str, ValidationResult]:
+    async def validate(self, flowdata: VFlowData) -> Dict[str, ValidationResult]:
         # 初始化所有节点
         for nodeinfo in flowdata.nodes:
-            node = FANODECOLLECTION[nodeinfo.data.ntype](nodeinfo)
+            node = (FANODECOLLECTION[nodeinfo.data.ntype])(nodeinfo)
             self.nodes[nodeinfo.id] = node
             pass
         # 构建节点连接关系
