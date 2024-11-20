@@ -160,7 +160,7 @@ class FAValidator:
                 )
                 pass
         # 逐个节点验证，主要验证变量是否合法
-        validNodes: Dict[str, ValidationError] = {}
+        validations: List[ValidationError] = []
         for nid in self.nodes.keys():
             node = self.nodes[nid]
             selfVarItems = self.recursive_find_variables(
@@ -172,6 +172,6 @@ class FAValidator:
             ]
             validation = node.validate(selfVars)
             if validation:
-                validNodes[node.id] = node.validate(selfVars)
+                validations.append(validation)
         pass
-        return validNodes
+        return validations

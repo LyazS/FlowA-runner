@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from enum import Enum
 from .vfnode import VFlowData
@@ -20,8 +20,7 @@ class VarSelectOption(BaseModel):
 
 class FARunRequest(BaseModel):
     vflow: VFlowData
-    task_uuid: str
-    user_uuid: str
+    uid: str
     pass
 
 
@@ -32,7 +31,7 @@ class ValidationError(BaseModel):
 
 
 class FARunResponse(BaseModel):
-    task_uuid: str
-    user_uuid: str
-    validation_errors: List[ValidationError]
+    success: bool
+    tid: Optional[str] = None
+    validation_errors: Optional[List[ValidationError]] = None
     pass
