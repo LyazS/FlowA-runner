@@ -4,6 +4,7 @@ from .FANode_attached_node_callbackFunc import FANode_attached_node_callbackFunc
 from .FANode_attached_node_callbackUser import FANode_attached_node_callbackUser
 from .FANode_attached_node_input import FANode_attached_node_input
 from .FANode_attached_node_output import FANode_attached_node_output
+from .FANode_attached_node_next import FANode_attached_node_next
 
 from .FANode_code_interpreter import FANode_code_interpreter
 from .FANode_cond_branch import FANode_cond_branch
@@ -18,6 +19,7 @@ FANODECOLLECTION = {
     "attached_node_callbackUser": FANode_attached_node_callbackUser,
     "attached_node_input": FANode_attached_node_input,
     "attached_node_output": FANode_attached_node_output,
+    "attached_node_next": FANode_attached_node_next,
     "code_interpreter": FANode_code_interpreter,
     "cond_branch": FANode_cond_branch,
     "detach_run": FANode_detach_run,

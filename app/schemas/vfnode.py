@@ -95,12 +95,13 @@ class VFNodeFlags(BaseModel):
 class VFNodeAttaching(BaseModel):
     type: str
     pos: str
+    label: str
+    pass
 
 
 class VFNodeAttachedNode(BaseModel):
-    ntype: str
     nid: str
-    apos: str
+    pass
 
 
 class VFNodePadding(BaseModel):
@@ -108,6 +109,7 @@ class VFNodePadding(BaseModel):
     bottom: int
     left: int
     right: int
+    gap: Optional[int] = None
 
 
 class VFNodeSize(BaseModel):

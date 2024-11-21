@@ -109,11 +109,11 @@ class FAValidator:
                 result.extend(
                     self.recursive_find_variables(
                         the_node.data.nesting.attached_nodes[c_data.atype].nid,
-                        c_data.atype == "output",
+                        c_data.atype == "attached_node_output",
                         False,
                         False,
                         [],
-                        c_data.atype == "input",
+                        c_data.atype == "attached_node_input",
                         [],
                     )
                 )
@@ -142,7 +142,7 @@ class FAValidator:
                 if edgeinfo.source not in self.connectGraph:
                     self.connectGraph[edgeinfo.source] = {"source": {}, "target": {}}
                     pass
-                if source_handle not in self.connectGraph[edgeinfo.source]:
+                if source_handle not in self.connectGraph[edgeinfo.source]["source"]:
                     self.connectGraph[edgeinfo.source]["source"][source_handle] = []
                     pass
                 self.connectGraph[edgeinfo.source]["source"][source_handle].append(
@@ -152,7 +152,7 @@ class FAValidator:
                 if edgeinfo.target not in self.connectGraph:
                     self.connectGraph[edgeinfo.target] = {"source": {}, "target": {}}
                     pass
-                if target_handle not in self.connectGraph[edgeinfo.target]:
+                if target_handle not in self.connectGraph[edgeinfo.target]["target"]:
                     self.connectGraph[edgeinfo.target]["target"][target_handle] = []
                     pass
                 self.connectGraph[edgeinfo.target]["target"][target_handle].append(
