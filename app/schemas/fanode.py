@@ -4,6 +4,7 @@ from enum import Enum
 
 
 class FANodeStatus(Enum):
+    Default = "Default"
     Pending = "Pending"
     Running = "Running"
     Success = "Success"

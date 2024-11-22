@@ -1,9 +1,16 @@
-from typing import List, Union
+from typing import List, Union, Dict
 import asyncio
+from pydantic import BaseModel
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeData
 from app.schemas.vfnode import VFNodeInfo
 from app.schemas.farequest import ValidationError
+
+
+class FANodeWaitStatus(BaseModel):
+    nid: str
+    output: str
+    pass
 
 
 class FABaseNode:
@@ -15,10 +22,13 @@ class FABaseNode:
 
         self.doneEvent = asyncio.Event()
         self.waitEvents: List[asyncio.Event] = []
-        self.waitNodes: List["FABaseNode"] = []
-        self.status: FANodeStatus = FANodeStatus.Pending
-
         self.waitType = FANodeWaitType.AND
+
+        self.waitStatus: List[FANodeWaitStatus] = []
+        self.status: Dict[str, FANodeStatus] = {
+            oname: FANodeStatus.Pending
+            for oname in self.data.connections.outputs.keys()
+        }
         pass
 
     async def _run(self):
