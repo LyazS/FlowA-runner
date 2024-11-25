@@ -1,6 +1,7 @@
 from typing import List, Union, Dict
 import asyncio
 import os
+import re
 import ast
 import copy
 import yaml
@@ -53,6 +54,16 @@ class SimplePythonRunner:
             stderr = result.stderr
             if len(stdout) <= 0:
                 print("代码格式问题:\n", stderr)
+            output_result = re.findall(CODE_TEMPLATE_OUTPUT_RE, stdout, re.S)
+            if len(output_result) > 0:
+                output_type, res = output_result[0].strip().split("\n", 1)
+                if output_type == "@CODEOUTPUT-BASE64":
+                    json_string = base64.b64decode(res).decode("utf-8")
+                    res_json = json.loads(json_string)
+                    print("结果:\n", res_json)
+                    pass
+                elif output_type == "@CODEOUTPUT-ERROR":
+                    print("出错:\n", res)
 
         elif self.evaltype == EvalType.SnekBox:
             pass
@@ -95,33 +106,32 @@ class FANode_code_interpreter(FABaseNode):
             for pid in node_payloads.order:
                 item: VFNodeContentData = node_payloads.byId[pid]
                 if item.type == VFNodeContentDataType.CodePython:
-                    if isinstance(item.data, str):
-                        try:
-                            tree = ast.parse(item.data)
-                            hasMain = False
-                            for node in ast.walk(tree):
-                                if (
-                                    isinstance(node, ast.FunctionDef)
-                                    and node.name == "main"
-                                ):
-                                    hasMain = True
-                                    # 检查输入名字是否对上
-                                    input_params = [arg.arg for arg in node.args.args]
-                                    for in_arg in input_params:
-                                        if in_arg not in CodeInputArgs:
-                                            raise Exception(
-                                                f"输入参数【{in_arg}】未定义"
-                                            )
-                                        pass
-                                    # 检查输出名字是否对上
-                                    return_statements = [
-                                        n
-                                        for n in ast.walk(node)
-                                        if isinstance(n, ast.Return)
-                                    ]
-                                    if len(return_statements) != 1:
-                                        raise Exception(f"main函数有且只能返回一个字典")
-                                    return_node = return_statements[0]
+                    if not isinstance(item.data, str):
+                        raise Exception(f"Python代码格式错误")
+                    try:
+                        tree = ast.parse(item.data)
+                        hasMain = False
+                        for node in ast.walk(tree):
+                            if (
+                                isinstance(node, ast.FunctionDef)
+                                and node.name == "main"
+                            ):
+                                hasMain = True
+                                # 检查输入名字是否对上
+                                input_params = [arg.arg for arg in node.args.args]
+                                for in_arg in input_params:
+                                    if in_arg not in CodeInputArgs:
+                                        raise Exception(
+                                            f"缺少输入参数【{in_arg}】"
+                                        )
+                                    pass
+                                # 检查输出名字是否对上
+                                return_statements = [
+                                    n
+                                    for n in ast.walk(node)
+                                    if isinstance(n, ast.Return)
+                                ]
+                                for return_node in return_statements:
                                     if isinstance(return_node.value, ast.Dict):
                                         outputs = set(
                                             [key.s for key in return_node.value.keys]
@@ -129,20 +139,19 @@ class FANode_code_interpreter(FABaseNode):
                                         for out_arg in CodeOutputArgs:
                                             if out_arg not in outputs:
                                                 raise Exception(
-                                                    f"输出参数【{out_arg}】未定义"
+                                                    f"返回值缺少输出参数【{out_arg}】"
                                                 )
                                             pass
                                     else:
                                         raise Exception(f"main函数返回值必须为字典")
-                                    break
-                            if not hasMain:
-                                raise Exception(f"未找到main函数")
-                        except SyntaxError:
-                            error_msgs.append(f"Python代码格式错误")
-                        except Exception as e:
-                            error_msgs.append(str(e))
-                    else:
-                        error_msgs.append(f"Python代码非str字符格式")
+                                    pass
+                                break
+                        if not hasMain:
+                            raise Exception(f"未找到main函数")
+                    except SyntaxError:
+                        error_msgs.append(f"Python代码格式错误")
+                    except Exception as e:
+                        error_msgs.append(str(e))
                 elif item.type == VFNodeContentDataType.CodeJavaScript:
                     if not isinstance(item.data, str):
                         error_msgs.append(f"JavaScript代码格式错误")
