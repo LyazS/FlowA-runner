@@ -1,47 +1,65 @@
-from typing import List, Union
+from typing import List, Union, Dict
 import asyncio
+import os
 import ast
 import copy
+import yaml
+import json
+import base64
+import subprocess
+from enum import Enum
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.farequest import ValidationError
+from app.utils.tools import read_yaml
 from .basenode import FABaseNode
 
-CODE_TEMPLATE = """@{CODEPYTHON}-FUNCTION-main
-_CODEINPUT_b64 = "@{CODEINPUT}-BASE64-string"
-class _CI_FUNC_WRAPPER:
-    @staticmethod
-    def _CI_B64TOJSON(base64_string):
-        import base64
-        import json
-        json_string = base64.b64decode(base64_string).decode("utf-8")
-        return json.loads(json_string)
 
-    @staticmethod
-    def _CI_JSONTOB64(json_obj):
-        import base64
-        import json
-        json_string = json.dumps(json_obj)
-        base64_string = base64.b64encode(json_string.encode("utf-8")).decode("utf-8")
-        return base64_string
+class EvalType(str, Enum):
+    Python = "Python"
+    SnekBox = "SnekBox"
+    pass
 
-if __name__ == "__main__":
-    import traceback
-    try:
-        _CI_CODEINPUT_DICT = _CI_FUNC_WRAPPER._CI_B64TOJSON(_CODEINPUT_b64)
-        _CI_result = main(**_CI_CODEINPUT_DICT)
-        _CI_result_b64 = _CI_FUNC_WRAPPER._CI_JSONTOB64(_CI_result)
-        print("@CODEOUTPUT-START")
-        print("@CODEOUTPUT-BASE64")
-        print(_CI_result_b64)
-        print("@CODEOUTPUT-END")
-    except Exception as e:
-        error_message = traceback.format_exc()
-        print("@CODEOUTPUT-START")
-        print("@CODEOUTPUT-ERROR")
-        print(error_message)
-        print("@CODEOUTPUT-END")
-"""
+
+NodeConfig = read_yaml(
+    os.path.join(
+        os.path.dirname(__file__),
+        "configs/FANode_code_interpreter.yaml",
+    )
+)
+
+CODE_TEMPLATE_FUNCTION = NodeConfig["codetemplate_func"]
+CODE_TEMPLATE_INPUT = NodeConfig["codetemplate_input"]
+CODE_TEMPLATE_OUTPUT_RE = NodeConfig["codetemplate_output_re"]
+CODE_TEMPLATE = NodeConfig["codetemplate"]
+
+EVALTYPE = EvalType(NodeConfig["evaltype"])
+SNEKBOXURL = NodeConfig.get("snekboxUrl", "")
+
+
+class SimplePythonRunner:
+    def __init__(self, evaltype: EvalType, snekboxUrl: str = ""):
+        self.evaltype = evaltype
+        self.snekboxUrl = snekboxUrl
+
+    def run(self, code):
+        if self.evaltype == EvalType.Python:
+            result = subprocess.run(
+                ["python", "-Xfrozen_modules=off", "-c", code],
+                capture_output=True,
+                text=True,
+            )
+            stdout = result.stdout
+            stderr = result.stderr
+            if len(stdout) <= 0:
+                print("代码格式问题:\n", stderr)
+
+        elif self.evaltype == EvalType.SnekBox:
+            pass
+        else:
+            raise Exception(f"不支持的执行类型{self.evaltype}")
+        pass
+
 
 class FANode_code_interpreter(FABaseNode):
     def __init__(self, nodeinfo: VFNodeInfo):
@@ -140,7 +158,7 @@ class FANode_code_interpreter(FABaseNode):
             return ValidationError(nid=self.id, errors=errors_payloads)
         return None
 
-    async def run(self):
+    async def run(self, getNodes: Dict[str, "FABaseNode"]):
         CodeInputArgs = {}
         CodeOutputArgs = {}
         node_payloads = self.data.getContent("payloads")
@@ -150,11 +168,24 @@ class FANode_code_interpreter(FABaseNode):
             item: VFNodeContentData = node_payloads.byId[pid]
             if item.type == VFNodeContentDataType.CodeInput:
                 for var in item.data:
-                    CodeInputArgs[var["key"]] = var["refdata"]
+                    nid, contentname, ctid = var["refdata"].split("/")
+                    CodeInputArgs[var["key"]] = (
+                        getNodes[nid].data.getContent(contentname).byId[ctid].data
+                    )
             elif item.type == VFNodeContentDataType.CodePython:
                 CodeStr = item.data
         for pid in node_results.order:
             item: VFNodeContentData = node_results.byId[pid]
             CodeOutputArgs[item.key] = None
             pass
+        # 开始执行代码
+        code_in_args = json.dumps(CodeInputArgs, ensure_ascii=False)
+        code_in_args_b64 = base64.b64encode(code_in_args.encode("utf-8")).decode(
+            "utf-8"
+        )
+        code_run: str = copy.deepcopy(CODE_TEMPLATE)
+        code_run = code_run.replace(CODE_TEMPLATE_FUNCTION, CodeStr).replace(
+            CODE_TEMPLATE_INPUT, code_in_args_b64
+        )
+        result = SimplePythonRunner(EVALTYPE, SNEKBOXURL).run(code_run)
         pass

@@ -31,14 +31,20 @@ class FABaseNode:
         }
         pass
 
-    async def _run(self):
+    async def _run(self, getNodes: Dict[str, "FABaseNode"]):
         await asyncio.gather(*(event.wait() for event in self.waitEvents))
         waitFunc = all if self.waitType == FANodeWaitType.AND else any
         hasError = waitFunc(
-            [node.status == FANodeStatus.Error for node in self.waitNodes]
+            [
+                getNodes[status.nid].status[status.output] == FANodeStatus.Error
+                for status in self.waitStatus
+            ]
         )
         hasCanceled = waitFunc(
-            [node.status == FANodeStatus.Canceled for node in self.waitNodes]
+            [
+                getNodes[status.nid].status[status.output] == FANodeStatus.Canceled
+                for status in self.waitStatus
+            ]
         )
 
         # 前置节点出错或取消，本节点取消运行
@@ -50,7 +56,7 @@ class FABaseNode:
         try:
             # 前置节点全部成功，本节点运行
             self.status = FANodeStatus.Running
-            await self.run()
+            await self.run(getNodes)
             self.status = FANodeStatus.Success
             pass
         except Exception as e:
@@ -60,7 +66,7 @@ class FABaseNode:
             self.doneEvent.set()
         pass
 
-    async def run(self):
+    async def run(self, getNodes: Dict[str, "FABaseNode"]):
         pass
 
     def init(self, *args, **kwargs):

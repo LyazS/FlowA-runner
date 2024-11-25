@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Dict
 import asyncio
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeInfo
@@ -11,7 +11,7 @@ class FANode_LLM_inference(FABaseNode):
         super().__init__(nodeinfo)
         pass
 
-    async def run(self):
+    async def run(self, getNodes: Dict[str, "FABaseNode"]):
         pass
 
     def init(self, *args, **kwargs):

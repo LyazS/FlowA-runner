@@ -2,6 +2,7 @@ from typing import List, Dict
 import asyncio
 import uuid
 from fastapi import APIRouter
+from fastapi.background import BackgroundTasks
 from app.core.config import settings
 from app.schemas.vfnode import VFlowData
 from app.schemas.farequest import FARunRequest, FARunResponse
@@ -12,7 +13,10 @@ router = APIRouter()
 
 
 @router.post("/run")
-async def run_flow(fa_req: FARunRequest) -> FARunResponse:
+async def run_flow(
+    fa_req: FARunRequest,
+    background_tasks: BackgroundTasks,
+) -> FARunResponse:
     if settings.DEBUG:
         await asyncio.sleep(1)
     fav = FAValidator()
@@ -26,7 +30,8 @@ async def run_flow(fa_req: FARunRequest) -> FARunResponse:
         )
     # 通过检查 =============================================
     taskid = str(uuid.uuid4()).replace("-", "")
-    far = FARunner()
+    far = FARunner(taskid)
+    background_tasks.add_task(far.run, flowdata)
     return FARunResponse(
         success=True,
         tid=taskid,

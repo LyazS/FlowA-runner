@@ -1,13 +1,15 @@
+import asyncio
 from typing import Dict, List
 from app.schemas.farequest import VarItem, ValidationError
 from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData
 from app.nodes import FABaseNode, FANODECOLLECTION
+from app.nodes.basenode import FANodeWaitStatus
 
 
 class FARunner:
-    def __init__(self):
+    def __init__(self, tid: str):
         self.nodes: Dict[str, FABaseNode] = {}
-        self.connectGraph = {}
+        self.tid = tid
         pass
 
     async def run(self, flowdata: VFlowData) -> Dict[str, ValidationError]:
@@ -21,24 +23,18 @@ class FARunner:
             if edgeinfo.source in self.nodes and edgeinfo.target in self.nodes:
                 source_handle = edgeinfo.sourceHandle
                 target_handle = edgeinfo.targetHandle
-                if edgeinfo.source not in self.connectGraph:
-                    self.connectGraph[edgeinfo.source] = {"source": {}, "target": {}}
-                    pass
-                if source_handle not in self.connectGraph[edgeinfo.source]:
-                    self.connectGraph[edgeinfo.source]["source"][source_handle] = []
-                    pass
-                self.connectGraph[edgeinfo.source]["source"][source_handle].append(
-                    {"nid": edgeinfo.target, "hid": target_handle}
+                self.nodes[edgeinfo.target].waitEvents.append(
+                    self.nodes[edgeinfo.source].doneEvent
                 )
-                pass
-                if edgeinfo.target not in self.connectGraph:
-                    self.connectGraph[edgeinfo.target] = {"source": {}, "target": {}}
-                    pass
-                if target_handle not in self.connectGraph[edgeinfo.target]:
-                    self.connectGraph[edgeinfo.target]["target"][target_handle] = []
-                    pass
-                self.connectGraph[edgeinfo.target]["target"][target_handle].append(
-                    {"nid": edgeinfo.source, "hid": source_handle}
+                self.nodes[edgeinfo.target].waitStatus.append(
+                    FANodeWaitStatus(
+                        nid=edgeinfo.source,
+                        output=source_handle,
+                    )
                 )
-                pass
+        # 启动所有节点
+        tasks = []
+        for nid in self.nodes:
+            tasks.append(self.nodes[nid].run(self.nodes))
+        await asyncio.gather(*tasks)
         return None
