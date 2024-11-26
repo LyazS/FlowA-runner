@@ -64,10 +64,11 @@ async def get_task_progress(taskid: str):
                     continue
                 all_nodes_data.extend(ndata)
             ALL_MESSAGES_MGR.put(
+                taskid,
                 SSEResponse(
                     event=SSEResponseType.updatenode,
                     data=all_nodes_data,
-                ).model_dump_json()
+                ).model_dump_json(),
             )
             pass
             while True:

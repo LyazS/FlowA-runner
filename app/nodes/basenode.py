@@ -70,6 +70,7 @@ class FABaseNode:
             # 前置节点全部成功，本节点开始运行
             self.status = FANodeStatus.Running
             ALL_MESSAGES_MGR.put(
+                self.id,
                 SSEResponse(
                     event=SSEResponseType.updatenode,
                     data=SSEResponseData(
@@ -82,7 +83,7 @@ class FABaseNode:
                             )
                         ],
                     ),
-                ).model_dump_json()
+                ).model_dump_json(),
             )
             updateDatas = await self.run(getNodes)
             # 运行成功
@@ -99,18 +100,20 @@ class FABaseNode:
                 )
             )
             ALL_MESSAGES_MGR.put(
+                self.id,
                 SSEResponse(
                     event=SSEResponseType.updatenode,
                     data=SSEResponseData(
                         nid=self.id,
                         updates=nodeUpdateDatas,
                     ),
-                ).model_dump_json()
+                ).model_dump_json(),
             )
             pass
         except NodeCancelException as e:
             self.status = FANodeStatus.Canceled
             ALL_MESSAGES_MGR.put(
+                self.id,
                 SSEResponse(
                     event=SSEResponseType.updatenode,
                     data=SSEResponseData(
@@ -123,12 +126,13 @@ class FABaseNode:
                             )
                         ],
                     ),
-                ).model_dump_json()
+                ).model_dump_json(),
             )
             pass
         except Exception as e:
             self.status = FANodeStatus.Error
             ALL_MESSAGES_MGR.put(
+                self.id,
                 SSEResponse(
                     event=SSEResponseType.updatenode,
                     data=SSEResponseData(
@@ -141,7 +145,7 @@ class FABaseNode:
                             )
                         ],
                     ),
-                ).model_dump_json()
+                ).model_dump_json(),
             )
         finally:
             self.doneEvent.set()
