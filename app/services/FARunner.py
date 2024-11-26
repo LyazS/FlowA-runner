@@ -2,21 +2,23 @@ import asyncio
 from typing import Dict, List
 from app.schemas.farequest import VarItem, ValidationError
 from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData
+from app.schemas.fanode import FARunnerStatus
 from app.nodes import FABaseNode, FANODECOLLECTION
 from app.nodes.basenode import FANodeWaitStatus
 
 
 class FARunner:
-    def __init__(self, tid: str):
-        self.nodes: Dict[str, FABaseNode] = {}
+    def __init__(self, tid: str, flowdata: VFlowData):
         self.tid = tid
+        self.nodes: Dict[str, FABaseNode] = {}
+        self.status: FARunnerStatus = FARunnerStatus.Pending
         pass
-
-    async def run(self, flowdata: VFlowData) -> Dict[str, ValidationError]:
         # 初始化所有节点
         for nodeinfo in flowdata.nodes:
-            node = (FANODECOLLECTION[nodeinfo.data.ntype])(nodeinfo)
-            self.nodes[nodeinfo.id] = node
+            self.nodes[nodeinfo.id] = (FANODECOLLECTION[nodeinfo.data.ntype])(
+                self.tid,
+                nodeinfo,
+            )
             pass
         # 构建节点连接关系
         for edgeinfo in flowdata.edges:
@@ -32,9 +34,15 @@ class FARunner:
                         output=source_handle,
                     )
                 )
+        pass
+
+    async def run(self):
         # 启动所有节点
+        self.status = FARunnerStatus.Running
         tasks = []
         for nid in self.nodes:
             tasks.append(self.nodes[nid].run(self.nodes))
+        # 等待所有节点完成
         await asyncio.gather(*tasks)
-        return None
+        self.status = FARunnerStatus.Success
+        pass

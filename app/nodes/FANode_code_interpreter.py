@@ -1,24 +1,37 @@
 from typing import List, Union, Dict
+from pydantic import BaseModel
 import asyncio
 import os
 import re
 import ast
 import copy
-import yaml
+import sys
 import json
 import base64
 import subprocess
 from enum import Enum
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
-from app.schemas.farequest import ValidationError
+from app.schemas.farequest import (
+    ValidationError,
+    FANodeUpdateType,
+    FANodeUpdateData,
+)
 from app.utils.tools import read_yaml
 from .basenode import FABaseNode
+from app.services.messageMgr import ALL_MESSAGES_MGR
 
 
 class EvalType(str, Enum):
     Python = "Python"
     SnekBox = "SnekBox"
+    pass
+
+
+class CodeOutput(BaseModel):
+    success: bool
+    output: Union[Dict, str] = None
+    error: str = None
     pass
 
 
@@ -38,43 +51,38 @@ EVALTYPE = EvalType(NodeConfig["evaltype"])
 SNEKBOXURL = NodeConfig.get("snekboxUrl", "")
 
 
-class SimplePythonRunner:
-    def __init__(self, evaltype: EvalType, snekboxUrl: str = ""):
-        self.evaltype = evaltype
-        self.snekboxUrl = snekboxUrl
+def SimplePythonRun(code, evaltype: EvalType, snekboxUrl: str = ""):
+    if evaltype == EvalType.Python:
+        python_executable = sys.executable
+        result = subprocess.run(
+            [python_executable, "-Xfrozen_modules=off", "-c", code],
+            capture_output=True,
+            text=True,
+        )
+        stdout = result.stdout
+        stderr = result.stderr
+        if len(stdout) <= 0:
+            raise Exception("代码格式问题:\n", stderr)
+        output_result = re.findall(CODE_TEMPLATE_OUTPUT_RE, stdout, re.S)
+        if len(output_result) > 0:
+            output_type, res = output_result[-1].strip().split("\n", 1)
+            if output_type == "@CODEOUTPUT-BASE64":
+                json_string = base64.b64decode(res).decode("utf-8")
+                res_json = json.loads(json_string)
+                return CodeOutput(success=True, output=res_json)
+            elif output_type == "@CODEOUTPUT-ERROR":
+                return CodeOutput(success=False, error=res)
 
-    def run(self, code):
-        if self.evaltype == EvalType.Python:
-            result = subprocess.run(
-                ["python", "-Xfrozen_modules=off", "-c", code],
-                capture_output=True,
-                text=True,
-            )
-            stdout = result.stdout
-            stderr = result.stderr
-            if len(stdout) <= 0:
-                print("代码格式问题:\n", stderr)
-            output_result = re.findall(CODE_TEMPLATE_OUTPUT_RE, stdout, re.S)
-            if len(output_result) > 0:
-                output_type, res = output_result[0].strip().split("\n", 1)
-                if output_type == "@CODEOUTPUT-BASE64":
-                    json_string = base64.b64decode(res).decode("utf-8")
-                    res_json = json.loads(json_string)
-                    print("结果:\n", res_json)
-                    pass
-                elif output_type == "@CODEOUTPUT-ERROR":
-                    print("出错:\n", res)
-
-        elif self.evaltype == EvalType.SnekBox:
-            pass
-        else:
-            raise Exception(f"不支持的执行类型{self.evaltype}")
+    elif evaltype == EvalType.SnekBox:
         pass
+    else:
+        raise Exception(f"不支持的执行类型{evaltype}")
+    pass
 
 
 class FANode_code_interpreter(FABaseNode):
-    def __init__(self, nodeinfo: VFNodeInfo):
-        super().__init__(nodeinfo)
+    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
+        super().__init__(tid, nodeinfo)
         pass
 
     def init(self, *args, **kwargs):
@@ -121,9 +129,7 @@ class FANode_code_interpreter(FABaseNode):
                                 input_params = [arg.arg for arg in node.args.args]
                                 for in_arg in input_params:
                                     if in_arg not in CodeInputArgs:
-                                        raise Exception(
-                                            f"缺少输入参数【{in_arg}】"
-                                        )
+                                        raise Exception(f"缺少输入参数【{in_arg}】")
                                     pass
                                 # 检查输出名字是否对上
                                 return_statements = [
@@ -167,7 +173,7 @@ class FANode_code_interpreter(FABaseNode):
             return ValidationError(nid=self.id, errors=errors_payloads)
         return None
 
-    async def run(self, getNodes: Dict[str, "FABaseNode"]):
+    async def run(self, getNodes: Dict[str, FABaseNode]) -> List[FANodeUpdateData]:
         CodeInputArgs = {}
         CodeOutputArgs = {}
         node_payloads = self.data.getContent("payloads")
@@ -196,5 +202,20 @@ class FANode_code_interpreter(FABaseNode):
         code_run = code_run.replace(CODE_TEMPLATE_FUNCTION, CodeStr).replace(
             CODE_TEMPLATE_INPUT, code_in_args_b64
         )
-        result = SimplePythonRunner(EVALTYPE, SNEKBOXURL).run(code_run)
-        pass
+        # 需要返回输出结果
+        codeResult = SimplePythonRun(code_run, EVALTYPE, SNEKBOXURL)
+        if codeResult.success:
+            for rid in CodeOutputArgs.keys():
+                if rid not in codeResult.output:
+                    raise Exception(f"实际返回结果缺少输出参数【{rid}】")
+                CodeOutputArgs[rid] = codeResult.output[rid]
+            # 整理需要节点名，数据路径，数据内容
+            return [
+                FANodeUpdateData(
+                    type=FANodeUpdateType.overwrite,
+                    path=[],
+                    data=json.dumps(CodeOutputArgs),
+                )
+            ]
+        else:
+            raise Exception(f"执行代码失败：{codeResult.error}")

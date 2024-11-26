@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from pydantic import BaseModel
 from enum import Enum
 
@@ -13,7 +13,17 @@ class FANodeStatus(Enum):
     pass
 
 
+class FARunnerStatus(Enum):
+    Pending = "Pending"
+    Running = "Running"
+    Success = "Success"
+    Canceled = "Canceled"
+    Error = "Error"
+    pass
+
+
 class FANodeWaitType(Enum):
     AND = "AND"
     OR = "OR"
     pass
+

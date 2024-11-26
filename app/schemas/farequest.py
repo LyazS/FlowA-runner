@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Any, Union
 from pydantic import BaseModel
 from enum import Enum
 from .vfnode import VFlowData
@@ -34,4 +34,37 @@ class FARunResponse(BaseModel):
     success: bool
     tid: Optional[str] = None
     validation_errors: Optional[List[ValidationError]] = None
+    pass
+
+
+class FANodeUpdateType(Enum):
+    overwrite = "overwrite"
+    append = "append"
+    remove = "remove"
+    pass
+
+
+class FANodeUpdateData(BaseModel):
+    type: FANodeUpdateType
+    path: Optional[List[str]] = None
+    data: Optional[Any] = None
+    pass
+
+
+class SSEResponseType(Enum):
+    updatenode = "updatenode"
+    batchupdatenode = "batchupdatenode"
+    internalerror = "internalerror"
+    pass
+
+
+class SSEResponseData(BaseModel):
+    nid: str
+    data: List[FANodeUpdateData]
+    pass
+
+
+class SSEResponse(BaseModel):
+    event: SSEResponseType
+    data: Union[SSEResponseData, List[SSEResponseData]]
     pass

@@ -7,8 +7,8 @@ from .basenode import FABaseNode
 
 
 class FANode_attached_node_callbackFunc(FABaseNode):
-    def __init__(self, nodeinfo: VFNodeInfo):
-        super().__init__(nodeinfo)
+    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
+        super().__init__(tid, nodeinfo)
         pass
 
     async def run(self, getNodes: Dict[str, "FABaseNode"]):

@@ -7,6 +7,8 @@ codetemplate_output_re: '@CODEOUTPUT-START(.*?)@CODEOUTPUT-END'
 codetemplate: |
   @{CODEPYTHON}-FUNCTION-main
   _CODEINPUT_b64 = "@{CODEINPUT}-BASE64-string"
+  import sys
+  print("Python path:", sys.executable)
   class _CI_FUNC_WRAPPER:
       @staticmethod
       def _CI_B64TOJSON(base64_string):
