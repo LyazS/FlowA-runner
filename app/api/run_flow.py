@@ -56,7 +56,7 @@ async def get_task_progress(taskid: str):
             # 推送剩余情况
             # 在进度完成后，叫前端post获取一次完整结果
             await ALL_MESSAGES_MGR.create(taskid)
-            farunner: FARunner = ALL_TASKS_MGR.get(taskid)
+            farunner: FARunner = await ALL_TASKS_MGR.get(taskid)
             all_nodes_data: List[SSEResponseData] = []
             for nid in farunner.nodes.keys():
                 ndata = farunner.nodes[nid].getCurData()
@@ -68,7 +68,7 @@ async def get_task_progress(taskid: str):
                 SSEResponse(
                     event=SSEResponseType.updatenode,
                     data=all_nodes_data,
-                ).model_dump_json(),
+                ),
             )
             pass
             while True:
@@ -76,8 +76,11 @@ async def get_task_progress(taskid: str):
                 p_msg = await ALL_MESSAGES_MGR.get(taskid)
                 if p_msg is None:
                     continue
-                yield p_msg
+                print(p_msg.model_dump_json())
+                yield p_msg.model_dump_json()
                 ALL_MESSAGES_MGR.task_done(taskid)
+                # if p_msg.event == SSEResponseType.flowfinish:
+                #     break
                 pass
 
         except Exception as e:

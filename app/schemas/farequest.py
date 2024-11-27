@@ -54,6 +54,7 @@ class SSEResponseType(Enum):
     updatenode = "updatenode"
     batchupdatenode = "batchupdatenode"
     internalerror = "internalerror"
+    flowfinish = "flowfinish"
     pass
 
 
@@ -65,5 +66,5 @@ class SSEResponseData(BaseModel):
 
 class SSEResponse(BaseModel):
     event: SSEResponseType
-    data: Union[SSEResponseData, List[SSEResponseData]]
+    data: Union[SSEResponseData, List[SSEResponseData], None] = None
     pass

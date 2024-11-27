@@ -3,11 +3,15 @@
 
 import uvicorn
 from contextlib import asynccontextmanager
+import tracemalloc
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.utils.logging import init_logging
 from app.api import api_router
 from app.core.config import settings
+
+if settings.DEBUG:
+    tracemalloc.start()
 
 
 @asynccontextmanager

@@ -1,10 +1,18 @@
 import asyncio
 from typing import Dict, List
-from app.schemas.farequest import VarItem, ValidationError
 from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData
 from app.schemas.fanode import FARunnerStatus
 from app.nodes import FABaseNode, FANODECOLLECTION
 from app.nodes.basenode import FANodeWaitStatus
+from app.services.messageMgr import ALL_MESSAGES_MGR
+from app.schemas.farequest import (
+    ValidationError,
+    FANodeUpdateType,
+    FANodeUpdateData,
+    SSEResponse,
+    SSEResponseData,
+    SSEResponseType,
+)
 
 
 class FARunner:
@@ -41,8 +49,15 @@ class FARunner:
         self.status = FARunnerStatus.Running
         tasks = []
         for nid in self.nodes:
-            tasks.append(self.nodes[nid].run(self.nodes))
+            tasks.append(self.nodes[nid].invoke(self.nodes))
         # 等待所有节点完成
         await asyncio.gather(*tasks)
         self.status = FARunnerStatus.Success
+        ALL_MESSAGES_MGR.put(
+            self.tid,
+            SSEResponse(
+                event=SSEResponseType.flowfinish,
+                data=None,
+            ),
+        )
         pass

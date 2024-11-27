@@ -12,6 +12,7 @@ class FANode_attached_node_output(FABaseNode):
         pass
 
     async def run(self, getNodes: Dict[str, "FABaseNode"]):
+        self.setAllOutputStatus(FANodeStatus.Success)
         pass
 
     def init(self, *args, **kwargs):

@@ -12,6 +12,7 @@ class FANode_text_print(FABaseNode):
         pass
 
     async def run(self, getNodes: Dict[str, "FABaseNode"]):
+        self.setAllOutputStatus(FANodeStatus.Success)
         pass
 
     def init(self, *args, **kwargs):

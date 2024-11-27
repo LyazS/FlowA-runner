@@ -1,6 +1,7 @@
 from typing import List, Dict, Optional
 import asyncio
 from pydantic import BaseModel
+import traceback
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeData
 from app.schemas.vfnode import VFNodeInfo
@@ -36,122 +37,109 @@ class FABaseNode:
         self.parentNode = nodeinfo.parentNode
 
         self.doneEvent = asyncio.Event()
+        # 其他节点的doneEvent会存在该节点的waitEvents列表里
         self.waitEvents: List[asyncio.Event] = []
         self.waitType = FANodeWaitType.AND
 
+        # 其他节点的输出handle的状态
         self.waitStatus: List[FANodeWaitStatus] = []
-        self.status: Dict[str, FANodeStatus] = {
+        # 该节点的输出handle的状态
+        self.outputStatus: Dict[str, FANodeStatus] = {
             oname: FANodeStatus.Pending
             for oname in self.data.connections.outputs.keys()
         }
         pass
 
-    async def _run(self, getNodes: Dict[str, "FABaseNode"]):
+    async def invoke(self, getNodes: Dict[str, "FABaseNode"]):
+        print(f"invoke {self.data.label} {self.id}")
         await asyncio.gather(*(event.wait() for event in self.waitEvents))
+        print(f"wait done {self.data.label} {self.id}")
         try:
-            waitFunc = all if self.waitType == FANodeWaitType.AND else any
-            hasError = waitFunc(
-                [
-                    getNodes[status.nid].status[status.output] == FANodeStatus.Error
-                    for status in self.waitStatus
-                ]
-            )
-            hasCanceled = waitFunc(
-                [
-                    getNodes[status.nid].status[status.output] == FANodeStatus.Canceled
-                    for status in self.waitStatus
-                ]
-            )
+            if len(self.waitStatus) > 0:
+                # 如果是AND，要求不能出现任何error或cancel状态
+                waitFunc = all if self.waitType == FANodeWaitType.AND else any
+                preNodeSuccess = []
+                for thiswstatus in self.waitStatus:
+                    thenode = getNodes[thiswstatus.nid]
+                    thisowstatus = thenode.outputStatus[thiswstatus.output]
+                    wstatus = not (
+                        thisowstatus == FANodeStatus.Error
+                        or thisowstatus == FANodeStatus.Canceled
+                    )
+                    preNodeSuccess.append(wstatus)
 
-            # 前置节点出错或取消，本节点取消运行
-            if hasError or hasCanceled:
-                raise NodeCancelException("前置节点出错或取消，本节点取消运行")
+                canRunNode = waitFunc(preNodeSuccess)
+                # 前置节点出错或取消，本节点取消运行
+                if not canRunNode:
+                    raise NodeCancelException("前置节点出错或取消，本节点取消运行")
+                print(f"can run {self.data.label} {self.id}")
+            self.setAllOutputStatus(FANodeStatus.Running)
+            self.putNodeStatus(FANodeStatus.Running)
 
             # 前置节点全部成功，本节点开始运行
-            self.status = FANodeStatus.Running
-            ALL_MESSAGES_MGR.put(
-                self.id,
-                SSEResponse(
-                    event=SSEResponseType.updatenode,
-                    data=SSEResponseData(
-                        nid=self.id,
-                        updates=[
-                            FANodeUpdateData(
-                                type=FANodeUpdateType.overwrite,
-                                path=["state", "status"],
-                                data=FANodeStatus.Running,
-                            )
-                        ],
-                    ),
-                ).model_dump_json(),
-            )
             updateDatas = await self.run(getNodes)
             # 运行成功
             nodeUpdateDatas = []
             if updateDatas:
                 nodeUpdateDatas.extend(updateDatas)
                 pass
-            self.status = FANodeStatus.Success
-            nodeUpdateDatas.append(
-                FANodeUpdateData(
-                    type=FANodeUpdateType.overwrite,
-                    path=["state", "status"],
-                    data=FANodeStatus.Success,
-                )
-            )
+            self.setAllOutputStatus(FANodeStatus.Success)
+            # 各个输出handle的成功需要由子类函数来设置
+            self.putNodeStatus(FANodeStatus.Success)
             ALL_MESSAGES_MGR.put(
-                self.id,
+                self.tid,
                 SSEResponse(
                     event=SSEResponseType.updatenode,
                     data=SSEResponseData(
                         nid=self.id,
-                        updates=nodeUpdateDatas,
+                        data=nodeUpdateDatas,
                     ),
-                ).model_dump_json(),
+                ),
             )
             pass
         except NodeCancelException as e:
-            self.status = FANodeStatus.Canceled
-            ALL_MESSAGES_MGR.put(
-                self.id,
-                SSEResponse(
-                    event=SSEResponseType.updatenode,
-                    data=SSEResponseData(
-                        nid=self.id,
-                        updates=[
-                            FANodeUpdateData(
-                                type=FANodeUpdateType.overwrite,
-                                path=["state", "status"],
-                                data=FANodeStatus.Canceled,
-                            )
-                        ],
-                    ),
-                ).model_dump_json(),
-            )
+            self.setAllOutputStatus(FANodeStatus.Canceled)
+            self.putNodeStatus(FANodeStatus.Canceled)
             pass
         except Exception as e:
-            self.status = FANodeStatus.Error
-            ALL_MESSAGES_MGR.put(
-                self.id,
-                SSEResponse(
-                    event=SSEResponseType.updatenode,
-                    data=SSEResponseData(
-                        nid=self.id,
-                        updates=[
-                            FANodeUpdateData(
-                                type=FANodeUpdateType.overwrite,
-                                path=["state", "status"],
-                                data=FANodeStatus.Error,
-                            )
-                        ],
-                    ),
-                ).model_dump_json(),
-            )
+            error_message = traceback.format_exc()
+            print(error_message)
+            self.setAllOutputStatus(FANodeStatus.Error)
+            self.putNodeStatus(FANodeStatus.Error)
         finally:
             self.doneEvent.set()
         pass
 
+    def setAllOutputStatus(self, status: FANodeStatus):
+        for oname in self.outputStatus:
+            self.outputStatus[oname] = status
+        pass
+
+    def setOutputStatus(self, oname: str, status: FANodeStatus):
+        self.outputStatus[oname] = status
+        pass
+
+    def putNodeStatus(self, status: FANodeStatus):
+        ALL_MESSAGES_MGR.put(
+            self.tid,
+            SSEResponse(
+                event=SSEResponseType.updatenode,
+                data=SSEResponseData(
+                    nid=self.id,
+                    data=[
+                        FANodeUpdateData(
+                            type=FANodeUpdateType.overwrite,
+                            path=["state", "status"],
+                            data=status,
+                        )
+                    ],
+                ),
+            ),
+        )
+        pass
+
     async def run(self, getNodes: Dict[str, "FABaseNode"]) -> List[FANodeUpdateData]:
+        self.setAllOutputStatus(FANodeStatus.Success)
         pass
 
     def getCurData(self) -> Optional[List[FANodeUpdateData]]:

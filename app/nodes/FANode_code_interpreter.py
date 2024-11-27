@@ -175,7 +175,6 @@ class FANode_code_interpreter(FABaseNode):
 
     async def run(self, getNodes: Dict[str, FABaseNode]) -> List[FANodeUpdateData]:
         CodeInputArgs = {}
-        CodeOutputArgs = {}
         node_payloads = self.data.getContent("payloads")
         node_results = self.data.getContent("results")
         CodeStr = ""
@@ -189,10 +188,6 @@ class FANode_code_interpreter(FABaseNode):
                     )
             elif item.type == VFNodeContentDataType.CodePython:
                 CodeStr = item.data
-        for pid in node_results.order:
-            item: VFNodeContentData = node_results.byId[pid]
-            CodeOutputArgs[item.key] = None
-            pass
         # 开始执行代码
         code_in_args = json.dumps(CodeInputArgs, ensure_ascii=False)
         code_in_args_b64 = base64.b64encode(code_in_args.encode("utf-8")).decode(
@@ -205,17 +200,20 @@ class FANode_code_interpreter(FABaseNode):
         # 需要返回输出结果
         codeResult = SimplePythonRun(code_run, EVALTYPE, SNEKBOXURL)
         if codeResult.success:
-            for rid in CodeOutputArgs.keys():
-                if rid not in codeResult.output:
+            returnUpdateData = []
+            for rid in node_results.order:
+                item: VFNodeContentData = node_results.byId[rid]
+                if item.key not in codeResult.output:
                     raise Exception(f"实际返回结果缺少输出参数【{rid}】")
-                CodeOutputArgs[rid] = codeResult.output[rid]
-            # 整理需要节点名，数据路径，数据内容
-            return [
-                FANodeUpdateData(
-                    type=FANodeUpdateType.overwrite,
-                    path=[],
-                    data=json.dumps(CodeOutputArgs),
+                returnUpdateData.append(
+                    FANodeUpdateData(
+                        type=FANodeUpdateType.overwrite,
+                        path=["results", "byId", rid, "data"],
+                        data=codeResult.output[item.key],
+                    )
                 )
-            ]
+            # 返回之前先设置好输出handle状态
+            self.setAllOutputStatus(FANodeStatus.Success)
+            return returnUpdateData
         else:
             raise Exception(f"执行代码失败：{codeResult.error}")
