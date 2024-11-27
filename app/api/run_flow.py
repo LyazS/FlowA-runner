@@ -1,6 +1,7 @@
 from typing import List, Dict
 import asyncio
 import uuid
+import traceback
 from fastapi import APIRouter
 from fastapi.background import BackgroundTasks
 from sse_starlette.sse import EventSourceResponse
@@ -57,17 +58,23 @@ async def get_task_progress(taskid: str):
             # 在进度完成后，叫前端post获取一次完整结果
             await ALL_MESSAGES_MGR.create(taskid)
             farunner: FARunner = await ALL_TASKS_MGR.get(taskid)
-            all_nodes_data: List[SSEResponseData] = []
+            if farunner is None:
+                raise Exception("Task not found")
+            all_sse_data: List[SSEResponseData] = []
             for nid in farunner.nodes.keys():
                 ndata = farunner.nodes[nid].getCurData()
                 if ndata is None:
                     continue
-                all_nodes_data.extend(ndata)
+                sse_data = SSEResponseData(
+                    nid=nid,
+                    data=ndata,
+                )
+                all_sse_data.append(sse_data)
             ALL_MESSAGES_MGR.put(
                 taskid,
                 SSEResponse(
                     event=SSEResponseType.updatenode,
-                    data=all_nodes_data,
+                    data=all_sse_data,
                 ),
             )
             pass
@@ -76,7 +83,7 @@ async def get_task_progress(taskid: str):
                 p_msg = await ALL_MESSAGES_MGR.get(taskid)
                 if p_msg is None:
                     continue
-                print(p_msg.model_dump_json())
+                print(p_msg.model_dump_json(indent=2))
                 yield p_msg.model_dump_json()
                 ALL_MESSAGES_MGR.task_done(taskid)
                 # if p_msg.event == SSEResponseType.flowfinish:
@@ -84,6 +91,8 @@ async def get_task_progress(taskid: str):
                 pass
 
         except Exception as e:
+            error_msg = traceback.format_exc()
+            print(error_msg)
             pass
         finally:
             await ALL_MESSAGES_MGR.remove(taskid)

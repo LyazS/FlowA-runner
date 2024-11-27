@@ -1,4 +1,4 @@
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Any, Optional
 from pydantic import BaseModel
 import asyncio
 import os
@@ -209,8 +209,26 @@ class FANode_code_interpreter(FABaseNode):
                         data=codeResult.output[item.key],
                     )
                 )
+                # 更新内部数据
+                self.data.results.byId[rid].data = codeResult.output[item.key]
             # 返回之前先设置好输出handle状态
             self.setAllOutputStatus(FANodeStatus.Success)
             return returnUpdateData
         else:
             raise Exception(f"执行代码失败：{codeResult.error}")
+
+    def getCurData(self) -> Optional[List[FANodeUpdateData]]:
+        return [
+            FANodeUpdateData(
+                type=FANodeUpdateType.overwrite,
+                path=["state", "status"],
+                data=self.runStatus,
+            )
+        ] + [
+            FANodeUpdateData(
+                type=FANodeUpdateType.overwrite,
+                path=["results", "byId", rid, "data"],
+                data=self.data.results.byId[rid].data,
+            )
+            for rid in self.data.results.order
+        ]

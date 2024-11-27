@@ -48,6 +48,8 @@ class FABaseNode:
             oname: FANodeStatus.Pending
             for oname in self.data.connections.outputs.keys()
         }
+        # 该节点的运行状态
+        self.runStatus = FANodeStatus.Pending
         pass
 
     async def invoke(self, getNodes: Dict[str, "FABaseNode"]):
@@ -120,6 +122,7 @@ class FABaseNode:
         pass
 
     def putNodeStatus(self, status: FANodeStatus):
+        self.runStatus = status
         ALL_MESSAGES_MGR.put(
             self.tid,
             SSEResponse(
@@ -143,7 +146,13 @@ class FABaseNode:
         pass
 
     def getCurData(self) -> Optional[List[FANodeUpdateData]]:
-        return None
+        return [
+            FANodeUpdateData(
+                type=FANodeUpdateType.overwrite,
+                path=["state", "status"],
+                data=self.runStatus,
+            )
+        ]
 
     def validate(self, selfVars: List[str]) -> Optional[ValidationError]:
         return None
