@@ -15,9 +15,6 @@ class FANode_text_print(FABaseNode):
         self.setAllOutputStatus(FANodeStatus.Success)
         pass
 
-    def init(self, *args, **kwargs):
-        pass
-
     def validate(self, selfVars: List[str]) -> Union[ValidationError, None]:
         error_msgs = []
         try:

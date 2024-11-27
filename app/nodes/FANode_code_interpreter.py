@@ -85,9 +85,6 @@ class FANode_code_interpreter(FABaseNode):
         super().__init__(tid, nodeinfo)
         pass
 
-    def init(self, *args, **kwargs):
-        pass
-
     def validateContent(self, selfVars: List[str]) -> List[str]:
         error_msgs = []
         try:

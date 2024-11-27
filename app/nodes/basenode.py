@@ -145,8 +145,5 @@ class FABaseNode:
     def getCurData(self) -> Optional[List[FANodeUpdateData]]:
         return None
 
-    def init(self, *args, **kwargs):
-        pass
-
     def validate(self, selfVars: List[str]) -> Optional[ValidationError]:
         return None

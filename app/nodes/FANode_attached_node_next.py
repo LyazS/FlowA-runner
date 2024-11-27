@@ -10,13 +10,3 @@ class FANode_attached_node_next(FABaseNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
         pass
-
-    async def run(self, getNodes: Dict[str, "FABaseNode"]):
-        self.setAllOutputStatus(FANodeStatus.Success)
-        pass
-
-    def init(self, *args, **kwargs):
-        pass
-
-    def validate(self, selfVars: List[str]) -> Union[ValidationError, None]:
-        return None
