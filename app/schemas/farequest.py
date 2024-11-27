@@ -1,4 +1,5 @@
 from typing import List, Optional, Any, Union
+import json
 from pydantic import BaseModel
 from enum import Enum
 from .vfnode import VFlowData
@@ -68,3 +69,15 @@ class SSEResponse(BaseModel):
     event: SSEResponseType
     data: Union[SSEResponseData, List[SSEResponseData], None] = None
     pass
+
+    def toSSEResponse(self):
+        data = None
+        if isinstance(self.data, SSEResponseData):
+            data = self.data.model_dump_json()
+        elif isinstance(self.data, list):
+            model_datas = [json.loads(d.model_dump_json()) for d in self.data]
+            data = json.dumps(model_datas)
+        return {
+            "event": self.event.value,
+            "data": data,
+        }

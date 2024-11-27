@@ -50,6 +50,7 @@ async def run_flow(
 
 @router.get("/progress")
 async def get_task_progress(taskid: str):
+    print("get_task_progress", taskid)
     async def event_generator():
         try:
             # 第一步，创建消息管理器
@@ -73,7 +74,7 @@ async def get_task_progress(taskid: str):
             ALL_MESSAGES_MGR.put(
                 taskid,
                 SSEResponse(
-                    event=SSEResponseType.updatenode,
+                    event=SSEResponseType.batchupdatenode,
                     data=all_sse_data,
                 ),
             )
@@ -81,13 +82,13 @@ async def get_task_progress(taskid: str):
             while True:
                 # 第二步,去检查各个未完成任务的进度
                 p_msg = await ALL_MESSAGES_MGR.get(taskid)
-                if p_msg is None:
-                    continue
-                print(p_msg.model_dump_json(indent=2))
-                yield p_msg.model_dump_json()
+                # if p_msg is None:
+                #     continue
+                # print(p_msg.model_dump_json(indent=2))
+                yield p_msg.toSSEResponse()
                 ALL_MESSAGES_MGR.task_done(taskid)
-                # if p_msg.event == SSEResponseType.flowfinish:
-                #     break
+                if p_msg.event == SSEResponseType.flowfinish:
+                    break
                 pass
 
         except Exception as e:

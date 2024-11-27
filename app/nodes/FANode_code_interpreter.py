@@ -51,33 +51,44 @@ EVALTYPE = EvalType(NodeConfig["evaltype"])
 SNEKBOXURL = NodeConfig.get("snekboxUrl", "")
 
 
-def SimplePythonRun(code, evaltype: EvalType, snekboxUrl: str = ""):
+async def SimplePythonRun(code, evaltype: EvalType, snekboxUrl: str = ""):
     if evaltype == EvalType.Python:
         python_executable = sys.executable
-        result = subprocess.run(
-            [python_executable, "-Xfrozen_modules=off", "-c", code],
-            capture_output=True,
-            text=True,
+
+        # Use asyncio.create_subprocess_exec for async subprocess handling
+        process = await asyncio.create_subprocess_exec(
+            python_executable,
+            "-Xfrozen_modules=off",
+            "-c",
+            code,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
-        stdout = result.stdout
-        stderr = result.stderr
+
+        # Wait for the process to complete and capture output
+        stdout_b, stderr_b = await process.communicate()
+        stdout = stdout_b.decode("utf-8").replace("\r", "")
+        stderr = stderr_b.decode("utf-8").replace("\r", "")
         if len(stdout) <= 0:
             raise Exception("代码格式问题:\n", stderr)
+
         output_result = re.findall(CODE_TEMPLATE_OUTPUT_RE, stdout, re.S)
+
         if len(output_result) > 0:
             output_type, res = output_result[-1].strip().split("\n", 1)
-            if output_type == "@CODEOUTPUT-BASE64":
+            if "@CODEOUTPUT-BASE64" in output_type:
                 json_string = base64.b64decode(res).decode("utf-8")
                 res_json = json.loads(json_string)
                 return CodeOutput(success=True, output=res_json)
-            elif output_type == "@CODEOUTPUT-ERROR":
+            elif "@CODEOUTPUT-ERROR" in output_type:
                 return CodeOutput(success=False, error=res)
+            else:
+                return CodeOutput(success=False, error="代码执行失败，请检查代码输出")
 
     elif evaltype == EvalType.SnekBox:
         pass
     else:
         raise Exception(f"不支持的执行类型{evaltype}")
-    pass
 
 
 class FANode_code_interpreter(FABaseNode):
@@ -195,7 +206,7 @@ class FANode_code_interpreter(FABaseNode):
             CODE_TEMPLATE_INPUT, code_in_args_b64
         )
         # 需要返回输出结果
-        codeResult = SimplePythonRun(code_run, EVALTYPE, SNEKBOXURL)
+        codeResult = await SimplePythonRun(code_run, EVALTYPE, SNEKBOXURL)
         if codeResult.success:
             returnUpdateData = []
             for rid in node_results.order:
