@@ -3,6 +3,7 @@ import asyncio
 import uuid
 import traceback
 from fastapi import APIRouter
+from loguru import logger
 from fastapi.background import BackgroundTasks
 from sse_starlette.sse import EventSourceResponse
 from app.core.config import settings
@@ -50,7 +51,7 @@ async def run_flow(
 
 @router.get("/progress")
 async def get_task_progress(taskid: str):
-    print("get_task_progress", taskid)
+    logger.debug("get_task_progress", taskid)
     async def event_generator():
         try:
             # 第一步，创建消息管理器
@@ -84,7 +85,7 @@ async def get_task_progress(taskid: str):
                 p_msg = await ALL_MESSAGES_MGR.get(taskid)
                 # if p_msg is None:
                 #     continue
-                # print(p_msg.model_dump_json(indent=2))
+                # logger.debug(p_msg.model_dump_json(indent=2))
                 yield p_msg.toSSEResponse()
                 ALL_MESSAGES_MGR.task_done(taskid)
                 if p_msg.event == SSEResponseType.flowfinish:
@@ -93,7 +94,7 @@ async def get_task_progress(taskid: str):
 
         except Exception as e:
             error_msg = traceback.format_exc()
-            print(error_msg)
+            logger.debug(error_msg)
             pass
         finally:
             await ALL_MESSAGES_MGR.remove(taskid)

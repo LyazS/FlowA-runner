@@ -2,6 +2,7 @@ from typing import List, Dict, Optional
 import asyncio
 from pydantic import BaseModel
 import traceback
+from loguru import logger
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeData
 from app.schemas.vfnode import VFNodeInfo
@@ -53,9 +54,9 @@ class FABaseNode:
         pass
 
     async def invoke(self, getNodes: Dict[str, "FABaseNode"]):
-        print(f"invoke {self.data.label} {self.id}")
+        logger.debug(f"invoke {self.data.label} {self.id}")
         await asyncio.gather(*(event.wait() for event in self.waitEvents))
-        print(f"wait done {self.data.label} {self.id}")
+        logger.debug(f"wait done {self.data.label} {self.id}")
         try:
             if len(self.waitStatus) > 0:
                 # 如果是AND，要求不能出现任何error或cancel状态
@@ -74,20 +75,21 @@ class FABaseNode:
                 # 前置节点出错或取消，本节点取消运行
                 if not canRunNode:
                     raise NodeCancelException("前置节点出错或取消，本节点取消运行")
-                print(f"can run {self.data.label} {self.id}")
+                logger.debug(f"can run {self.data.label} {self.id}")
             self.setAllOutputStatus(FANodeStatus.Running)
             self.putNodeStatus(FANodeStatus.Running)
 
             # 前置节点全部成功，本节点开始运行
             updateDatas = await self.run(getNodes)
             # 运行成功
+            logger.debug(f"run success {self.data.label} {self.id}")
+            # self.setAllOutputStatus(FANodeStatus.Success)
+            # 各个输出handle的成功需要由子类函数来设置
+            self.putNodeStatus(FANodeStatus.Success)
             nodeUpdateDatas = []
             if updateDatas:
                 nodeUpdateDatas.extend(updateDatas)
                 pass
-            self.setAllOutputStatus(FANodeStatus.Success)
-            # 各个输出handle的成功需要由子类函数来设置
-            self.putNodeStatus(FANodeStatus.Success)
             ALL_MESSAGES_MGR.put(
                 self.tid,
                 SSEResponse(
@@ -100,12 +102,13 @@ class FABaseNode:
             )
             pass
         except NodeCancelException as e:
+            logger.debug(f"node cancel {self.data.label} {self.id} {e.message}")
             self.setAllOutputStatus(FANodeStatus.Canceled)
             self.putNodeStatus(FANodeStatus.Canceled)
             pass
         except Exception as e:
             error_message = traceback.format_exc()
-            print(error_message)
+            logger.debug(f"node error {self.data.label} {error_message} {self.id}")
             self.setAllOutputStatus(FANodeStatus.Error)
             self.putNodeStatus(FANodeStatus.Error)
         finally:
