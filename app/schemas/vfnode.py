@@ -4,27 +4,7 @@ from typing import List, Any, Dict, Optional
 from enum import Enum
 from pydantic import BaseModel
 import json
-
-
-class VFNodeContentDataType(Enum):
-    String = "String"
-    Number = "Number"
-    Boolean = "Boolean"
-    Array = "Array"
-    Object = "Object"
-    File = "File"
-    CodeInput = "CodeInput"
-    CodePython = "CodePython"
-    CodeJavaScript = "CodeJavaScript"
-    ConditionDict = "ConditionDict"
-    IterIndex = "IterIndex"
-    LLMInput = "LLMInput"
-    ArrayPrompt = "ArrayPrompt"
-    ArrayString = "ArrayString"
-    ArrayNumber = "ArrayNumber"
-    ArrayBoolean = "ArrayBoolean"
-    ArrayFile = "ArrayFile"
-    pass
+from .vfnode_contentdata import VFNodeContentDataType, VFNodeContentDataSchema
 
 
 class VFNodeContentData(BaseModel):
