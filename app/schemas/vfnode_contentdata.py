@@ -35,19 +35,18 @@ class NonArrayContentDataType(Enum):
     LLMInput = "LLMInput"
 
 
-def generate_array_enum(base_type_enum):
+def generate_array_enum(prefix, base_type_enum):
     """Generate array enums based on base types."""
-    return {"Array" + member.name: "Array" + member.value for member in base_type_enum}
+    return {prefix + member.name: prefix + member.value for member in base_type_enum}
 
 
-# Create a new Enum combining base types, non-array types, and array types
 VFNodeContentDataType: Enum = Enum(
     "VFNodeContentDataType",
     {
         **{member.name: member.value for member in BaseContentDataType},
         **{member.name: member.value for member in NonArrayContentDataType},
         **{member.name: member.value for member in FileContentDataType},
-        **generate_array_enum(BaseContentDataType),
+        **generate_array_enum("Array", BaseContentDataType),
     },
 )
 
