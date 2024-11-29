@@ -189,13 +189,14 @@ class FANode_code_interpreter(FABaseNode):
         CodeInputArgs = {}
         node_payloads = self.data.getContent("payloads")
         node_results = self.data.getContent("results")
-        CodeStr = ""
+        CodeStr: str = ""
         for pid in node_payloads.order:
             item: VFNodeContentData = node_payloads.byId[pid]
             if item.type == VFNodeContentDataType.CodeInput:
-                for var in item.data:
-                    nid, contentname, ctid = var["refdata"].split("/")
-                    CodeInputArgs[var["key"]] = (
+                idata: List[Single_CodeInput] = item.data
+                for var in idata:
+                    nid, contentname, ctid = var.refdata.split("/")
+                    CodeInputArgs[var.key] = (
                         getNodes[nid].data.getContent(contentname).byId[ctid].data
                     )
             elif item.type == VFNodeContentDataType.CodePython:

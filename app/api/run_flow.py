@@ -7,6 +7,7 @@ from loguru import logger
 from fastapi.background import BackgroundTasks
 from sse_starlette.sse import EventSourceResponse
 from app.core.config import settings
+from app.schemas.fanode import FARunnerStatus
 from app.schemas.vfnode import VFlowData
 from app.services.FARunner import FARunner
 from app.services.FAValidator import FAValidator
@@ -52,6 +53,7 @@ async def run_flow(
 @router.get("/progress")
 async def get_task_progress(taskid: str):
     logger.debug("get_task_progress", taskid)
+
     async def event_generator():
         try:
             # 第一步，创建消息管理器
@@ -79,6 +81,14 @@ async def get_task_progress(taskid: str):
                     data=all_sse_data,
                 ),
             )
+            if farunner.status == FARunnerStatus.Success:
+                ALL_MESSAGES_MGR.put(
+                    taskid,
+                    SSEResponse(
+                        event=SSEResponseType.flowfinish,
+                        data=None,
+                    ),
+                )
             pass
             while True:
                 # 第二步,去检查各个未完成任务的进度
