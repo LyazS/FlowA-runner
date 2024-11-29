@@ -7,11 +7,13 @@ import ast
 import copy
 import sys
 import json
+import traceback
 import base64
 import subprocess
 from enum import Enum
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
+from app.schemas.vfnode_contentdata import Single_CodeInput
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
@@ -110,11 +112,12 @@ class FANode_code_interpreter(FABaseNode):
             for pid in node_payloads.order:
                 item: VFNodeContentData = node_payloads.byId[pid]
                 if item.type == VFNodeContentDataType.CodeInput:
-                    for var in item.data:
-                        if var["refdata"] not in selfVars:
-                            error_msgs.append(f"变量未定义{var['refdata']}")
+                    idata: List[Single_CodeInput] = item.data
+                    for var in idata:
+                        if var.refdata not in selfVars:
+                            error_msgs.append(f"变量未定义{var.refdata}")
                         else:
-                            CodeInputArgs.add(var["key"])
+                            CodeInputArgs.add(var.key)
             for pid in node_results.order:
                 item: VFNodeContentData = node_results.byId[pid]
                 CodeOutputArgs.append(item.key)
@@ -172,7 +175,8 @@ class FANode_code_interpreter(FABaseNode):
                     pass
             return error_msgs
         except Exception as e:
-            error_msgs.append(f"获取内容失败{str(e)}")
+            errmsg = traceback.format_exc()
+            error_msgs.append(f"获取内容失败{str(errmsg)}")
             return error_msgs
 
     def validate(self, selfVars: List[str]) -> ValidationError:

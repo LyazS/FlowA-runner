@@ -9,11 +9,10 @@ class BaseContentDataType(Enum):
     Number = "Number"  # float
     Boolean = "Boolean"  # bool
     Object = "Object"  # dict
-    Prompt = "Prompt"  #
 
 
 class FileContentDataType(Enum):
-    File = "File"
+    # File = "File"
     Image = "Image"
     Docx = "Docx"
     PPT = "PPT"
@@ -26,56 +25,25 @@ class FileContentDataType(Enum):
     pass
 
 
-class NonArrayContentDataType(Enum):
+class CodeContentDataType(Enum):
+    Python = "Python"
+    JavaScript = "JavaScript"
+    pass
+
+
+class OtherContentDataType(Enum):
     CodeInput = "CodeInput"
-    CodePython = "CodePython"
-    CodeJavaScript = "CodeJavaScript"
-    ConditionDict = "ConditionDict"
-    IterIndex = "IterIndex"
     LLMInput = "LLMInput"
-
-
-def generate_array_enum(prefix, base_type_enum):
-    """Generate array enums based on base types."""
-    return {prefix + member.name: prefix + member.value for member in base_type_enum}
-
-
-VFNodeContentDataType: Enum = Enum(
-    "VFNodeContentDataType",
-    {
-        **{member.name: member.value for member in BaseContentDataType},
-        **{member.name: member.value for member in NonArrayContentDataType},
-        **{member.name: member.value for member in FileContentDataType},
-        **generate_array_enum("Array", BaseContentDataType),
-    },
-)
-
-
-VFNodeContentData_String = str
-VFNodeContentData_Integer = int
-VFNodeContentData_Float = float
-VFNodeContentData_Boolean = bool
-VFNodeContentData_Object = dict
-
-VFNodeContentData_File = str
-VFNodeContentData_Image = str
-VFNodeContentData_Docx = str
-VFNodeContentData_PPT = str
-VFNodeContentData_Txt = str
-VFNodeContentData_Excel = str
-VFNodeContentData_Audio = str
-VFNodeContentData_Zip = str
-VFNodeContentData_Video = str
-VFNodeContentData_PDF = str
+    ConditionDict = "ConditionDict"
+    Prompts = "Prompts"
+    IterIndex = "IterIndex"
+    pass
 
 
 class Single_CodeInput(BaseModel):
     key: str
     refdata: str
     pass
-
-
-VFNodeContentData_CodeInput = List[Single_CodeInput]
 
 
 class VarType(Enum):
@@ -91,7 +59,17 @@ class Single_LLMInput(BaseModel):
     pass
 
 
-VFNodeContentData_LLMInput = List[Single_LLMInput]
+class LLMRole(Enum):
+    system = "system"
+    user = "user"
+    assistant = "assistant"
+    pass
+
+
+class Single_Prompt(BaseModel):
+    role: LLMRole
+    content: str
+    pass
 
 
 class ConditionType(Enum):
@@ -114,5 +92,63 @@ class Single_ConditionDict(BaseModel):
     conditions: List[Single_Condition]
     pass
 
+# ======= 让AI根据上边的内容自动生成就行了，不用手写schema ======
+class VFNodeContentDataType(Enum):
+    # BaseContentDataType
+    String = "String"  # str
+    Integer = "Integer"  # int
+    Number = "Number"  # float
+    Boolean = "Boolean"  # bool
+    Object = "Object"  # dict
+    # Array BaseContentDataType
+    ArrayString = "ArrayString"
+    ArrayInteger = "ArrayInteger"
+    ArrayNumber = "ArrayNumber"
+    ArrayBoolean = "ArrayBoolean"
+    ArrayObject = "ArrayObject"
+    # CodeContentDataType
+    CodePython = "CodePython"
+    CodeJavaScript = "CodeJavaScript"
+    # FileContentDataType
+    Image = "Image"
+    Docx = "Docx"
+    PPT = "PPT"
+    Txt = "Txt"
+    Excel = "Excel"
+    Audio = "Audio"
+    Zip = "Zip"
+    Video = "Video"
+    PDF = "PDF"
+    # Array FileContentDataType
+    ArrayImage = "ArrayImage"
+    ArrayDocx = "ArrayDocx"
+    ArrayPPT = "ArrayPPT"
+    ArrayTxt = "ArrayTxt"
+    ArrayExcel = "ArrayExcel"
+    ArrayAudio = "ArrayAudio"
+    ArrayZip = "ArrayZip"
+    ArrayVideo = "ArrayVideo"
+    ArrayPDF = "ArrayPDF"
+    # OtherContentDataType
+    CodeInput = "CodeInput"
+    LLMInput = "LLMInput"
+    ConditionDict = "ConditionDict"
+    Prompts = "Prompts"
+    IterIndex = "IterIndex"
+    pass
 
-VFNodeContentDataSchema = Union[None]
+
+VFNodeContentDataSchema = Optional[
+    Union[
+        str,
+        int,
+        float,
+        bool,
+        dict,
+        List[Single_CodeInput],
+        List[Single_LLMInput],
+        Single_ConditionDict,
+        List[Single_Prompt],
+        List[str],  # 对于文件类型
+    ]
+]
