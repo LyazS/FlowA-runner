@@ -5,7 +5,7 @@ import traceback
 from loguru import logger
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeData
-from app.schemas.vfnode import VFNodeInfo
+from app.schemas.vfnode import VFNodeInfo,VFNodeContentDataType
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
@@ -144,6 +144,22 @@ class FABaseNode:
         )
         pass
 
+    def getRefData(self, refdata: str, getNodes: Dict[str, "FABaseNode"]):
+        mayiter = refdata.split("#")
+        if len(mayiter) > 1:
+            pass
+        nid, contentname, ctid = mayiter[0].split("/")
+        content = getNodes[nid].data.getContent(contentname).byId[ctid]
+        rtype = content.type
+        rdata = None
+        if rtype == VFNodeContentDataType.IterIndex:
+            pass
+        else:
+            rdata = content.data
+        pass
+        return rdata
+
+    # 需要子类实现的函数 ===============================================================
     async def run(self, getNodes: Dict[str, "FABaseNode"]) -> List[FANodeUpdateData]:
         self.setAllOutputStatus(FANodeStatus.Success)
         pass

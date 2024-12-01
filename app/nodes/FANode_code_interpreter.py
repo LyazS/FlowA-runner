@@ -195,10 +195,7 @@ class FANode_code_interpreter(FABaseNode):
             if item.type == VFNodeContentDataType.CodeInput:
                 idata: List[Single_CodeInput] = item.data
                 for var in idata:
-                    nid, contentname, ctid = var.refdata.split("/")
-                    CodeInputArgs[var.key] = (
-                        getNodes[nid].data.getContent(contentname).byId[ctid].data
-                    )
+                    CodeInputArgs[var.key] = self.getRefData(var.refdata, getNodes)
             elif item.type == VFNodeContentDataType.CodePython:
                 CodeStr = item.data
         # 开始执行代码
