@@ -98,6 +98,7 @@ class VFNodeSize(BaseModel):
 
 
 class VFNodeNesting(BaseModel):
+    tag: str
     pad: VFNodePadding
     attached_pad: VFNodePadding
     attached_nodes: Dict[str, VFNodeAttachedNode]
