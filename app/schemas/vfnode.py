@@ -31,10 +31,19 @@ class VFNodeConnectionDataType(Enum):
     pass
 
 
+class VFNodeConnectionDataAttachedType(Enum):
+    attached_node_input = "attached_node_input"
+    attached_node_callbackUser = "attached_node_callbackUser"
+    attached_node_output = "attached_node_output"
+    attached_node_next = "attached_node_next"
+    attached_node_callbackFunc = "attached_node_callbackFunc"
+    pass
+
+
 class VFNodeConnectionData(BaseModel):
     type: VFNodeConnectionDataType
     inputKey: Optional[str] = None
-    atype: Optional[str] = None
+    atype: Optional[VFNodeConnectionDataAttachedType] = None
     path: Optional[List[str]] = None
     useid: Optional[List[str]] = None
     pass
@@ -43,6 +52,7 @@ class VFNodeConnectionData(BaseModel):
 class VFNodeConnectionType(Enum):
     self = "self"
     attach = "attach"
+    next = "next"
     inputs = "inputs"
     outputs = "outputs"
     callbackUsers = "callbackUsers"
@@ -59,6 +69,7 @@ class VFNodeConnection(BaseModel):
 class VFNodeConnections(BaseModel):
     self: Optional[Dict[str, VFNodeConnection]] = None
     attach: Optional[Dict[str, VFNodeConnection]] = None
+    next: Optional[Dict[str, VFNodeConnection]] = None
     inputs: Optional[Dict[str, VFNodeConnection]] = None
     outputs: Optional[Dict[str, VFNodeConnection]] = None
     callbackUsers: Optional[Dict[str, VFNodeConnection]] = None

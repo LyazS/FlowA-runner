@@ -21,8 +21,9 @@ class FAValidator:
     def recursive_find_variables(
         self,
         nid: str,
-        find_self: bool = False,
-        find_attach: bool = False,
+        find_self: List[str] = [],
+        find_attach: List[str] = [],
+        find_next: List[str] = [],
         find_all_input: bool = False,
         find_input: List[str] = None,
         find_all_output: bool = False,
@@ -41,51 +42,76 @@ class FAValidator:
         if find_all_output:
             find_output = list(the_node.data.connections.outputs.keys())
 
-        if find_self:
-            result.extend(self.find_var_from_io(nid, "self", "self"))
-        if find_attach:
-            result.extend(self.find_var_from_io(nid, "attach", "attach"))
-
+        for hid in find_self:
+            result.extend(self.find_var_from_io(nid, "self", hid))
+        for hid in find_attach:
+            result.extend(self.find_var_from_io(nid, "attach", hid))
+        for hid in find_next:
+            result.extend(self.find_var_from_io(nid, "next", hid))
         for hid in find_input:
-            result.extend(self.find_var_from_io(nid, hid, "input"))
+            result.extend(self.find_var_from_io(nid, "inputs", hid))
         for hid in find_output:
-            result.extend(self.find_var_from_io(nid, hid, "output"))
+            result.extend(self.find_var_from_io(nid, "outputs", hid))
 
         return result
 
     def find_var_from_io(
         self,
         nid: str,
+        findconnect: str,
         hid: str,
-        findtype: str,
     ) -> List[VarItem]:
         result = []
-        the_node = self.nodes[nid]  # 假设这个函数在其他地方定义
+        thenode = self.nodes[nid]  # 假设这个函数在其他地方定义
 
         # 根据类型获取connection数据
-        if findtype == "self":
-            connection = the_node.data.connections.self[hid].data
-        elif findtype == "attach":
-            connection = the_node.data.connections.attach[hid].data
-        elif findtype == "input":
-            connection = the_node.data.connections.inputs[hid].data
-        elif findtype == "output":
-            connection = the_node.data.connections.outputs[hid].data
+        if (
+            findconnect == "self"
+            and thenode.data.connections.self != None
+            and hid in thenode.data.connections.self
+        ):
+            connection = thenode.data.connections.self[hid].data
+        elif (
+            findconnect == "attach"
+            and thenode.data.connections.attach != None
+            and hid in thenode.data.connections.attach
+        ):
+            connection = thenode.data.connections.attach[hid].data
+        elif (
+            findconnect == "next"
+            and thenode.data.connections.next != None
+            and hid in thenode.data.connections.next
+        ):
+            connection = thenode.data.connections.next[hid].data
+        elif (
+            findconnect == "inputs"
+            and thenode.data.connections.inputs != None
+            and hid in thenode.data.connections.inputs
+        ):
+            connection = thenode.data.connections.inputs[hid].data
+        elif (
+            findconnect == "outputs"
+            and thenode.data.connections.outputs != None
+            and hid in thenode.data.connections.outputs
+        ):
+            connection = thenode.data.connections.outputs[hid].data
+        else:
+            return result
 
         for c_data in connection.values():
             if c_data.type == VFNodeConnectionDataType.FromInner:
                 result.append(
                     VarItem(
                         nodeId=nid,
-                        nlabel=the_node.data.label,
+                        nlabel=thenode.data.label,
                         dpath=c_data.path,
-                        dlabel=the_node.data.getContent(c_data.path[0])
+                        dlabel=thenode.data.getContent(c_data.path[0])
                         .byId[c_data.path[1]]
                         .label,
-                        dkey=the_node.data.getContent(c_data.path[0])
+                        dkey=thenode.data.getContent(c_data.path[0])
                         .byId[c_data.path[1]]
                         .key,
-                        dtype=the_node.data.getContent(c_data.path[0])
+                        dtype=thenode.data.getContent(c_data.path[0])
                         .byId[c_data.path[1]]
                         .type,
                     )
@@ -100,7 +126,7 @@ class FAValidator:
                     src_hid = edge["hid"]
                     result.extend(
                         self.recursive_find_variables(
-                            src_nid, False, False, False, [], False, [src_hid]
+                            src_nid, [], [], [], False, [], False, [src_hid]
                         )
                     )
 
@@ -108,9 +134,10 @@ class FAValidator:
                 # 对于子节点的处理
                 result.extend(
                     self.recursive_find_variables(
-                        the_node.data.nesting.attached_nodes[c_data.atype].nid,
-                        c_data.atype == "attached_node_output",
-                        False,
+                        thenode.data.nesting.attached_nodes[c_data.atype].nid,
+                        ["self"] if c_data.atype == "attached_node_output" else [],
+                        [],
+                        [],
                         False,
                         [],
                         c_data.atype == "attached_node_input",
@@ -122,7 +149,7 @@ class FAValidator:
                 # 如果是父节点，递归搜索父节点的所有输入handle
                 result.extend(
                     self.recursive_find_variables(
-                        the_node.parentNode, False, True, True, [], False, []
+                        thenode.parentNode, [], ["attach"], [], True, [], False, []
                     )
                 )
 
@@ -167,14 +194,25 @@ class FAValidator:
         validations: List[ValidationError] = []
         for nid in self.nodes.keys():
             node = self.nodes[nid]
-            selfVarItems = self.recursive_find_variables(
-                nid, True, False, False, [], False, []
-            )
-            selfVars = [
+            selfVarSelections = [
                 f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}"
-                for item in selfVarItems
+                for item in self.recursive_find_variables(
+                    nid, ["self"], [], [], False, [], False, []
+                )
             ]
-            validation = node.validate(selfVars)
+            selfVarSelections_aouput = [
+                f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}"
+                for item in self.recursive_find_variables(
+                    nid, ["attach_output"], [], [], False, [], False, []
+                )
+            ]
+
+            validation = node.validate(
+                {
+                    "self": selfVarSelections,
+                    "attach_output": selfVarSelections_aouput,
+                }
+            )
             if validation:
                 validations.append(validation)
         pass

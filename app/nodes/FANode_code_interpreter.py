@@ -179,13 +179,14 @@ class FANode_code_interpreter(FABaseNode):
             error_msgs.append(f"获取内容失败{str(errmsg)}")
             return error_msgs
 
-    def validate(self, selfVars: List[str]) -> ValidationError:
+    def validate(self, validateVars: Dict[str, List[str]]) -> Optional[ValidationError]:
+        selfVars = validateVars["self"]
         errors_payloads = self.validateContent(selfVars)
         if len(errors_payloads) > 0:
             return ValidationError(nid=self.id, errors=errors_payloads)
         return None
 
-    async def run(self, getNodes: Dict[str, FABaseNode]) -> List[FANodeUpdateData]:
+    async def run(self) -> List[FANodeUpdateData]:
         CodeInputArgs = {}
         node_payloads = self.data.getContent("payloads")
         node_results = self.data.getContent("results")
@@ -195,7 +196,7 @@ class FANode_code_interpreter(FABaseNode):
             if item.type == VFNodeContentDataType.CodeInput:
                 idata: List[Single_CodeInput] = item.data
                 for var in idata:
-                    CodeInputArgs[var.key] = self.getRefData(var.refdata, getNodes)
+                    CodeInputArgs[var.key] = await self.getRefData(var.refdata)
             elif item.type == VFNodeContentDataType.CodePython:
                 CodeStr = item.data
         # 开始执行代码

@@ -5,7 +5,7 @@ import traceback
 from loguru import logger
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeData
-from app.schemas.vfnode import VFNodeInfo,VFNodeContentDataType
+from app.schemas.vfnode import VFNodeInfo, VFNodeContentDataType
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
@@ -15,6 +15,7 @@ from app.schemas.farequest import (
     SSEResponseType,
 )
 from app.services.messageMgr import ALL_MESSAGES_MGR
+from app.services.taskMgr import ALL_TASKS_MGR
 
 
 class FANodeWaitStatus(BaseModel):
@@ -53,7 +54,7 @@ class FABaseNode:
         self.runStatus = FANodeStatus.Pending
         pass
 
-    async def invoke(self, getNodes: Dict[str, "FABaseNode"]):
+    async def invoke(self):
         logger.debug(f"invoke {self.data.label} {self.id}")
         await asyncio.gather(*(event.wait() for event in self.waitEvents))
         logger.debug(f"wait done {self.data.label} {self.id}")
@@ -63,7 +64,9 @@ class FABaseNode:
                 waitFunc = all if self.waitType == FANodeWaitType.AND else any
                 preNodeSuccess = []
                 for thiswstatus in self.waitStatus:
-                    thenode = getNodes[thiswstatus.nid]
+                    thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(
+                        thiswstatus.nid
+                    )
                     thisowstatus = thenode.outputStatus[thiswstatus.output]
                     wstatus = not (
                         thisowstatus == FANodeStatus.Error
@@ -80,7 +83,7 @@ class FABaseNode:
             self.putNodeStatus(FANodeStatus.Running)
 
             # 前置节点全部成功，本节点开始运行
-            updateDatas = await self.run(getNodes)
+            updateDatas = await self.run()
             # 运行成功
             logger.debug(f"run success {self.data.label} {self.id}")
             # self.setAllOutputStatus(FANodeStatus.Success)
@@ -144,12 +147,13 @@ class FABaseNode:
         )
         pass
 
-    def getRefData(self, refdata: str, getNodes: Dict[str, "FABaseNode"]):
+    async def getRefData(self, refdata: str):
         mayiter = refdata.split("#")
         if len(mayiter) > 1:
             pass
         nid, contentname, ctid = mayiter[0].split("/")
-        content = getNodes[nid].data.getContent(contentname).byId[ctid]
+        thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
+        content = thenode.data.getContent(contentname).byId[ctid]
         rtype = content.type
         rdata = None
         if rtype == VFNodeContentDataType.IterIndex:
@@ -160,7 +164,7 @@ class FABaseNode:
         return rdata
 
     # 需要子类实现的函数 ===============================================================
-    async def run(self, getNodes: Dict[str, "FABaseNode"]) -> List[FANodeUpdateData]:
+    async def run(self) -> List[FANodeUpdateData]:
         self.setAllOutputStatus(FANodeStatus.Success)
         pass
 
@@ -173,5 +177,5 @@ class FABaseNode:
             )
         ]
 
-    def validate(self, selfVars: List[str]) -> Optional[ValidationError]:
+    def validate(self, validateVars: Dict[str, List[str]]) -> Optional[ValidationError]:
         return None
