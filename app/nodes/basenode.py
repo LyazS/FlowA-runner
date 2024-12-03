@@ -1,5 +1,6 @@
 from typing import List, Dict, Optional
 import asyncio
+import re
 from pydantic import BaseModel
 import traceback
 from loguru import logger
@@ -52,6 +53,10 @@ class FABaseNode:
         }
         # 该节点的运行状态
         self.runStatus = FANodeStatus.Pending
+        pass
+
+    def setNewID(self, newid: str):
+        self.id = newid
         pass
 
     async def invoke(self):
@@ -157,11 +162,18 @@ class FABaseNode:
         rtype = content.type
         rdata = None
         if rtype == VFNodeContentDataType.IterIndex:
+            nest_level = self.getNestLevel()
             pass
         else:
             rdata = content.data
         pass
         return rdata
+
+    def getNestLevel(self) -> List[int]:
+        pattern = r"#([0-9]+)"
+        matches = re.findall(pattern, self.id)
+        level = list(map(int, matches))
+        return level
 
     # 需要子类实现的函数 ===============================================================
     async def run(self) -> List[FANodeUpdateData]:

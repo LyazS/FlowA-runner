@@ -1,6 +1,10 @@
 from typing import Dict, List
 from app.schemas.farequest import VarItem, ValidationError
-from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData
+from app.schemas.vfnode import (
+    VFNodeConnectionDataType,
+    VFlowData,
+    VFNodeConnectionDataAttachedType,
+)
 from app.nodes import FABaseNode, FANODECOLLECTION
 
 
@@ -135,12 +139,18 @@ class FAValidator:
                 result.extend(
                     self.recursive_find_variables(
                         thenode.data.nesting.attached_nodes[c_data.atype].nid,
-                        ["self"] if c_data.atype == "attached_node_output" else [],
+                        (
+                            ["self"]
+                            if c_data.atype
+                            == VFNodeConnectionDataAttachedType.attached_node_output
+                            else []
+                        ),
                         [],
                         [],
                         False,
                         [],
-                        c_data.atype == "attached_node_input",
+                        c_data.atype
+                        == VFNodeConnectionDataAttachedType.attached_node_input,
                         [],
                     )
                 )

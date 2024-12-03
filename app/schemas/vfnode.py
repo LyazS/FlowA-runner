@@ -111,7 +111,7 @@ class VFNodeSize(BaseModel):
 class VFNodeNesting(BaseModel):
     pad: VFNodePadding
     attached_pad: VFNodePadding
-    attached_nodes: Dict[str, VFNodeAttachedNode]
+    attached_nodes: Dict[VFNodeConnectionDataAttachedType, VFNodeAttachedNode]
 
 
 class VFNodeData(BaseModel):
