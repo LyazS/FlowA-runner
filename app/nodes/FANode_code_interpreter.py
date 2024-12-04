@@ -113,7 +113,8 @@ class FANode_code_interpreter(FABaseNode):
                 item: VFNodeContentData = node_payloads.byId[pid]
                 if item.type == VFNodeContentDataType.CodeInput:
                     idata: List[Single_CodeInput] = item.data
-                    for var in idata:
+                    for var_dict in idata:
+                        var = Single_CodeInput.model_validate(var_dict)
                         if var.refdata not in selfVars:
                             error_msgs.append(f"变量未定义{var.refdata}")
                         else:
@@ -195,7 +196,8 @@ class FANode_code_interpreter(FABaseNode):
             item: VFNodeContentData = node_payloads.byId[pid]
             if item.type == VFNodeContentDataType.CodeInput:
                 idata: List[Single_CodeInput] = item.data
-                for var in idata:
+                for var_dict in idata:
+                    var = Single_CodeInput.model_validate(var_dict)
                     CodeInputArgs[var.key] = await self.getRefData(var.refdata)
             elif item.type == VFNodeContentDataType.CodePython:
                 CodeStr = item.data

@@ -135,6 +135,7 @@ class VFNodeContentDataType(Enum):
     ConditionDict = "ConditionDict"
     Prompts = "Prompts"
     IterIndex = "IterIndex"
+    IterItem = "IterItem"
     pass
 
 

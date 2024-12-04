@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, TYPE_CHECKING
 import asyncio
 import re
 from pydantic import BaseModel
@@ -19,6 +19,9 @@ from app.schemas.farequest import (
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 
+if TYPE_CHECKING:
+    from app.nodes import FANode_iter_run
+
 
 class FANodeWaitStatus(BaseModel):
     nid: str
@@ -37,6 +40,7 @@ class FABaseNode:
         cpnodeinfo = copy.deepcopy(nodeinfo)
         self.tid = tid
         self.id = cpnodeinfo.id
+        self.oriid = copy.deepcopy(cpnodeinfo.id)
         self.data: VFNodeData = cpnodeinfo.data
         self.ntype: str = cpnodeinfo.data.ntype
         self.parentNode = cpnodeinfo.parentNode
@@ -152,20 +156,36 @@ class FABaseNode:
 
     async def getRefData(self, refdata: str):
         nid, contentname, ctid = refdata.split("/")
-        thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
+        Niter_pattern = r"#(\w+)"
+        nid_matches = re.findall(Niter_pattern, nid)
+        nid_layout = len(nid_matches)
+        nest_layout = self.getNestLayout()
+        if len(nid_matches) > len(nest_layout):
+            raise ValueError(f"refdata {refdata} is not valid")
+        for i in range(len(nid_matches)):
+            nid_matches[i] = nest_layout[i]
+        nid_replace = nid.split("#", 1)[0] + "".join(
+            map(lambda x: "#" + str(x), nid_matches)
+        )
+        thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid_replace)
         content = thenode.data.getContent(contentname).byId[ctid]
         rtype = content.type
         rdata = None
         if rtype == VFNodeContentDataType.IterIndex:
-            nest_level = self.getNestLevel()
-            rdata = nest_level[-1]
+            nest_layout = self.getNestLayout()
+            rdata = nest_layout[nid_layout]
+            pass
+        elif rtype == VFNodeContentDataType.IterItem:
+            nest_layout = self.getNestLayout()
+            iterNode: "FANode_iter_run" = thenode
+            rdata = iterNode.iter_var[nest_layout[nid_layout]]
             pass
         else:
             rdata = content.data
         pass
         return rdata
 
-    def getNestLevel(self) -> List[int]:
+    def getNestLayout(self) -> List[int]:
         pattern = r"#([0-9]+)"
         matches = re.findall(pattern, self.id)
         level = list(map(int, matches))

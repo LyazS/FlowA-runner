@@ -29,6 +29,8 @@ from .basenode import FABaseNode
 class FANode_iter_run(FABaseNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
+        self.iter_var_len = 0
+        self.iter_var = []
         pass
 
     async def run(self) -> List[FANodeUpdateData]:
@@ -40,7 +42,7 @@ class FANode_iter_run(FABaseNode):
         child_edge_infos: Dict[str, VFEdgeInfo] = {}
         # 收集所有子节点
         for nodeinfo in flowdata.nodes:
-            if nodeinfo.parentNode == self.id:
+            if nodeinfo.parentNode == self.oriid:
                 child_node_infos[nodeinfo.id] = nodeinfo
             pass
         pass
@@ -83,17 +85,16 @@ class FANode_iter_run(FABaseNode):
                 pass
         pass
         # 开始迭代
-        nest_level = self.getNestLevel()
-        iter_var_len = 0
+        nest_layout = self.getNestLayout()
         node_payloads = self.data.getContent("payloads")
         for pid in node_payloads.order:
             item: VFNodeContentData = node_payloads.byId[pid]
             if item.key == "iter_var":
-                refdata = await self.getRefData(item.data)
-                iter_var_len = len(refdata)
+                self.iter_var = await self.getRefData(item.data)
+                self.iter_var_len = len(self.iter_var)
                 break
         AllChildNodeNames: Set[str] = set()
-        for iter_idx in range(iter_var_len):
+        for iter_idx in range(self.iter_var_len):
             # 构建next附属节点
             nodeinfo_next = attach_nodeinfo["attached_node_next"]
             node_next: FABaseNode = (FANODECOLLECTION[nodeinfo_next.data.ntype])(
@@ -101,7 +102,7 @@ class FANode_iter_run(FABaseNode):
                 nodeinfo_next,
             )
             new_nid = node_next.id + "".join(
-                map(lambda x: "#" + str(x), nest_level + [iter_idx])
+                map(lambda x: "#" + str(x), nest_layout + [iter_idx])
             )
             node_next.setNewID(new_nid)
             (await ALL_TASKS_MGR.get(self.tid)).addNode(node_next.id, node_next)
@@ -115,7 +116,7 @@ class FANode_iter_run(FABaseNode):
                     child_info,
                 )
                 new_nid = child_node.id.split("#", 1)[0] + "".join(
-                    map(lambda x: "#" + str(x), nest_level + [iter_idx])
+                    map(lambda x: "#" + str(x), nest_layout + [iter_idx])
                 )
                 child_node.setNewID(new_nid)
                 (await ALL_TASKS_MGR.get(self.tid)).addNode(new_nid, child_node)
@@ -131,7 +132,7 @@ class FANode_iter_run(FABaseNode):
                     pass
                 else:
                     src_nid = edgeinfo.source.split("#", 1)[0] + "".join(
-                        map(lambda x: "#" + str(x), nest_level + [iter_idx])
+                        map(lambda x: "#" + str(x), nest_layout + [iter_idx])
                     )
                     src_node = (await ALL_TASKS_MGR.get(self.tid)).getNode(src_nid)
                 if tgt_node_info.data.ntype == "attached_node_output":
@@ -142,7 +143,7 @@ class FANode_iter_run(FABaseNode):
                     pass
                 else:
                     tgt_nid = edgeinfo.target.split("#", 1)[0] + "".join(
-                        map(lambda x: "#" + str(x), nest_level + [iter_idx])
+                        map(lambda x: "#" + str(x), nest_layout + [iter_idx])
                     )
                     tgt_node = (await ALL_TASKS_MGR.get(self.tid)).getNode(tgt_nid)
                     pass
@@ -174,10 +175,10 @@ class FANode_iter_run(FABaseNode):
                 item_ref = item.config.ref
                 nidNiter, contentname, ctid = item_ref.split("/")
                 nid_matches = re.findall(Niter_pattern, nidNiter)
-                if len(nest_level) != len(nid_matches) - 1:
+                if len(nest_layout) != len(nid_matches) - 1:
                     raise Exception("迭代节点嵌套层数不匹配")
-                for level_idx in range(len(nest_level)):
-                    nid_matches[level_idx] = nest_level[level_idx]
+                for level_idx in range(len(nest_layout)):
+                    nid_matches[level_idx] = nest_layout[level_idx]
                     pass
                 nid_pattern = (
                     nidNiter.split("#", 1)[0]
@@ -206,5 +207,6 @@ class FANode_iter_run(FABaseNode):
             self.setAllOutputStatus(FANodeStatus.Success)
             return returnUpdateData
         else:
-            raise Exception("迭代节点执行失败")
+            error_msg = traceback.format_exc()
+            raise Exception(f"迭代节点执行失败{error_msg}")
         pass

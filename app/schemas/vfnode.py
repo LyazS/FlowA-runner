@@ -15,7 +15,7 @@ class VFNodeContentData(BaseModel):
     label: str
     type: VFNodeContentDataType
     key: str
-    data: VFNodeContentDataSchema
+    data: Any
     config: Optional[VFNodeContentDataConfig] = None
     hid: Optional[str] = None
     oid: Optional[str] = None
