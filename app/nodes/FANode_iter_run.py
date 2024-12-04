@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Set
 import asyncio
 import re
 from pydantic import BaseModel
@@ -77,6 +77,10 @@ class FANode_iter_run(FABaseNode):
             )
             attach_nodes[attached_name] = node
             (await ALL_TASKS_MGR.get(self.tid)).addNode(node.id, node)
+            # 提前先启动附属节点
+            if attached_name != "attached_node_output":
+                asyncio.create_task(node.invoke())
+                pass
         pass
         # 开始迭代
         nest_level = self.getNestLevel()
@@ -88,6 +92,7 @@ class FANode_iter_run(FABaseNode):
                 refdata = await self.getRefData(item.data)
                 iter_var_len = len(refdata)
                 break
+        AllChildNodeNames: Set[str] = set()
         for iter_idx in range(iter_var_len):
             # 构建next附属节点
             nodeinfo_next = attach_nodeinfo["attached_node_next"]
@@ -95,10 +100,13 @@ class FANode_iter_run(FABaseNode):
                 self.tid,
                 nodeinfo_next,
             )
-            new_nid = node_next.id + "#".join(map(str, nest_level + [iter_idx]))
+            new_nid = node_next.id + "".join(
+                map(lambda x: "#" + str(x), nest_level + [iter_idx])
+            )
             node_next.setNewID(new_nid)
             (await ALL_TASKS_MGR.get(self.tid)).addNode(node_next.id, node_next)
             # 构建其余子节点
+            child_nodes: Dict[str, FABaseNode] = {}
             for child_id, child_info in child_node_infos.items():
                 if child_info.data.ntype in attach_node_name:
                     continue
@@ -111,6 +119,8 @@ class FANode_iter_run(FABaseNode):
                 )
                 child_node.setNewID(new_nid)
                 (await ALL_TASKS_MGR.get(self.tid)).addNode(new_nid, child_node)
+                child_nodes[child_node.id] = child_node
+                AllChildNodeNames.add(child_node.id)
             pass
             # 构建节点连接关系
             for edgeinfo in child_edge_infos.values():
@@ -146,5 +156,55 @@ class FANode_iter_run(FABaseNode):
                         output=source_handle,
                     )
                 )
-            
-            pass
+            # 启动子节点
+            for nid in child_nodes.keys():
+                asyncio.create_task(child_nodes[nid].invoke())
+            # 启动next附属节点
+            task_next = asyncio.create_task(node_next.invoke())
+            await task_next
+        pass
+        task_output = asyncio.create_task(attach_nodes["attached_node_output"].invoke())
+        await task_output
+        if attach_nodes["attached_node_output"].runStatus == FANodeStatus.Success:
+            node_results = self.data.getContent("results")
+            Niter_pattern = r"#(\w+)"
+            returnUpdateData = []
+            for rid in node_results.order:
+                item: VFNodeContentData = node_results.byId[rid]
+                item_ref = item.config.ref
+                nidNiter, contentname, ctid = item_ref.split("/")
+                nid_matches = re.findall(Niter_pattern, nidNiter)
+                if len(nest_level) != len(nid_matches) - 1:
+                    raise Exception("迭代节点嵌套层数不匹配")
+                for level_idx in range(len(nest_level)):
+                    nid_matches[level_idx] = nest_level[level_idx]
+                    pass
+                nid_pattern = (
+                    nidNiter.split("#", 1)[0]
+                    + "".join(map(lambda x: "#" + str(x), nid_matches[:-1]))
+                    + "#"
+                )
+                nids = [
+                    item for item in AllChildNodeNames if item.startswith(nid_pattern)
+                ]
+                sort_nids = sorted(nids, key=lambda x: int(x.replace(nid_pattern, "")))
+                arraydata = []
+                for nid in sort_nids:
+                    node = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
+                    ndata = node.data.getContent(contentname).byId[ctid]
+                    arraydata.append(ndata.data)
+                node_results.byId[rid].data = arraydata
+                returnUpdateData.append(
+                    FANodeUpdateData(
+                        type=FANodeUpdateType.overwrite,
+                        path=["results", "byId", rid, "data"],
+                        data=arraydata,
+                    )
+                )
+                pass
+
+            self.setAllOutputStatus(FANodeStatus.Success)
+            return returnUpdateData
+        else:
+            raise Exception("迭代节点执行失败")
+        pass

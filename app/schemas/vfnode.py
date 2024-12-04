@@ -7,11 +7,16 @@ import json
 from .vfnode_contentdata import VFNodeContentDataType, VFNodeContentDataSchema
 
 
+class VFNodeContentDataConfig(BaseModel):
+    ref: Optional[str] = None
+
+
 class VFNodeContentData(BaseModel):
     label: str
     type: VFNodeContentDataType
     key: str
     data: VFNodeContentDataSchema
+    config: Optional[VFNodeContentDataConfig] = None
     hid: Optional[str] = None
     oid: Optional[str] = None
     pass
