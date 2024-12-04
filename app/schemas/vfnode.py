@@ -7,11 +7,16 @@ import json
 from .vfnode_contentdata import VFNodeContentDataType, VFNodeContentDataSchema
 
 
+class VFNodeContentDataConfig(BaseModel):
+    ref: Optional[str] = None
+
+
 class VFNodeContentData(BaseModel):
     label: str
     type: VFNodeContentDataType
     key: str
     data: VFNodeContentDataSchema
+    config: Optional[VFNodeContentDataConfig] = None
     hid: Optional[str] = None
     oid: Optional[str] = None
     pass
@@ -111,7 +116,7 @@ class VFNodeSize(BaseModel):
 class VFNodeNesting(BaseModel):
     pad: VFNodePadding
     attached_pad: VFNodePadding
-    attached_nodes: Dict[str, VFNodeAttachedNode]
+    attached_nodes: Dict[VFNodeConnectionDataAttachedType, VFNodeAttachedNode]
 
 
 class VFNodeData(BaseModel):

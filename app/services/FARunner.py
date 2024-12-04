@@ -29,7 +29,7 @@ class FARunner:
         pass
 
     def getNode(self, nid: str) -> "FABaseNode":
-        return self.nodes.get(nid)
+        return self.nodes[nid]
 
     def buildNodes(self):
         from app.nodes.basenode import FANodeWaitStatus

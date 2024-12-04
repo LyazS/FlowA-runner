@@ -1,7 +1,9 @@
 from typing import List, Dict, Optional
 import asyncio
+import re
 from pydantic import BaseModel
 import traceback
+import copy
 from loguru import logger
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeData
@@ -32,11 +34,12 @@ class NodeCancelException(Exception):
 
 class FABaseNode:
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
+        cpnodeinfo = copy.deepcopy(nodeinfo)
         self.tid = tid
-        self.id = nodeinfo.id
-        self.data: VFNodeData = nodeinfo.data
-        self.ntype: str = nodeinfo.data.ntype
-        self.parentNode = nodeinfo.parentNode
+        self.id = cpnodeinfo.id
+        self.data: VFNodeData = cpnodeinfo.data
+        self.ntype: str = cpnodeinfo.data.ntype
+        self.parentNode = cpnodeinfo.parentNode
 
         self.doneEvent = asyncio.Event()
         # 其他节点的doneEvent会存在该节点的waitEvents列表里
@@ -54,6 +57,10 @@ class FABaseNode:
         self.runStatus = FANodeStatus.Pending
         pass
 
+    def setNewID(self, newid: str):
+        self.id = newid
+        pass
+
     async def invoke(self):
         logger.debug(f"invoke {self.data.label} {self.id}")
         await asyncio.gather(*(event.wait() for event in self.waitEvents))
@@ -68,11 +75,7 @@ class FABaseNode:
                         thiswstatus.nid
                     )
                     thisowstatus = thenode.outputStatus[thiswstatus.output]
-                    wstatus = not (
-                        thisowstatus == FANodeStatus.Error
-                        or thisowstatus == FANodeStatus.Canceled
-                    )
-                    preNodeSuccess.append(wstatus)
+                    preNodeSuccess.append(thisowstatus == FANodeStatus.Success)
 
                 canRunNode = waitFunc(preNodeSuccess)
                 # 前置节点出错或取消，本节点取消运行
@@ -148,20 +151,25 @@ class FABaseNode:
         pass
 
     async def getRefData(self, refdata: str):
-        mayiter = refdata.split("#")
-        if len(mayiter) > 1:
-            pass
-        nid, contentname, ctid = mayiter[0].split("/")
+        nid, contentname, ctid = refdata.split("/")
         thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
         content = thenode.data.getContent(contentname).byId[ctid]
         rtype = content.type
         rdata = None
         if rtype == VFNodeContentDataType.IterIndex:
+            nest_level = self.getNestLevel()
+            rdata = nest_level[-1]
             pass
         else:
             rdata = content.data
         pass
         return rdata
+
+    def getNestLevel(self) -> List[int]:
+        pattern = r"#([0-9]+)"
+        matches = re.findall(pattern, self.id)
+        level = list(map(int, matches))
+        return level
 
     # 需要子类实现的函数 ===============================================================
     async def run(self) -> List[FANodeUpdateData]:
