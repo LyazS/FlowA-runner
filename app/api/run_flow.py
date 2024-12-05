@@ -109,6 +109,7 @@ async def get_task_progress(taskid: str):
             pass
         finally:
             await ALL_MESSAGES_MGR.remove(taskid)
+            logger.info("task done", taskid)
             pass
 
     return EventSourceResponse(event_generator())
