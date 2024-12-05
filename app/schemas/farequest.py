@@ -20,7 +20,7 @@ class VarSelectOption(BaseModel):
 
 
 class FARunRequest(BaseModel):
-    vflow: VFlowData
+    vflow: Any
     pass
 
 

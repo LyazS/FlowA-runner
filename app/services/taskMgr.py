@@ -9,10 +9,10 @@ class TaskMgr:
         self.task_runner: Dict[str, FARunner] = dict()
         self.lock = asyncio.Lock()
 
-    async def create(self, tid: str, flowdata: VFlowData):
+    async def create(self, tid: str, oriflowdata):
         async with self.lock:
             if tid not in self.task_runner:
-                self.task_runner[tid] = FARunner(tid, flowdata)
+                self.task_runner[tid] = FARunner(tid, oriflowdata)
 
     async def get(self, tid: str) -> FARunner:
         if tid in self.task_runner:

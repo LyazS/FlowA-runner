@@ -3,6 +3,7 @@ import asyncio
 import re
 from pydantic import BaseModel
 import traceback
+import json
 import copy
 from loguru import logger
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
@@ -41,7 +42,7 @@ class FABaseNode:
         self.tid = tid
         self.id = cpnodeinfo.id
         self.oriid = copy.deepcopy(cpnodeinfo.id)
-        self.data: VFNodeData = cpnodeinfo.data
+        self.data: VFNodeData = copy.deepcopy(cpnodeinfo.data)
         self.ntype: str = cpnodeinfo.data.ntype
         self.parentNode = cpnodeinfo.parentNode
 
@@ -59,6 +60,26 @@ class FABaseNode:
         }
         # 该节点的运行状态
         self.runStatus = FANodeStatus.Pending
+        pass
+
+    def store(self):
+        return {
+            "tid": self.tid,
+            "id": self.id,
+            "oriid": self.oriid,
+            "data": json.loads(self.data.model_dump_json()),
+            "ntype": self.ntype,
+            "parentNode": self.parentNode,
+            "runStatus": self.runStatus,
+        }
+    def restore(self, data: Dict):
+        self.tid = data["tid"]
+        self.id = data["id"]
+        self.oriid = data["oriid"]
+        self.data = VFNodeData.model_validate(data["data"])
+        self.ntype = data["ntype"]
+        self.parentNode = data["parentNode"]
+        self.runStatus = data["runStatus"]
         pass
 
     def setNewID(self, newid: str):

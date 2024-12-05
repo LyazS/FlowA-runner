@@ -36,7 +36,7 @@ async def run_flow(
         await asyncio.sleep(1)
     taskid = str(uuid.uuid4()).replace("-", "")
     fav = FAValidator()
-    flowdata = fa_req.vflow
+    flowdata = VFlowData.model_validate(fa_req.vflow)
     validate_result = await fav.validate(taskid, flowdata)
     if len(validate_result) > 0:
         return FARunResponse(
@@ -45,7 +45,7 @@ async def run_flow(
             validation_errors=validate_result,
         )
     # 通过检查 =============================================
-    await ALL_TASKS_MGR.create(taskid, flowdata)
+    await ALL_TASKS_MGR.create(taskid, fa_req.vflow)
     background_tasks.add_task(ALL_TASKS_MGR.run, taskid)
     return FARunResponse(success=True, tid=taskid)
 
