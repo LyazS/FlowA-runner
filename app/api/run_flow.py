@@ -71,6 +71,7 @@ async def get_task_progress(taskid: str):
                     continue
                 sse_data = SSEResponseData(
                     nid=nid,
+                    oriid=farunner.nodes[nid].oriid,
                     data=ndata,
                 )
                 all_sse_data.append(sse_data)

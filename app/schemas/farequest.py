@@ -61,6 +61,7 @@ class SSEResponseType(Enum):
 
 class SSEResponseData(BaseModel):
     nid: str
+    oriid: str
     data: List[FANodeUpdateData]
     pass
 

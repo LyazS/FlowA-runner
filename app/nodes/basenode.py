@@ -106,6 +106,7 @@ class FABaseNode:
                     event=SSEResponseType.updatenode,
                     data=SSEResponseData(
                         nid=self.id,
+                        oriid=self.oriid,
                         data=nodeUpdateDatas,
                     ),
                 ),
@@ -142,6 +143,7 @@ class FABaseNode:
                 event=SSEResponseType.updatenode,
                 data=SSEResponseData(
                     nid=self.id,
+                    oriid=self.oriid,
                     data=[
                         FANodeUpdateData(
                             type=FANodeUpdateType.overwrite,
