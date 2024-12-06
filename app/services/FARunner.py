@@ -1,10 +1,14 @@
-import asyncio
 from typing import Dict, List, TYPE_CHECKING
+import asyncio
 import aiofiles
 from aiofiles import os as aiofiles_os
 import os
 import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import traceback
 from loguru import logger
+from app.core.config import settings
 from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData
 from app.schemas.fanode import FARunnerStatus
 from app.services.messageMgr import ALL_MESSAGES_MGR
@@ -15,6 +19,8 @@ from app.schemas.farequest import (
     SSEResponse,
     SSEResponseData,
     SSEResponseType,
+    NodeStoreHistory,
+    RunnerStoreHistory,
 )
 
 if TYPE_CHECKING:
@@ -22,12 +28,20 @@ if TYPE_CHECKING:
 
 
 class FARunner:
-    def __init__(self, tid: str, oriflowdata):
+    def __init__(self, tid: str):
         self.tid = tid
-        self.oriflowdata = oriflowdata
-        self.flowdata = VFlowData.model_validate(self.oriflowdata)
+        self.name = tid
+        self.oriflowdata = None
+        self.flowdata: VFlowData = None
         self.nodes: Dict[str, "FABaseNode"] = {}
         self.status: FARunnerStatus = FARunnerStatus.Pending
+        # 时间戳
+        self.starttime = None
+        self.endtime = None
+        pass
+
+    def setName(self, name: str):
+        self.name = name
         pass
 
     def addNode(self, nid, node: "FABaseNode"):
@@ -73,7 +87,10 @@ class FARunner:
                 )
         pass
 
-    async def run(self):
+    async def run(self, oriflowdata):
+        self.starttime = datetime.now(ZoneInfo("Asia/Shanghai"))
+        self.oriflowdata = oriflowdata
+        self.flowdata = VFlowData.model_validate(self.oriflowdata)
         self.buildNodes()
         # 启动所有节点
         self.status = FARunnerStatus.Running
@@ -83,6 +100,7 @@ class FARunner:
             tasks.append(self.nodes[nid].invoke())
         # 等待所有节点完成
         await asyncio.gather(*tasks)
+        self.endtime = datetime.now(ZoneInfo("Asia/Shanghai"))
         self.status = FARunnerStatus.Success
         # 保存历史记录
         await self.saveHistory()
@@ -96,43 +114,51 @@ class FARunner:
         pass
 
     async def saveHistory(self):
-        vflowData = {}
+        vflowData: List[NodeStoreHistory] = []
         for nid in self.nodes:
-            vflowData[nid] = self.nodes[nid].store()
-        vflowStore = {
-            "tid": self.tid,
-            "oriflowdata": self.oriflowdata,
-            "vflowData": vflowData,
-            "status": self.status.value,
-        }
-        if await aiofiles_os.path.exists("historys") == False:
-            await aiofiles_os.mkdir("historys")
-        savePath = os.path.join("historys", f"{self.tid}.json")
+            vflowData.append(self.nodes[nid].store())
+        vflowStore = RunnerStoreHistory(
+            name=self.name,
+            tid=self.tid,
+            oriflowdata=self.oriflowdata,
+            result=vflowData,
+            status=self.status,
+            starttime=self.starttime,
+            endtime=self.endtime,
+        )
+        if not await aiofiles_os.path.exists(settings.HISTORY_FOLDER):
+            await aiofiles_os.mkdir(settings.HISTORY_FOLDER)
+        savePath = os.path.join(settings.HISTORY_FOLDER, f"{self.tid}.json")
         async with aiofiles.open(savePath, mode="w", encoding="utf-8") as f:
-            await f.write(json.dumps(vflowStore, indent=4, ensure_ascii=False))
+            await f.write(vflowStore.model_dump_json(indent=4))
         logger.info(f"save history to {savePath}")
         pass
 
-    async def loadHistory(self, tid: str):
+    async def loadHistory(self, store: RunnerStoreHistory):
         from app.nodes import FANODECOLLECTION
 
-        savePath = os.path.join("historys", f"{tid}.json")
-        if await aiofiles_os.path.exists(savePath) == False:
+        try:
+            self.name = store.name
+            self.oriflowdata = store.oriflowdata
+            self.flowdata: VFlowData = VFlowData.model_validate(self.oriflowdata)
+            self.status = store.status
+            self.starttime = store.starttime
+            self.endtime = store.endtime
+
+            nodeinfo_dict = {}
+            for nodeinfo in self.flowdata.nodes:
+                nodeinfo_dict[nodeinfo.id] = nodeinfo
+                pass
+            for nhistory in store.result:
+                thenode: "FABaseNode" = FANODECOLLECTION[nhistory.ntype](
+                    self.tid, nodeinfo_dict[nhistory.oriid]
+                )
+                thenode.restore(nhistory)
+                self.addNode(nhistory.id, thenode)
+                pass
+            return True
+            pass
+        except Exception as e:
+            errmsg = traceback.format_exc()
+            logger.error(f"load history error: {errmsg}")
             return False
-        async with aiofiles.open(savePath, mode="r", encoding="utf-8") as f:
-            vflowStore = json.loads(await f.read())
-        self.tid = vflowStore["tid"]
-        self.oriflowdata = vflowStore["oriflowdata"]
-        self.flowdata: VFlowData = VFlowData.model_validate(self.oriflowdata)
-        self.status = FARunnerStatus(vflowStore["status"])
-        for nid in vflowStore["vflowData"]:
-            self.addNode(
-                nid,
-                (FANODECOLLECTION[self.flowdata.nodes[nid].data.ntype])(
-                    self.tid,
-                    self.flowdata.nodes[nid],
-                ),
-            )
-            self.nodes[nid].load(vflowStore["vflowData"][nid])
-        return True
-        pass

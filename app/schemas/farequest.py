@@ -1,8 +1,10 @@
 from typing import List, Optional, Any, Union
 import json
+from datetime import datetime
 from pydantic import BaseModel
 from enum import Enum
-from .vfnode import VFlowData
+from .vfnode import VFlowData, VFNodeData
+from .fanode import FARunnerStatus, FANodeStatus
 
 
 class VarItem(BaseModel):
@@ -82,3 +84,49 @@ class SSEResponse(BaseModel):
             "event": self.event.value,
             "data": data,
         }
+
+
+class FARunnerHistory(BaseModel):
+    tid: str
+    status: FARunnerStatus
+    starttime: datetime
+    endtime: datetime
+    pass
+
+
+class FARunnerHistorys(BaseModel):
+    historys: List[FARunnerHistory]
+    pass
+
+
+class FARunnerWorkflows(BaseModel):
+    workflows: List[str]
+    pass
+
+
+class NodeStoreHistory(BaseModel):
+    tid: str
+    id: str
+    oriid: str
+    data: VFNodeData
+    ntype: str
+    parentNode: Optional[str]
+    runStatus: FANodeStatus
+    pass
+
+
+class RunnerStoreHistory(BaseModel):
+    name: str
+    tid: str
+    oriflowdata: dict
+    result: List[NodeStoreHistory]
+    status: FARunnerStatus
+    starttime: datetime
+    endtime: datetime
+    pass
+
+
+class SaveWorkflowRequest(BaseModel):
+    name: str
+    vflow: Any
+    pass

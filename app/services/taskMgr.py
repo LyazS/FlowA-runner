@@ -9,10 +9,10 @@ class TaskMgr:
         self.task_runner: Dict[str, FARunner] = dict()
         self.lock = asyncio.Lock()
 
-    async def create(self, tid: str, oriflowdata):
+    async def create(self, tid: str):
         async with self.lock:
             if tid not in self.task_runner:
-                self.task_runner[tid] = FARunner(tid, oriflowdata)
+                self.task_runner[tid] = FARunner(tid)
 
     async def get(self, tid: str) -> FARunner:
         if tid in self.task_runner:
@@ -20,9 +20,14 @@ class TaskMgr:
         else:
             return None
 
-    async def run(self, tid: str):
+    async def getAllTaskID(self):
+        async with self.lock:
+            return list(self.task_runner.keys())
+        pass
+
+    async def run(self, tid: str, oriflowdata):
         if tid in self.task_runner:
-            await self.task_runner[tid].run()
+            await self.task_runner[tid].run(oriflowdata)
 
     async def stop(self, tid: str):
         pass

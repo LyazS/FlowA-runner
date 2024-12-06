@@ -1,11 +1,9 @@
-# app/main.py
-# FastAPI入口，启动服务
-
 import uvicorn
 from contextlib import asynccontextmanager
 import tracemalloc
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from aiofiles import os as aiofiles_os
 from app.utils.logging import init_logging
 from app.api import api_router
 from app.core.config import settings
@@ -17,6 +15,10 @@ if settings.DEBUG:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_logging(settings.LOG_FILE_PATH)
+    if not await aiofiles_os.path.exists(settings.HISTORY_FOLDER):
+        await aiofiles_os.mkdir(settings.HISTORY_FOLDER)
+    if not await aiofiles_os.path.exists(settings.WORKFLOW_FOLDER):
+        await aiofiles_os.mkdir(settings.WORKFLOW_FOLDER)
     yield
     # 这里可以放置清理代码
     pass

@@ -16,6 +16,7 @@ from app.schemas.farequest import (
     SSEResponse,
     SSEResponseData,
     SSEResponseType,
+    NodeStoreHistory,
 )
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
@@ -63,15 +64,16 @@ class FABaseNode:
         pass
 
     def store(self):
-        return {
-            "tid": self.tid,
-            "id": self.id,
-            "oriid": self.oriid,
-            "data": json.loads(self.data.model_dump_json()),
-            "ntype": self.ntype,
-            "parentNode": self.parentNode,
-            "runStatus": self.runStatus,
-        }
+        return NodeStoreHistory(
+            tid=self.tid,
+            id=self.id,
+            oriid=self.oriid,
+            data=self.data,
+            ntype=self.ntype,
+            parentNode=self.parentNode,
+            runStatus=self.runStatus,
+        )
+
     def restore(self, data: Dict):
         self.tid = data["tid"]
         self.id = data["id"]
@@ -140,7 +142,7 @@ class FABaseNode:
             pass
         except Exception as e:
             error_message = traceback.format_exc()
-            logger.debug(f"node error {self.data.label} {error_message} {self.id}")
+            logger.error(f"node error {self.data.label} {error_message} {self.id}")
             self.setAllOutputStatus(FANodeStatus.Error)
             self.putNodeStatus(FANodeStatus.Error)
         finally:
