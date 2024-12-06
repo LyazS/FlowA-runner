@@ -31,7 +31,7 @@ from app.schemas.farequest import (
     FARunnerHistorys,
     RunnerStoreHistory,
     FARunnerWorkflows,
-    SaveWorkflowRequest,
+    SaveWorkflow,
 )
 from app.services.FARunner import FARunner
 
@@ -48,6 +48,7 @@ async def get_history():
             historys.append(
                 FARunnerHistory(
                     tid=tid,
+                    isfile=False,
                     status=farunner.status,
                     starttime=farunner.starttime,
                     endtime=farunner.endtime,
@@ -58,38 +59,37 @@ async def get_history():
         if file.endswith(".json"):
             tid = file.split(".")[0]
             if tid not in runnertid_set:
-                async with aiofiles.open(
-                    f"{settings.HISTORY_FOLDER}/{tid}.json", mode="r", encoding="utf-8"
-                ) as f:
-                    data = json.loads(await f.read())
-                    his = RunnerStoreHistory.model_validate(data)
-                    await ALL_TASKS_MGR.create(his.tid)
-                    (await ALL_TASKS_MGR.get(his.tid)).loadHistory(his)
-                    historys.append(
-                        FARunnerHistory(
-                            tid=his.tid,
-                            status=his.status,
-                            starttime=his.starttime,
-                            endtime=his.endtime,
-                        )
+                historys.append(
+                    FARunnerHistory(
+                        tid=tid,
+                        isfile=True,
+                        status=None,
+                        starttime=None,
+                        endtime=None,
                     )
+                )
     return FARunnerHistorys(historys=historys)
 
 
 @router.post("/loadhistory")
-async def load_history(tid: str) -> Optional[dict]:
+async def load_history(tid: str) -> Optional[SaveWorkflow]:
     test_farunner: FARunner = await ALL_TASKS_MGR.get(tid)
     if test_farunner:
-        return test_farunner.oriflowdata
+        return SaveWorkflow(name=test_farunner.name, vflow=test_farunner.oriflowdata)
     else:
         check_path = f"{settings.HISTORY_FOLDER}/{tid}.json"
-        if await aiofiles_os.path.exists(check_path):
-            async with aiofiles.open(check_path, mode="r", encoding="utf-8") as f:
-                data = json.loads(await f.read())
-                his = RunnerStoreHistory.model_validate(data)
-                await ALL_TASKS_MGR.create(his.tid)
-                (await ALL_TASKS_MGR.get(his.tid)).loadHistory(his)
-                return his.oriflowdata
+        try:
+            if await aiofiles_os.path.exists(check_path):
+                async with aiofiles.open(check_path, mode="r", encoding="utf-8") as f:
+                    data = json.loads(await f.read())
+                    his = RunnerStoreHistory.model_validate(data)
+                    await ALL_TASKS_MGR.create(his.tid)
+                    (await ALL_TASKS_MGR.get(his.tid)).loadHistory(his)
+                    return SaveWorkflow(name=his.name, vflow=his.oriflowdata)
+                pass
+        except Exception as e:
+            errmsg = traceback.format_exc()
+            logger.error(f"load history error: {errmsg}")
             pass
         pass
     pass
@@ -110,21 +110,27 @@ async def get_workflows():
 
 
 @router.post("/saveworkflow")
-async def save_workflow(save_request: SaveWorkflowRequest):
+async def save_workflow(save_request: SaveWorkflow):
     name = save_request.name
     # vflow = save_request.vflow
     workflow_path = f"{settings.WORKFLOW_FOLDER}/{name}.json"
     async with aiofiles.open(workflow_path, mode="w", encoding="utf-8") as f:
-        await f.write(json.dumps(save_request.model_dump_json()))
+        await f.write(save_request.model_dump_json(indent=4))
     pass
 
 
 @router.post("/getworkflow")
-async def get_workflow(name: Annotated[str, Body()]):
+async def get_workflow(name: str):
     workflow_path = f"{settings.WORKFLOW_FOLDER}/{name}.json"
     if await aiofiles_os.path.exists(workflow_path):
-        async with aiofiles.open(workflow_path, mode="r", encoding="utf-8") as f:
-            data = json.loads(await f.read())
-            return data
+        try:
+            async with aiofiles.open(workflow_path, mode="r", encoding="utf-8") as f:
+                data = SaveWorkflow.model_validate(json.loads(await f.read()))
+                return data
+        except Exception as e:
+            errmsg = traceback.format_exc()
+            logger.error(f"load workflow error: {errmsg}")
+            pass
+        pass
     else:
         return None

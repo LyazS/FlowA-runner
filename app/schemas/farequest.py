@@ -88,9 +88,10 @@ class SSEResponse(BaseModel):
 
 class FARunnerHistory(BaseModel):
     tid: str
-    status: FARunnerStatus
-    starttime: datetime
-    endtime: datetime
+    isfile: bool
+    status: Optional[FARunnerStatus]
+    starttime: Optional[datetime]
+    endtime: Optional[datetime]
     pass
 
 
@@ -126,7 +127,7 @@ class RunnerStoreHistory(BaseModel):
     pass
 
 
-class SaveWorkflowRequest(BaseModel):
+class SaveWorkflow(BaseModel):
     name: str
     vflow: Any
     pass

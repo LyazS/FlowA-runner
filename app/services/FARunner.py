@@ -91,6 +91,7 @@ class FARunner:
         self.starttime = datetime.now(ZoneInfo("Asia/Shanghai"))
         self.oriflowdata = oriflowdata
         self.flowdata = VFlowData.model_validate(self.oriflowdata)
+        # self.name = self.flowdata.name
         self.buildNodes()
         # 启动所有节点
         self.status = FARunnerStatus.Running

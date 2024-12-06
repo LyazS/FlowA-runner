@@ -27,3 +27,4 @@ passlib
 bcrypt
 tenacity
 python-multipart
+tzdata
