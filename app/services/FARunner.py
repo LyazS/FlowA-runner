@@ -19,8 +19,9 @@ from app.schemas.farequest import (
     SSEResponse,
     SSEResponseData,
     SSEResponseType,
-    NodeStoreHistory,
-    RunnerStoreHistory,
+    FAWorkflowNodeResult,
+    FAWorkflowResult,
+    FAWorkflow,
 )
 
 if TYPE_CHECKING:
@@ -114,48 +115,49 @@ class FARunner:
         )
         pass
 
-    async def saveHistory(self):
-        vflowData: List[NodeStoreHistory] = []
+    async def saveHistory(self) -> FAWorkflow:
+        vflowData: List[FAWorkflowNodeResult] = []
         for nid in self.nodes:
             vflowData.append(self.nodes[nid].store())
-        vflowStore = RunnerStoreHistory(
+        vflowStore = FAWorkflow(
             name=self.name,
-            tid=self.tid,
-            oriflowdata=self.oriflowdata,
-            result=vflowData,
-            status=self.status,
-            starttime=self.starttime,
-            endtime=self.endtime,
+            vflow=self.oriflowdata,
+            result=FAWorkflowResult(
+                tid=self.tid,
+                noderesult=vflowData,
+                status=self.status,
+                starttime=self.starttime,
+                endtime=self.endtime,
+            ),
+            isCached=True,
         )
-        if not await aiofiles_os.path.exists(settings.HISTORY_FOLDER):
-            await aiofiles_os.mkdir(settings.HISTORY_FOLDER)
         savePath = os.path.join(settings.HISTORY_FOLDER, f"{self.tid}.json")
         async with aiofiles.open(savePath, mode="w", encoding="utf-8") as f:
             await f.write(vflowStore.model_dump_json(indent=4))
         logger.info(f"save history to {savePath}")
         pass
 
-    async def loadHistory(self, store: RunnerStoreHistory):
+    async def loadHistory(self, store: FAWorkflow):
         from app.nodes import FANODECOLLECTION
 
         try:
             self.name = store.name
-            self.oriflowdata = store.oriflowdata
+            self.oriflowdata = store.vflow
             self.flowdata: VFlowData = VFlowData.model_validate(self.oriflowdata)
-            self.status = store.status
-            self.starttime = store.starttime
-            self.endtime = store.endtime
+            self.status = store.result.status
+            self.starttime = store.result.starttime
+            self.endtime = store.result.endtime
 
             nodeinfo_dict = {}
             for nodeinfo in self.flowdata.nodes:
                 nodeinfo_dict[nodeinfo.id] = nodeinfo
                 pass
-            for nhistory in store.result:
-                thenode: "FABaseNode" = FANODECOLLECTION[nhistory.ntype](
-                    self.tid, nodeinfo_dict[nhistory.oriid]
+            for noderesult in store.result.noderesult:
+                thenode: "FABaseNode" = FANODECOLLECTION[noderesult.ntype](
+                    self.tid, nodeinfo_dict[noderesult.oriid]
                 )
-                thenode.restore(nhistory)
-                self.addNode(nhistory.id, thenode)
+                thenode.restore(noderesult)
+                self.addNode(noderesult.id, thenode)
                 pass
             return True
             pass

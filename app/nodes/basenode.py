@@ -16,7 +16,9 @@ from app.schemas.farequest import (
     SSEResponse,
     SSEResponseData,
     SSEResponseType,
-    NodeStoreHistory,
+    FAWorkflowNodeResult,
+    FAWorkflowResult,
+    FAWorkflow,
 )
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
@@ -64,7 +66,7 @@ class FABaseNode:
         pass
 
     def store(self):
-        return NodeStoreHistory(
+        return FAWorkflowNodeResult(
             tid=self.tid,
             id=self.id,
             oriid=self.oriid,
@@ -74,14 +76,14 @@ class FABaseNode:
             runStatus=self.runStatus,
         )
 
-    def restore(self, data: Dict):
-        self.tid = data["tid"]
-        self.id = data["id"]
-        self.oriid = data["oriid"]
-        self.data = VFNodeData.model_validate(data["data"])
-        self.ntype = data["ntype"]
-        self.parentNode = data["parentNode"]
-        self.runStatus = data["runStatus"]
+    def restore(self, data: FAWorkflowNodeResult):
+        self.tid = data.tid
+        self.id = data.id
+        self.oriid = data.oriid
+        self.data = data.data
+        self.ntype = data.ntype
+        self.parentNode = data.parentNode
+        self.runStatus = data.runStatus
         pass
 
     def setNewID(self, newid: str):

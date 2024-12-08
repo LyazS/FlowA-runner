@@ -22,6 +22,7 @@ class VarSelectOption(BaseModel):
 
 
 class FARunRequest(BaseModel):
+    name: str
     vflow: Any
     pass
 
@@ -85,27 +86,57 @@ class SSEResponse(BaseModel):
             "data": data,
         }
 
-
-class FARunnerHistory(BaseModel):
-    tid: str
-    isfile: bool
-    status: Optional[FARunnerStatus]
-    starttime: Optional[datetime]
-    endtime: Optional[datetime]
     pass
 
 
-class FARunnerHistorys(BaseModel):
-    historys: List[FARunnerHistory]
-    pass
+# class FARunnerHistory(BaseModel):
+#     tid: str
+#     isfile: bool
+#     status: Optional[FARunnerStatus]
+#     starttime: Optional[datetime]
+#     endtime: Optional[datetime]
+#     pass
 
 
-class FARunnerWorkflows(BaseModel):
-    workflows: List[str]
-    pass
+# class FARunnerHistorys(BaseModel):
+#     historys: List[FARunnerHistory]
+#     pass
 
 
-class NodeStoreHistory(BaseModel):
+# class FARunnerWorkflows(BaseModel):
+#     workflows: List[str]
+#     pass
+
+
+# class NodeStoreHistory(BaseModel):
+#     tid: str
+#     id: str
+#     oriid: str
+#     data: VFNodeData
+#     ntype: str
+#     parentNode: Optional[str]
+#     runStatus: FANodeStatus
+#     pass
+
+
+# class RunnerStoreHistory(BaseModel):
+#     name: str
+#     tid: str
+#     oriflowdata: dict
+#     result: List[NodeStoreHistory]
+#     status: FARunnerStatus
+#     starttime: datetime
+#     endtime: datetime
+#     pass
+
+
+# class SaveWorkflow(BaseModel):
+#     name: str
+#     vflow: Any
+#     pass
+
+
+class FAWorkflowNodeResult(BaseModel):
     tid: str
     id: str
     oriid: str
@@ -116,18 +147,18 @@ class NodeStoreHistory(BaseModel):
     pass
 
 
-class RunnerStoreHistory(BaseModel):
-    name: str
+class FAWorkflowResult(BaseModel):
     tid: str
-    oriflowdata: dict
-    result: List[NodeStoreHistory]
+    noderesult: Optional[List[FAWorkflowNodeResult]]
     status: FARunnerStatus
     starttime: datetime
     endtime: datetime
     pass
 
 
-class SaveWorkflow(BaseModel):
+class FAWorkflow(BaseModel):
     name: str
-    vflow: Any
+    vflow: Optional[Any]
+    result: Optional[FAWorkflowResult]
+    isCache: bool
     pass
