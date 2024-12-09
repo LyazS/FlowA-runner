@@ -49,7 +49,7 @@ async def run_flow(
         )
     # 通过检查 =============================================
     await ALL_TASKS_MGR.create(taskid)
-    background_tasks.add_task(ALL_TASKS_MGR.run, taskid, fa_req.vflow)
+    background_tasks.add_task(ALL_TASKS_MGR.run, taskid, fa_req)
     return FARunResponse(success=True, tid=taskid)
 
 

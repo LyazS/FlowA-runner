@@ -88,11 +88,11 @@ class FARunner:
                 )
         pass
 
-    async def run(self, oriflowdata):
+    async def run(self, vflow:FAWorkflow):
         self.starttime = datetime.now(ZoneInfo("Asia/Shanghai"))
-        self.oriflowdata = oriflowdata
+        self.name = vflow.name
+        self.oriflowdata = vflow.vflow
         self.flowdata = VFlowData.model_validate(self.oriflowdata)
-        # self.name = self.flowdata.name
         self.buildNodes()
         # 启动所有节点
         self.status = FARunnerStatus.Running
