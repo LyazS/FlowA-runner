@@ -22,6 +22,7 @@ from app.schemas.farequest import (
     SSEResponse,
     SSEResponseData,
     SSEResponseType,
+    FAWorkflow,
 )
 
 router = APIRouter()
@@ -29,14 +30,16 @@ router = APIRouter()
 
 @router.post("/run")
 async def run_flow(
-    fa_req: FARunRequest,
+    fa_req: FAWorkflow,
     background_tasks: BackgroundTasks,
 ) -> FARunResponse:
     if settings.DEBUG:
         await asyncio.sleep(1)
     taskid = str(uuid.uuid4()).replace("-", "")
+    if fa_req.name is None:
+        fa_req.name = taskid
     fav = FAValidator()
-    flowdata = fa_req.vflow
+    flowdata = VFlowData.model_validate(fa_req.vflow)
     validate_result = await fav.validate(taskid, flowdata)
     if len(validate_result) > 0:
         return FARunResponse(
@@ -45,8 +48,8 @@ async def run_flow(
             validation_errors=validate_result,
         )
     # 通过检查 =============================================
-    await ALL_TASKS_MGR.create(taskid, flowdata)
-    background_tasks.add_task(ALL_TASKS_MGR.run, taskid)
+    await ALL_TASKS_MGR.create(taskid)
+    background_tasks.add_task(ALL_TASKS_MGR.run, taskid, fa_req)
     return FARunResponse(success=True, tid=taskid)
 
 
@@ -71,6 +74,7 @@ async def get_task_progress(taskid: str):
                     continue
                 sse_data = SSEResponseData(
                     nid=nid,
+                    oriid=farunner.nodes[nid].oriid,
                     data=ndata,
                 )
                 all_sse_data.append(sse_data)
@@ -104,10 +108,11 @@ async def get_task_progress(taskid: str):
 
         except Exception as e:
             error_msg = traceback.format_exc()
-            logger.debug(error_msg)
+            logger.error(error_msg)
             pass
         finally:
             await ALL_MESSAGES_MGR.remove(taskid)
+            logger.info("task done", taskid)
             pass
 
     return EventSourceResponse(event_generator())

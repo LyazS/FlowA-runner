@@ -1,5 +1,14 @@
-import asyncio
 from typing import Dict, List, TYPE_CHECKING
+import asyncio
+import aiofiles
+from aiofiles import os as aiofiles_os
+import os
+import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import traceback
+from loguru import logger
+from app.core.config import settings
 from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData
 from app.schemas.fanode import FARunnerStatus
 from app.services.messageMgr import ALL_MESSAGES_MGR
@@ -10,6 +19,9 @@ from app.schemas.farequest import (
     SSEResponse,
     SSEResponseData,
     SSEResponseType,
+    FAWorkflowNodeResult,
+    FAWorkflowResult,
+    FAWorkflow,
 )
 
 if TYPE_CHECKING:
@@ -17,11 +29,20 @@ if TYPE_CHECKING:
 
 
 class FARunner:
-    def __init__(self, tid: str, flowdata: VFlowData):
+    def __init__(self, tid: str):
         self.tid = tid
-        self.flowdata = flowdata
+        self.name = tid
+        self.oriflowdata = None
+        self.flowdata: VFlowData = None
         self.nodes: Dict[str, "FABaseNode"] = {}
         self.status: FARunnerStatus = FARunnerStatus.Pending
+        # 时间戳
+        self.starttime = None
+        self.endtime = None
+        pass
+
+    def setName(self, name: str):
+        self.name = name
         pass
 
     def addNode(self, nid, node: "FABaseNode"):
@@ -67,7 +88,11 @@ class FARunner:
                 )
         pass
 
-    async def run(self):
+    async def run(self, vflow:FAWorkflow):
+        self.starttime = datetime.now(ZoneInfo("Asia/Shanghai"))
+        self.name = vflow.name
+        self.oriflowdata = vflow.vflow
+        self.flowdata = VFlowData.model_validate(self.oriflowdata)
         self.buildNodes()
         # 启动所有节点
         self.status = FARunnerStatus.Running
@@ -77,7 +102,10 @@ class FARunner:
             tasks.append(self.nodes[nid].invoke())
         # 等待所有节点完成
         await asyncio.gather(*tasks)
+        self.endtime = datetime.now(ZoneInfo("Asia/Shanghai"))
         self.status = FARunnerStatus.Success
+        # 保存历史记录
+        await self.saveHistory()
         ALL_MESSAGES_MGR.put(
             self.tid,
             SSEResponse(
@@ -86,3 +114,54 @@ class FARunner:
             ),
         )
         pass
+
+    async def saveHistory(self) -> FAWorkflow:
+        vflowData: List[FAWorkflowNodeResult] = []
+        for nid in self.nodes:
+            vflowData.append(self.nodes[nid].store())
+        vflowStore = FAWorkflow(
+            name=self.name,
+            vflow=self.oriflowdata,
+            result=FAWorkflowResult(
+                tid=self.tid,
+                noderesult=vflowData,
+                status=self.status,
+                starttime=self.starttime,
+                endtime=self.endtime,
+            ),
+            isCached=True,
+        )
+        savePath = os.path.join(settings.HISTORY_FOLDER, f"{self.tid}.json")
+        async with aiofiles.open(savePath, mode="w", encoding="utf-8") as f:
+            await f.write(vflowStore.model_dump_json(indent=4))
+        logger.info(f"save history to {savePath}")
+        pass
+
+    async def loadHistory(self, store: FAWorkflow):
+        from app.nodes import FANODECOLLECTION
+
+        try:
+            self.name = store.name
+            self.oriflowdata = store.vflow
+            self.flowdata: VFlowData = VFlowData.model_validate(self.oriflowdata)
+            self.status = store.result.status
+            self.starttime = store.result.starttime
+            self.endtime = store.result.endtime
+
+            nodeinfo_dict = {}
+            for nodeinfo in self.flowdata.nodes:
+                nodeinfo_dict[nodeinfo.id] = nodeinfo
+                pass
+            for noderesult in store.result.noderesult:
+                thenode: "FABaseNode" = FANODECOLLECTION[noderesult.ntype](
+                    self.tid, nodeinfo_dict[noderesult.oriid]
+                )
+                thenode.restore(noderesult)
+                self.addNode(noderesult.id, thenode)
+                pass
+            return True
+            pass
+        except Exception as e:
+            errmsg = traceback.format_exc()
+            logger.error(f"load history error: {errmsg}")
+            return False

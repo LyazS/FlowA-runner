@@ -1,8 +1,10 @@
 from typing import List, Optional, Any, Union
 import json
+from datetime import datetime
 from pydantic import BaseModel
 from enum import Enum
-from .vfnode import VFlowData
+from .vfnode import VFlowData, VFNodeData
+from .fanode import FARunnerStatus, FANodeStatus
 
 
 class VarItem(BaseModel):
@@ -20,7 +22,8 @@ class VarSelectOption(BaseModel):
 
 
 class FARunRequest(BaseModel):
-    vflow: VFlowData
+    name: str
+    vflow: Any
     pass
 
 
@@ -61,6 +64,7 @@ class SSEResponseType(Enum):
 
 class SSEResponseData(BaseModel):
     nid: str
+    oriid: str
     data: List[FANodeUpdateData]
     pass
 
@@ -81,3 +85,80 @@ class SSEResponse(BaseModel):
             "event": self.event.value,
             "data": data,
         }
+
+    pass
+
+
+# class FARunnerHistory(BaseModel):
+#     tid: str
+#     isfile: bool
+#     status: Optional[FARunnerStatus]
+#     starttime: Optional[datetime]
+#     endtime: Optional[datetime]
+#     pass
+
+
+# class FARunnerHistorys(BaseModel):
+#     historys: List[FARunnerHistory]
+#     pass
+
+
+# class FARunnerWorkflows(BaseModel):
+#     workflows: List[str]
+#     pass
+
+
+# class NodeStoreHistory(BaseModel):
+#     tid: str
+#     id: str
+#     oriid: str
+#     data: VFNodeData
+#     ntype: str
+#     parentNode: Optional[str]
+#     runStatus: FANodeStatus
+#     pass
+
+
+# class RunnerStoreHistory(BaseModel):
+#     name: str
+#     tid: str
+#     oriflowdata: dict
+#     result: List[NodeStoreHistory]
+#     status: FARunnerStatus
+#     starttime: datetime
+#     endtime: datetime
+#     pass
+
+
+# class SaveWorkflow(BaseModel):
+#     name: str
+#     vflow: Any
+#     pass
+
+
+class FAWorkflowNodeResult(BaseModel):
+    tid: str
+    id: str
+    oriid: str
+    data: VFNodeData
+    ntype: str
+    parentNode: Optional[str]
+    runStatus: FANodeStatus
+    pass
+
+
+class FAWorkflowResult(BaseModel):
+    tid: str
+    noderesult: Optional[List[FAWorkflowNodeResult]]
+    status: FARunnerStatus
+    starttime: datetime
+    endtime: datetime
+    pass
+
+
+class FAWorkflow(BaseModel):
+    name: Optional[str]
+    vflow: Optional[Any]
+    result: Optional[FAWorkflowResult] = None
+    isCache: bool = False
+    pass

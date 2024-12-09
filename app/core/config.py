@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     # 其他配置
     DEBUG: bool = Field(default=False, description="是否开启调试模式")
 
+    # 历史记录文件夹
+    HISTORY_FOLDER: str = Field(default="historys", description="历史记录文件夹")
+    # 工作流文件夹
+    WORKFLOW_FOLDER: str = Field(default="workflows", description="工作流文件夹")
+
     class Config:
         env_file = ".env"  # 读取.env文件中的环境变量
         case_sensitive = True  # 环境变量区分大小写

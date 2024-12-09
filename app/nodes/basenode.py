@@ -3,6 +3,7 @@ import asyncio
 import re
 from pydantic import BaseModel
 import traceback
+import json
 import copy
 from loguru import logger
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
@@ -15,6 +16,9 @@ from app.schemas.farequest import (
     SSEResponse,
     SSEResponseData,
     SSEResponseType,
+    FAWorkflowNodeResult,
+    FAWorkflowResult,
+    FAWorkflow,
 )
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
@@ -41,7 +45,7 @@ class FABaseNode:
         self.tid = tid
         self.id = cpnodeinfo.id
         self.oriid = copy.deepcopy(cpnodeinfo.id)
-        self.data: VFNodeData = cpnodeinfo.data
+        self.data: VFNodeData = copy.deepcopy(cpnodeinfo.data)
         self.ntype: str = cpnodeinfo.data.ntype
         self.parentNode = cpnodeinfo.parentNode
 
@@ -59,6 +63,27 @@ class FABaseNode:
         }
         # 该节点的运行状态
         self.runStatus = FANodeStatus.Pending
+        pass
+
+    def store(self):
+        return FAWorkflowNodeResult(
+            tid=self.tid,
+            id=self.id,
+            oriid=self.oriid,
+            data=self.data,
+            ntype=self.ntype,
+            parentNode=self.parentNode,
+            runStatus=self.runStatus,
+        )
+
+    def restore(self, data: FAWorkflowNodeResult):
+        self.tid = data.tid
+        self.id = data.id
+        self.oriid = data.oriid
+        self.data = data.data
+        self.ntype = data.ntype
+        self.parentNode = data.parentNode
+        self.runStatus = data.runStatus
         pass
 
     def setNewID(self, newid: str):
@@ -106,6 +131,7 @@ class FABaseNode:
                     event=SSEResponseType.updatenode,
                     data=SSEResponseData(
                         nid=self.id,
+                        oriid=self.oriid,
                         data=nodeUpdateDatas,
                     ),
                 ),
@@ -118,7 +144,7 @@ class FABaseNode:
             pass
         except Exception as e:
             error_message = traceback.format_exc()
-            logger.debug(f"node error {self.data.label} {error_message} {self.id}")
+            logger.error(f"node error {self.data.label} {error_message} {self.id}")
             self.setAllOutputStatus(FANodeStatus.Error)
             self.putNodeStatus(FANodeStatus.Error)
         finally:
@@ -142,6 +168,7 @@ class FABaseNode:
                 event=SSEResponseType.updatenode,
                 data=SSEResponseData(
                     nid=self.id,
+                    oriid=self.oriid,
                     data=[
                         FANodeUpdateData(
                             type=FANodeUpdateType.overwrite,
