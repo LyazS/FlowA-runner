@@ -157,8 +157,8 @@ class FAWorkflowResult(BaseModel):
 
 
 class FAWorkflow(BaseModel):
-    name: str
+    name: Optional[str]
     vflow: Optional[Any]
-    result: Optional[FAWorkflowResult]
-    isCache: bool
+    result: Optional[FAWorkflowResult] = None
+    isCache: bool = False
     pass

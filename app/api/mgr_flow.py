@@ -66,13 +66,7 @@ async def get_history():
                     FAWorkflow(
                         name=tid,
                         vflow=None,
-                        result=FAWorkflowResult(
-                            tid=tid,
-                            noderesult=None,
-                            status=farunner.status,
-                            starttime=farunner.starttime,
-                            endtime=farunner.endtime,
-                        ),
+                        result=None,
                         isCache=False,
                     )
                 )
@@ -103,7 +97,7 @@ async def load_history(tid: str):
                     data = json.loads(await f.read())
                     his = FAWorkflow.model_validate(data)
                     await ALL_TASKS_MGR.create(his.result.tid)
-                    (await ALL_TASKS_MGR.get(his.result.tid)).loadHistory(his)
+                    await (await ALL_TASKS_MGR.get(his.result.tid)).loadHistory(his)
                     return FAWorkflow(
                         name=his.name,
                         vflow=his.vflow,

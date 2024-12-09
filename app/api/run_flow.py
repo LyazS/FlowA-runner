@@ -22,6 +22,7 @@ from app.schemas.farequest import (
     SSEResponse,
     SSEResponseData,
     SSEResponseType,
+    FAWorkflow,
 )
 
 router = APIRouter()
@@ -29,12 +30,14 @@ router = APIRouter()
 
 @router.post("/run")
 async def run_flow(
-    fa_req: FARunRequest,
+    fa_req: FAWorkflow,
     background_tasks: BackgroundTasks,
 ) -> FARunResponse:
     if settings.DEBUG:
         await asyncio.sleep(1)
     taskid = str(uuid.uuid4()).replace("-", "")
+    if fa_req.name is None:
+        fa_req.name = taskid
     fav = FAValidator()
     flowdata = VFlowData.model_validate(fa_req.vflow)
     validate_result = await fav.validate(taskid, flowdata)
