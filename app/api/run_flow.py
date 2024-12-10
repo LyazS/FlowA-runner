@@ -14,7 +14,6 @@ from app.services.FAValidator import FAValidator
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 from app.schemas.farequest import (
-    FARunRequest,
     FARunResponse,
     ValidationError,
     FANodeUpdateType,

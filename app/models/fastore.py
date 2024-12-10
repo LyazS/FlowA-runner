@@ -44,7 +44,7 @@ class FAWorkflowModel(Base):
     wid: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(255))
     vflow: Mapped[Optional[dict]] = mapped_column(BigJSONType)
-
+    last_modified: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     # 反向关系到历史记录
     results: Mapped[List[FAWorkflowResultModel]] = relationship(
         "FAWorkflowResultModel",
@@ -93,7 +93,7 @@ class FAWorkflowNodeResultModel(Base):
 
     # 外键关联到FAWorkflowResultModel
     history_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("faworkflow_history.tid"), nullable=False
+        Integer, ForeignKey("faworkflow_result.tid"), nullable=False
     )
 
     # 反向关系

@@ -9,6 +9,8 @@ import aiofiles
 from aiofiles import os as aiofiles_os
 from fastapi import APIRouter
 from loguru import logger
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from fastapi.background import BackgroundTasks
 from sse_starlette.sse import EventSourceResponse
 from app.core.config import settings
@@ -185,6 +187,7 @@ async def create_workflow(create_request: FAWorkflow):
             db_wf = FAWorkflowModel(
                 name=create_request.name,
                 vflow=create_request.vflow,
+                last_modified=datetime.now(ZoneInfo("Asia/Shanghai")),
             )
             db.add(db_wf)
             await db.commit()
@@ -196,19 +199,19 @@ async def create_workflow(create_request: FAWorkflow):
         return FAWorkflowOperationResponse(success=False, message=errmsg)
 
 
-@router.post("/readall")
+@router.get("/readall")
 async def read_all_workflows():
     try:
         async with get_db_ctxmgr() as db:
             stmt = select(FAWorkflowModel.wid, FAWorkflowModel.name)
             db_result = await db.execute(stmt)
-            db_workflows = db_result.scalars().all()
+            db_workflows = db_result.mappings().all()
             result = []
             for db_wf in db_workflows:
                 result.append(
                     FAWorkflowBaseInfo(
-                        wid=db_wf.wid,
-                        name=db_wf.name,
+                        wid=db_wf["wid"],
+                        name=db_wf["name"],
                     )
                 )
             return FAWorkflowOperationResponse(success=True, data=result)

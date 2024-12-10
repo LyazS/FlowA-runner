@@ -1,7 +1,6 @@
 import asyncio
 from typing import Dict, Optional
 from app.schemas.farequest import (
-    FARunRequest,
     FARunResponse,
     ValidationError,
     FANodeUpdateType,

@@ -3,14 +3,13 @@ import asyncio
 from fastapi import APIRouter
 from app.core.config import settings
 from app.schemas.vfnode import VFlowData
-from app.schemas.farequest import FARunRequest
 from app.services.FAValidator import FAValidator
 
 router = APIRouter()
 
 
 @router.post("/validate")
-async def validate_flow(fa_req: FARunRequest):
+async def validate_flow(fa_req):
     if settings.DEBUG:
         await asyncio.sleep(1)
     ffe = FAValidator()

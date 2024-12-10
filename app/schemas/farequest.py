@@ -106,7 +106,7 @@ class FAWorkflowResult(BaseModel):
 
 class FAWorkflow(BaseModel):
     name: Optional[str]
-    vflow: Optional[dict]
+    vflow: Optional[dict] = None
     historys: Optional[List[FAWorkflowResult]] = None
     pass
 

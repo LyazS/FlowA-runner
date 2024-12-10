@@ -8,10 +8,10 @@ from app.db.base import Base
 # 创建异步数据库引擎
 async_engine = create_async_engine(
     settings.DATABASE_URL,
-    pool_size=settings.DATABASE_POOL_SIZE,
-    max_overflow=0,
-    pool_recycle=3600,  # 每小时回收连接
-    pool_pre_ping=True,  # 预先ping连接
+    # pool_size=settings.DATABASE_POOL_SIZE,
+    # max_overflow=0,
+    # pool_recycle=3600,  # 每小时回收连接
+    # pool_pre_ping=True,  # 预先ping连接
 )
 
 # 创建异步session工厂
