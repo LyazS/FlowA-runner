@@ -122,7 +122,7 @@ class FARunner:
         vflowStore = FAWorkflow(
             name=self.name,
             vflow=self.oriflowdata,
-            result=FAWorkflowResult(
+            historys=FAWorkflowResult(
                 tid=self.tid,
                 noderesult=vflowData,
                 status=self.status,
@@ -144,15 +144,15 @@ class FARunner:
             self.name = store.name
             self.oriflowdata = store.vflow
             self.flowdata: VFlowData = VFlowData.model_validate(self.oriflowdata)
-            self.status = store.result.status
-            self.starttime = store.result.starttime
-            self.endtime = store.result.endtime
+            self.status = store.historys.status
+            self.starttime = store.historys.starttime
+            self.endtime = store.historys.endtime
 
             nodeinfo_dict = {}
             for nodeinfo in self.flowdata.nodes:
                 nodeinfo_dict[nodeinfo.id] = nodeinfo
                 pass
-            for noderesult in store.result.noderesult:
+            for noderesult in store.historys.noderesult:
                 thenode: "FABaseNode" = FANODECOLLECTION[noderesult.ntype](
                     self.tid, nodeinfo_dict[noderesult.oriid]
                 )

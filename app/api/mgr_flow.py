@@ -19,7 +19,6 @@ from app.services.FAValidator import FAValidator
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 from app.schemas.farequest import (
-    FARunRequest,
     FARunResponse,
     ValidationError,
     FANodeUpdateType,
@@ -30,8 +29,20 @@ from app.schemas.farequest import (
     FAWorkflowNodeResult,
     FAWorkflowResult,
     FAWorkflow,
+    FAWorkflowLocation,
+    FAWorkflowUpdateRequset,
+    FAWorkflowReadRequest,
+    FAWorkflowOperationResponse,
+    FAWorkflowBaseInfo,
 )
 from app.services.FARunner import FARunner
+from app.db.session import get_db_ctxmgr
+from app.models.fastore import (
+    FAWorkflowModel,
+    FAWorkflowResultModel,
+    FAWorkflowNodeResultModel,
+)
+from sqlalchemy import select, update, exc, exists, delete
 
 router = APIRouter()
 
@@ -47,7 +58,7 @@ async def get_history():
                 FAWorkflow(
                     name=farunner.name,
                     vflow=None,
-                    result=FAWorkflowResult(
+                    historys=FAWorkflowResult(
                         tid=tid,
                         noderesult=None,
                         status=farunner.status,
@@ -66,7 +77,7 @@ async def get_history():
                     FAWorkflow(
                         name=tid,
                         vflow=None,
-                        result=None,
+                        historys=None,
                         isCache=False,
                     )
                 )
@@ -80,7 +91,7 @@ async def load_history(tid: str):
         return FAWorkflow(
             name=test_farunner.name,
             vflow=test_farunner.oriflowdata,
-            result=FAWorkflowResult(
+            historys=FAWorkflowResult(
                 tid=tid,
                 noderesult=None,
                 status=test_farunner.status,
@@ -96,17 +107,17 @@ async def load_history(tid: str):
                 async with aiofiles.open(check_path, mode="r", encoding="utf-8") as f:
                     data = json.loads(await f.read())
                     his = FAWorkflow.model_validate(data)
-                    await ALL_TASKS_MGR.create(his.result.tid)
-                    await (await ALL_TASKS_MGR.get(his.result.tid)).loadHistory(his)
+                    await ALL_TASKS_MGR.create(his.historys.tid)
+                    await (await ALL_TASKS_MGR.get(his.historys.tid)).loadHistory(his)
                     return FAWorkflow(
                         name=his.name,
                         vflow=his.vflow,
-                        result=FAWorkflowResult(
+                        historys=FAWorkflowResult(
                             tid=tid,
                             noderesult=None,
-                            status=his.result.status,
-                            starttime=his.result.starttime,
-                            endtime=his.result.endtime,
+                            status=his.historys.status,
+                            starttime=his.historys.starttime,
+                            endtime=his.historys.endtime,
                         ),
                         isCache=True,
                     )
@@ -127,12 +138,14 @@ async def get_workflows():
         for file in await aiofiles_os.listdir(settings.WORKFLOW_FOLDER):
             if file.endswith(".json"):
                 file_name = file.split(".")[0]
-                workflows.append(FAWorkflow(
-                    name=file_name,
-                    vflow=None,
-                    result=None,
-                    isCache=False,
-                ))
+                workflows.append(
+                    FAWorkflow(
+                        name=file_name,
+                        vflow=None,
+                        historys=None,
+                        isCache=False,
+                    )
+                )
             pass
         pass
     return workflows
@@ -163,3 +176,160 @@ async def get_workflow(name: str):
         pass
     else:
         return None
+
+
+@router.post("/create")
+async def create_workflow(create_request: FAWorkflow):
+    try:
+        async with get_db_ctxmgr() as db:
+            db_wf = FAWorkflowModel(
+                name=create_request.name,
+                vflow=create_request.vflow,
+            )
+            db.add(db_wf)
+            await db.commit()
+            await db.refresh(db_wf)
+            return FAWorkflowOperationResponse(success=True, data=db_wf.wid)
+    except Exception as e:
+        errmsg = traceback.format_exc()
+        logger.error(f"create workflow error: {errmsg}")
+        return FAWorkflowOperationResponse(success=False, message=errmsg)
+
+
+@router.post("/readall")
+async def read_all_workflows():
+    try:
+        async with get_db_ctxmgr() as db:
+            stmt = select(FAWorkflowModel.wid, FAWorkflowModel.name)
+            db_result = await db.execute(stmt)
+            db_workflows = db_result.scalars().all()
+            result = []
+            for db_wf in db_workflows:
+                result.append(
+                    FAWorkflowBaseInfo(
+                        wid=db_wf.wid,
+                        name=db_wf.name,
+                    )
+                )
+            return FAWorkflowOperationResponse(success=True, data=result)
+    except Exception as e:
+        errmsg = traceback.format_exc()
+        logger.error(f"read all workflows error: {errmsg}")
+        return FAWorkflowOperationResponse(success=False, message=errmsg)
+
+
+@router.post("/read")
+async def read_workflow(read_request: FAWorkflowReadRequest):
+    try:
+        async with get_db_ctxmgr() as db:
+            stmt = select(exists().where(FAWorkflowModel.wid == read_request.wid))
+            db_result = await db.execute(stmt)
+            db_exists = db_result.scalar()
+            if db_exists:
+                result = []
+                for location in read_request.locations:
+                    if location == FAWorkflowLocation.name:
+                        stmt = select(FAWorkflowModel.name).filter(
+                            FAWorkflowModel.wid == read_request.wid
+                        )
+                        db_result = await db.execute(stmt)
+                        name = db_result.scalars().first()
+                        result.append(name)
+                    elif location == FAWorkflowLocation.vflow:
+                        stmt = select(FAWorkflowModel.vflow).filter(
+                            FAWorkflowModel.wid == read_request.wid
+                        )
+                        db_result = await db.execute(stmt)
+                        vflow = db_result.scalars().first()
+                        result.append(vflow)
+                    elif location == FAWorkflowLocation.historys:
+                        stmt = (
+                            select(FAWorkflowResultModel)
+                            .filter(FAWorkflowResultModel.tid == read_request.tid)
+                            .filter(
+                                FAWorkflowResultModel.workflow_id == read_request.wid
+                            )
+                        )
+                        db_result = await db.execute(stmt)
+                        db_history = db_result.scalars().first()
+                        history = FAWorkflowResult(
+                            tid=db_history.tid,
+                            usedvflow=db_history.usedvflow,
+                            noderesult=db_history.noderesults,
+                            status=db_history.status,
+                            starttime=db_history.starttime,
+                            endtime=db_history.endtime,
+                        )
+                        result.append(history)
+                return FAWorkflowOperationResponse(success=True, data=result)
+            else:
+                return FAWorkflowOperationResponse(
+                    success=False, message="Workflow not found"
+                )
+    except Exception as e:
+        errmsg = traceback.format_exc()
+        logger.error(f"read workflow error: {errmsg}")
+        return FAWorkflowOperationResponse(success=False, message=errmsg)
+
+
+@router.post("/update")
+async def update_workflow(update_request: FAWorkflowUpdateRequset):
+    try:
+        async with get_db_ctxmgr() as db:
+            stmt = select(exists().where(FAWorkflowModel.wid == update_request.wid))
+            db_result = await db.execute(stmt)
+            db_exists = db_result.scalar()
+            if db_exists:
+                if update_request.location == FAWorkflowLocation.name and isinstance(
+                    update_request.data, str
+                ):
+                    await db.execute(
+                        update(FAWorkflowModel)
+                        .where(FAWorkflowModel.wid == update_request.wid)
+                        .values(name=update_request.data)
+                    )
+                    await db.commit()
+                elif update_request.location == FAWorkflowLocation.vflow and isinstance(
+                    update_request.data, dict
+                ):
+                    await db.execute(
+                        update(FAWorkflowModel)
+                        .where(FAWorkflowModel.wid == update_request.wid)
+                        .values(vflow=update_request.data)
+                    )
+                    await db.commit()
+                else:
+                    pass
+                pass
+                return FAWorkflowOperationResponse(success=True)
+            else:
+                return FAWorkflowOperationResponse(
+                    success=False, message="Workflow not found"
+                )
+    except Exception as e:
+        errmsg = traceback.format_exc()
+        logger.error(f"update workflow error: {errmsg}")
+        return FAWorkflowOperationResponse(success=False, message=errmsg)
+
+
+@router.post("/delete")
+async def delete_workflow(wid: int):
+    try:
+        async with get_db_ctxmgr() as db:
+            stmt = select(exists().where(FAWorkflowModel.wid == wid))
+            db_result = await db.execute(stmt)
+            db_exists = db_result.scalar()
+            if db_exists:
+                await db.execute(
+                    delete(FAWorkflowModel).where(FAWorkflowModel.wid == wid)
+                )
+                await db.commit()
+                return FAWorkflowOperationResponse(success=True)
+            else:
+                return FAWorkflowOperationResponse(
+                    success=False, message="Workflow not found"
+                )
+    except Exception as e:
+        errmsg = traceback.format_exc()
+        logger.error(f"delete workflow error: {errmsg}")
+        return FAWorkflowOperationResponse(success=False, message=errmsg)
