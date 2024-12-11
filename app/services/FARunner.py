@@ -23,6 +23,14 @@ from app.schemas.farequest import (
     FAWorkflowResult,
     FAWorkflow,
 )
+from app.db.session import get_db_ctxmgr
+from app.models.fastore import (
+    FAWorkflowModel,
+    FAWorkflowResultModel,
+    FAWorkflowNodeResultModel,
+)
+from sqlalchemy import select, update, exc, exists, delete
+from sqlalchemy.orm import selectinload
 
 if TYPE_CHECKING:
     from app.nodes import FABaseNode
@@ -31,7 +39,7 @@ if TYPE_CHECKING:
 class FARunner:
     def __init__(self, tid: str):
         self.tid = tid
-        self.name = tid
+        self.wid = None
         self.oriflowdata = None
         self.flowdata: VFlowData = None
         self.nodes: Dict[str, "FABaseNode"] = {}
@@ -39,10 +47,6 @@ class FARunner:
         # 时间戳
         self.starttime = None
         self.endtime = None
-        pass
-
-    def setName(self, name: str):
-        self.name = name
         pass
 
     def addNode(self, nid, node: "FABaseNode"):
@@ -88,9 +92,9 @@ class FARunner:
                 )
         pass
 
-    async def run(self, vflow:FAWorkflow):
+    async def run(self, vflow: FAWorkflow):
         self.starttime = datetime.now(ZoneInfo("Asia/Shanghai"))
-        self.name = vflow.name
+        self.wid = vflow.wid
         self.oriflowdata = vflow.vflow
         self.flowdata = VFlowData.model_validate(self.oriflowdata)
         self.buildNodes()
@@ -105,7 +109,7 @@ class FARunner:
         self.endtime = datetime.now(ZoneInfo("Asia/Shanghai"))
         self.status = FARunnerStatus.Success
         # 保存历史记录
-        await self.saveHistory()
+        await self.saveResult()
         ALL_MESSAGES_MGR.put(
             self.tid,
             SSEResponse(
@@ -115,53 +119,79 @@ class FARunner:
         )
         pass
 
-    async def saveHistory(self) -> FAWorkflow:
-        vflowData: List[FAWorkflowNodeResult] = []
-        for nid in self.nodes:
-            vflowData.append(self.nodes[nid].store())
-        vflowStore = FAWorkflow(
-            name=self.name,
-            vflow=self.oriflowdata,
-            historys=FAWorkflowResult(
-                tid=self.tid,
-                noderesult=vflowData,
-                status=self.status,
-                starttime=self.starttime,
-                endtime=self.endtime,
-            ),
-            isCached=True,
-        )
-        savePath = os.path.join(settings.HISTORY_FOLDER, f"{self.tid}.json")
-        async with aiofiles.open(savePath, mode="w", encoding="utf-8") as f:
-            await f.write(vflowStore.model_dump_json(indent=4))
-        logger.info(f"save history to {savePath}")
-        pass
+    async def saveResult(self) -> FAWorkflow:
+        try:
+            async with get_db_ctxmgr() as db:
+                stmt = select(exists().where(FAWorkflowModel.wid == self.wid))
+                db_result = await db.execute(stmt)
+                db_exists = db_result.scalar()
+                if not db_exists:
+                    raise ValidationError("workflow not found")
+                theresult = FAWorkflowResultModel(
+                    tid=self.tid,
+                    usedvflow=self.oriflowdata,
+                    status=self.status.value,
+                    starttime=self.starttime,
+                    endtime=self.endtime,
+                    wid=self.wid,
+                )
+                db.add(theresult)
+                for nid in self.nodes.keys():
+                    thenode = self.nodes[nid]
+                    noderesult = FAWorkflowNodeResultModel(
+                        nid=nid,
+                        oriid=thenode.oriid,
+                        data=thenode.store().model_dump_json(),
+                        ntype=thenode.ntype,
+                        parentNode=thenode.parentNode,
+                        runStatus=thenode.runStatus.value,
+                        tid=self.tid,
+                    )
+                    db.add(noderesult)
+                await db.commit()
+                logger.info(f"save result to db, wid: {self.wid}")
+                pass
+        except Exception as e:
+            errmsg = traceback.format_exc()
+            logger.error(f"save result error: {errmsg}")
+            pass
 
-    async def loadHistory(self, store: FAWorkflow):
+    async def loadResult(self, wid: int, tid: str):
         from app.nodes import FANODECOLLECTION
 
         try:
-            self.name = store.name
-            self.oriflowdata = store.vflow
-            self.flowdata: VFlowData = VFlowData.model_validate(self.oriflowdata)
-            self.status = store.historys.status
-            self.starttime = store.historys.starttime
-            self.endtime = store.historys.endtime
-
-            nodeinfo_dict = {}
-            for nodeinfo in self.flowdata.nodes:
-                nodeinfo_dict[nodeinfo.id] = nodeinfo
-                pass
-            for noderesult in store.historys.noderesult:
-                thenode: "FABaseNode" = FANODECOLLECTION[noderesult.ntype](
-                    self.tid, nodeinfo_dict[noderesult.oriid]
+            async with get_db_ctxmgr() as db:
+                stmt = (
+                    select(FAWorkflowResultModel)
+                    .filter(FAWorkflowResultModel.wid == wid)
+                    .filter(FAWorkflowResultModel.tid == tid)
+                    .options(selectinload(FAWorkflowResultModel.noderesults))
                 )
-                thenode.restore(noderesult)
-                self.addNode(noderesult.id, thenode)
-                pass
-            return True
-            pass
+                db_result = await db.execute(stmt)
+                store = db_result.scalars().first()
+                if store is None:
+                    raise ValidationError("workflow result not found")
+                self.wid = wid
+                self.name = store["name"]
+                self.oriflowdata = store["usedvflow"]
+                self.flowdata: VFlowData = VFlowData.model_validate(self.oriflowdata)
+                self.status = store["status"]
+                self.starttime = store["starttime"]
+                self.endtime = store["endtime"]
+
+                nodeinfo_dict = {}
+                for nodeinfo in self.flowdata.nodes:
+                    nodeinfo_dict[nodeinfo.id] = nodeinfo
+                    pass
+                for noderesult in store.noderesults:
+                    thenode: "FABaseNode" = FANODECOLLECTION[noderesult["ntype"]](
+                        self.tid, nodeinfo_dict[noderesult["oriid"]]
+                    )
+                    thenode.restore(noderesult["data"])
+                    self.addNode(noderesult["nid"], thenode)
+                    pass
+                return True
         except Exception as e:
             errmsg = traceback.format_exc()
-            logger.error(f"load history error: {errmsg}")
+            logger.error(f"load result error: {errmsg}")
             return False

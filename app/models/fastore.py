@@ -16,6 +16,7 @@ from typing import List, Optional
 from decimal import Decimal
 from datetime import datetime
 from app.db.base import Base
+from app.schemas.fanode import FARunnerStatus
 
 import json
 
@@ -24,6 +25,7 @@ class BigJSONType(TypeDecorator):
     """自定义类型，用于处理大 JSON 数据"""
 
     impl = TEXT  # 使用 TEXT 类型存储
+    cache_ok = True
 
     def process_bind_param(self, value, dialect):
         """插入数据时，将 dict 序列化为 JSON 字符串"""
@@ -55,15 +57,15 @@ class FAWorkflowModel(Base):
 
 class FAWorkflowResultModel(Base):
     __tablename__ = "faworkflow_result"
-
-    tid: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tid: Mapped[str] = mapped_column(String(255), index=True)
     usedvflow: Mapped[Optional[dict]] = mapped_column(BigJSONType, nullable=True)
-    status: Mapped[str] = mapped_column(String(255))  # Assuming it's a string enum
+    status: Mapped[str] = mapped_column(String(255))
     starttime: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     endtime: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     # 外键关联到FAWorkflowModel
-    workflow_id: Mapped[int] = mapped_column(
+    wid: Mapped[int] = mapped_column(
         Integer, ForeignKey("faworkflow.wid"), nullable=False
     )
 
@@ -82,9 +84,8 @@ class FAWorkflowResultModel(Base):
 
 class FAWorkflowNodeResultModel(Base):
     __tablename__ = "faworkflow_noderesult"
-
-    nid: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
-    tid: Mapped[str] = mapped_column(String(255))
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    nid: Mapped[str] = mapped_column(String(255), index=True)
     oriid: Mapped[str] = mapped_column(String(255))
     data: Mapped[dict] = mapped_column(BigJSONType, nullable=False)
     ntype: Mapped[str] = mapped_column(String(255))
@@ -92,7 +93,7 @@ class FAWorkflowNodeResultModel(Base):
     runStatus: Mapped[str] = mapped_column(String(255))  # Assuming it's a string enum
 
     # 外键关联到FAWorkflowResultModel
-    history_id: Mapped[int] = mapped_column(
+    tid: Mapped[int] = mapped_column(
         Integer, ForeignKey("faworkflow_result.tid"), nullable=False
     )
 

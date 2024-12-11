@@ -105,16 +105,17 @@ class FAWorkflowResult(BaseModel):
 
 
 class FAWorkflow(BaseModel):
-    name: Optional[str]
+    wid: Optional[int] = None
+    name: Optional[str] = None
     vflow: Optional[dict] = None
-    historys: Optional[List[FAWorkflowResult]] = None
+    results: Optional[List[FAWorkflowResult]] = None
     pass
 
 
 class FAWorkflowLocation(Enum):
     name = "name"
     vflow = "vflow"
-    historys = "historys"
+    results = "results"
     pass
 
 
@@ -134,6 +135,14 @@ class FAWorkflowReadRequest(BaseModel):
 class FAWorkflowBaseInfo(BaseModel):
     wid: int
     name: str
+    pass
+
+
+class FAResultBaseInfo(BaseModel):
+    tid: str
+    status: str
+    starttime: datetime
+    endtime: datetime
     pass
 
 

@@ -35,8 +35,6 @@ async def run_flow(
     if settings.DEBUG:
         await asyncio.sleep(1)
     taskid = str(uuid.uuid4()).replace("-", "")
-    if fa_req.name is None:
-        fa_req.name = taskid
     fav = FAValidator()
     flowdata = VFlowData.model_validate(fa_req.vflow)
     validate_result = await fav.validate(taskid, flowdata)
