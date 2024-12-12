@@ -21,7 +21,6 @@ from app.services.FAValidator import FAValidator
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 from app.schemas.farequest import (
-    FARunResponse,
     ValidationError,
     FANodeUpdateType,
     FANodeUpdateData,
@@ -50,137 +49,6 @@ from sqlalchemy import select, update, exc, exists, delete
 router = APIRouter()
 
 
-# @router.get("/historys")
-# async def get_history():
-#     runnertid = await ALL_TASKS_MGR.getAllTaskID()
-#     historys: List[FAWorkflow] = []
-#     for tid in runnertid:
-#         farunner: FARunner = await ALL_TASKS_MGR.get(tid)
-#         if farunner:
-#             historys.append(
-#                 FAWorkflow(
-#                     name=farunner.name,
-#                     vflow=None,
-#                     historys=FAWorkflowResult(
-#                         tid=tid,
-#                         noderesult=None,
-#                         status=farunner.status,
-#                         starttime=farunner.starttime,
-#                         endtime=farunner.endtime,
-#                     ),
-#                     isCache=True,
-#                 )
-#             )
-#     runnertid_set = set(runnertid)
-#     for file in await aiofiles_os.listdir(settings.HISTORY_FOLDER):
-#         if file.endswith(".json"):
-#             tid = file.split(".")[0]
-#             if tid not in runnertid_set:
-#                 historys.append(
-#                     FAWorkflow(
-#                         name=tid,
-#                         vflow=None,
-#                         historys=None,
-#                         isCache=False,
-#                     )
-#                 )
-#     return historys
-
-
-# @router.post("/loadhistory")
-# async def load_history(tid: str):
-#     test_farunner: FARunner = await ALL_TASKS_MGR.get(tid)
-#     if test_farunner:
-#         return FAWorkflow(
-#             name=test_farunner.name,
-#             vflow=test_farunner.oriflowdata,
-#             historys=FAWorkflowResult(
-#                 tid=tid,
-#                 noderesult=None,
-#                 status=test_farunner.status,
-#                 starttime=test_farunner.starttime,
-#                 endtime=test_farunner.endtime,
-#             ),
-#             isCache=True,
-#         )
-#     else:
-#         check_path = f"{settings.HISTORY_FOLDER}/{tid}.json"
-#         try:
-#             if await aiofiles_os.path.exists(check_path):
-#                 async with aiofiles.open(check_path, mode="r", encoding="utf-8") as f:
-#                     data = json.loads(await f.read())
-#                     his = FAWorkflow.model_validate(data)
-#                     await ALL_TASKS_MGR.create(his.historys.tid)
-#                     await (await ALL_TASKS_MGR.get(his.historys.tid)).loadHistory(his)
-#                     return FAWorkflow(
-#                         name=his.name,
-#                         vflow=his.vflow,
-#                         historys=FAWorkflowResult(
-#                             tid=tid,
-#                             noderesult=None,
-#                             status=his.historys.status,
-#                             starttime=his.historys.starttime,
-#                             endtime=his.historys.endtime,
-#                         ),
-#                         isCache=True,
-#                     )
-#                 pass
-#         except Exception as e:
-#             errmsg = traceback.format_exc()
-#             logger.error(f"load history error: {errmsg}")
-#             pass
-#         pass
-#     pass
-#     return None
-
-
-# @router.get("/workflows")
-# async def get_workflows():
-#     workflows: List[str] = []
-#     if await aiofiles_os.path.exists(settings.WORKFLOW_FOLDER):
-#         for file in await aiofiles_os.listdir(settings.WORKFLOW_FOLDER):
-#             if file.endswith(".json"):
-#                 file_name = file.split(".")[0]
-#                 workflows.append(
-#                     FAWorkflow(
-#                         name=file_name,
-#                         vflow=None,
-#                         historys=None,
-#                         isCache=False,
-#                     )
-#                 )
-#             pass
-#         pass
-#     return workflows
-
-
-# @router.post("/saveworkflow")
-# async def save_workflow(save_request: FAWorkflow):
-#     name = save_request.name
-#     # vflow = save_request.vflow
-#     workflow_path = f"{settings.WORKFLOW_FOLDER}/{name}.json"
-#     async with aiofiles.open(workflow_path, mode="w", encoding="utf-8") as f:
-#         await f.write(save_request.model_dump_json(indent=4))
-#     pass
-
-
-# @router.post("/getworkflow")
-# async def get_workflow(name: str):
-#     workflow_path = f"{settings.WORKFLOW_FOLDER}/{name}.json"
-#     if await aiofiles_os.path.exists(workflow_path):
-#         try:
-#             async with aiofiles.open(workflow_path, mode="r", encoding="utf-8") as f:
-#                 data = FAWorkflow.model_validate(json.loads(await f.read()))
-#                 return data
-#         except Exception as e:
-#             errmsg = traceback.format_exc()
-#             logger.error(f"load workflow error: {errmsg}")
-#             pass
-#         pass
-#     else:
-#         return None
-
-
 @router.post("/create")
 async def create_workflow(create_request: FAWorkflow):
     try:
@@ -204,7 +72,9 @@ async def create_workflow(create_request: FAWorkflow):
 async def read_all_workflows():
     try:
         async with get_db_ctxmgr() as db:
-            stmt = select(FAWorkflowModel.wid, FAWorkflowModel.name)
+            stmt = select(
+                FAWorkflowModel.wid, FAWorkflowModel.name, FAWorkflowModel.last_modified
+            )
             db_result = await db.execute(stmt)
             db_workflows = db_result.mappings().all()
             result = []
@@ -213,8 +83,11 @@ async def read_all_workflows():
                     FAWorkflowBaseInfo(
                         wid=db_wf["wid"],
                         name=db_wf["name"],
+                        last_modified=db_wf["last_modified"],
                     )
                 )
+            # 按照最近修改时间排序
+            result.sort(key=lambda x: x.last_modified, reverse=True)
             return FAWorkflowOperationResponse(success=True, data=result)
     except Exception as e:
         errmsg = traceback.format_exc()
@@ -303,11 +176,19 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
                 else:
                     pass
                 pass
+                # 更新最近时间
+                await db.execute(
+                    update(FAWorkflowModel)
+                    .where(FAWorkflowModel.wid == update_request.wid)
+                    .values(last_modified=datetime.now(ZoneInfo("Asia/Shanghai")))
+                )
+                await db.commit()
                 return FAWorkflowOperationResponse(success=True)
             else:
                 return FAWorkflowOperationResponse(
                     success=False, message="Workflow not found"
                 )
+
     except Exception as e:
         errmsg = traceback.format_exc()
         logger.error(f"update workflow error: {errmsg}")
@@ -337,9 +218,47 @@ async def delete_workflow(wid: int):
         return FAWorkflowOperationResponse(success=False, message=errmsg)
 
 
+@router.post("/deleteresult")
+async def delete_result(wid: int, tid: str):
+    try:
+        farunner: FARunner = await ALL_TASKS_MGR.get(tid)
+        if farunner:
+            await ALL_TASKS_MGR.remove(tid)
+
+        async with get_db_ctxmgr() as db:
+            await db.execute(
+                delete(FAWorkflowResultModel).where(
+                    FAWorkflowResultModel.tid == tid,
+                    FAWorkflowResultModel.wid == wid,
+                )
+            )
+            await db.commit()
+            return FAWorkflowOperationResponse(success=True)
+    except Exception as e:
+        errmsg = traceback.format_exc()
+        logger.error(f"delete result error: {errmsg}")
+        return FAWorkflowOperationResponse(success=False, message=errmsg)
+
+
 @router.get("/readallresults")
 async def read_all_results(wid: int):
     try:
+        result = []
+        addedtid = set()
+        runnertid = await ALL_TASKS_MGR.getAllTaskID()
+        for tid in runnertid:
+            farunner: FARunner = await ALL_TASKS_MGR.get(tid)
+            if farunner and farunner.wid == wid:
+                addedtid.add(tid)
+                result.append(
+                    FAResultBaseInfo(
+                        tid=farunner.tid,
+                        status=farunner.status,
+                        starttime=farunner.starttime,
+                        endtime=farunner.endtime,
+                    )
+                )
+
         async with get_db_ctxmgr() as db:
             stmt = select(
                 FAWorkflowResultModel.tid,
@@ -349,8 +268,10 @@ async def read_all_results(wid: int):
             ).filter(FAWorkflowResultModel.wid == wid)
             db_result = await db.execute(stmt)
             db_results = db_result.mappings().all()
-            result = []
             for db_res in db_results:
+                tid = db_res["tid"]
+                if tid in addedtid:
+                    continue
                 result.append(
                     FAResultBaseInfo(
                         tid=db_res["tid"],
@@ -359,7 +280,9 @@ async def read_all_results(wid: int):
                         endtime=db_res["endtime"],
                     )
                 )
-            return FAWorkflowOperationResponse(success=True, data=result)
+        # 将result按照开始时间最新在前排序
+        result.sort(key=lambda x: x.starttime, reverse=True)
+        return FAWorkflowOperationResponse(success=True, data=result)
     except Exception as e:
         errmsg = traceback.format_exc()
         logger.error(f"read all results error: {errmsg}")
@@ -369,8 +292,25 @@ async def read_all_results(wid: int):
 @router.post("/loadresult")
 async def load_result(wid: int, tid: str):
     try:
-        async with get_db_ctxmgr() as db:
-            pass
+        test_farunner: FARunner = await ALL_TASKS_MGR.get(tid)
+        if test_farunner:
+            return FAWorkflowOperationResponse(
+                success=True,
+                data=test_farunner.oriflowdata,
+            )
+        else:
+            test_farunner = FARunner(tid)
+            loadOK = await test_farunner.loadResult(wid, tid)
+            if loadOK:
+                await ALL_TASKS_MGR.add(test_farunner)
+                return FAWorkflowOperationResponse(
+                    success=True,
+                    data=test_farunner.oriflowdata,
+                )
+            else:
+                return FAWorkflowOperationResponse(
+                    success=False, message="Result not found"
+                )
     except Exception as e:
         errmsg = traceback.format_exc()
         logger.error(f"load result error: {errmsg}")

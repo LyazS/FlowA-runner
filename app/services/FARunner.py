@@ -172,23 +172,35 @@ class FARunner:
                 if store is None:
                     raise ValidationError("workflow result not found")
                 self.wid = wid
-                self.name = store["name"]
-                self.oriflowdata = store["usedvflow"]
+                self.oriflowdata = store.usedvflow
                 self.flowdata: VFlowData = VFlowData.model_validate(self.oriflowdata)
-                self.status = store["status"]
-                self.starttime = store["starttime"]
-                self.endtime = store["endtime"]
+                self.status = store.status
+                self.starttime = store.starttime
+                self.endtime = store.endtime
 
                 nodeinfo_dict = {}
                 for nodeinfo in self.flowdata.nodes:
                     nodeinfo_dict[nodeinfo.id] = nodeinfo
                     pass
                 for noderesult in store.noderesults:
-                    thenode: "FABaseNode" = FANODECOLLECTION[noderesult["ntype"]](
-                        self.tid, nodeinfo_dict[noderesult["oriid"]]
+                    thenode: "FABaseNode" = FANODECOLLECTION[noderesult.ntype](
+                        self.tid, nodeinfo_dict[noderesult.oriid]
                     )
-                    thenode.restore(noderesult["data"])
-                    self.addNode(noderesult["nid"], thenode)
+
+                    thenodedata = noderesult.data
+                    if isinstance(thenodedata, str):
+                        thenodedata = json.loads(thenodedata)
+                    thenodedata = FAWorkflowNodeResult(
+                        tid=thenodedata["tid"],
+                        id=thenodedata["id"],
+                        oriid=thenodedata["oriid"],
+                        ntype=thenodedata["ntype"],
+                        parentNode=thenodedata["parentNode"],
+                        runStatus=thenodedata["runStatus"],
+                        data=thenodedata["data"],
+                    )
+                    thenode.restore(thenodedata)
+                    self.addNode(noderesult.nid, thenode)
                     pass
                 return True
         except Exception as e:

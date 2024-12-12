@@ -27,11 +27,11 @@ class ValidationError(BaseModel):
     pass
 
 
-class FARunResponse(BaseModel):
-    success: bool
-    tid: Optional[str] = None
-    validation_errors: Optional[List[ValidationError]] = None
-    pass
+# class FARunResponse(BaseModel):
+#     success: bool
+#     tid: Optional[str] = None
+#     validation_errors: Optional[List[ValidationError]] = None
+#     pass
 
 
 class FANodeUpdateType(Enum):
@@ -135,14 +135,15 @@ class FAWorkflowReadRequest(BaseModel):
 class FAWorkflowBaseInfo(BaseModel):
     wid: int
     name: str
+    last_modified: Optional[datetime]
     pass
 
 
 class FAResultBaseInfo(BaseModel):
     tid: str
-    status: str
-    starttime: datetime
-    endtime: datetime
+    status: Optional[str]
+    starttime: Optional[datetime]
+    endtime: Optional[datetime]
     pass
 
 
