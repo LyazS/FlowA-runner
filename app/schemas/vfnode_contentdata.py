@@ -44,7 +44,7 @@ class ConditionType(Enum):
 class Single_Condition(BaseModel):
     refdata: str
     operator: str
-    compareType: VarType
+    comparetype: VarType
     value: str
     pass
 

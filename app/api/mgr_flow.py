@@ -281,7 +281,12 @@ async def read_all_results(wid: int):
                     )
                 )
         # 将result按照开始时间最新在前排序
-        result.sort(key=lambda x: x.starttime, reverse=True)
+        result.sort(
+            key=lambda x: x.starttime.replace(
+                tzinfo=ZoneInfo("Asia/Shanghai")
+            ),
+            reverse=True,
+        )
         return FAWorkflowOperationResponse(success=True, data=result)
     except Exception as e:
         errmsg = traceback.format_exc()
