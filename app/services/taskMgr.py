@@ -14,6 +14,10 @@ class TaskMgr:
             if tid not in self.task_runner:
                 self.task_runner[tid] = FARunner(tid)
 
+    async def add(self, runner: FARunner):
+        async with self.lock:
+            self.task_runner[runner.tid] = runner
+
     async def get(self, tid: str) -> FARunner:
         if tid in self.task_runner:
             return self.task_runner[tid]

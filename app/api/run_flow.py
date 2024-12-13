@@ -6,6 +6,8 @@ from fastapi import APIRouter
 from loguru import logger
 from fastapi.background import BackgroundTasks
 from sse_starlette.sse import EventSourceResponse
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from app.core.config import settings
 from app.schemas.fanode import FARunnerStatus
 from app.schemas.vfnode import VFlowData
@@ -14,8 +16,6 @@ from app.services.FAValidator import FAValidator
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 from app.schemas.farequest import (
-    FARunRequest,
-    FARunResponse,
     ValidationError,
     FANodeUpdateType,
     FANodeUpdateData,
@@ -23,7 +23,15 @@ from app.schemas.farequest import (
     SSEResponseData,
     SSEResponseType,
     FAWorkflow,
+    FAWorkflowOperationResponse,
 )
+from app.db.session import get_db_ctxmgr
+from app.models.fastore import (
+    FAWorkflowModel,
+    FAWorkflowResultModel,
+    FAWorkflowNodeResultModel,
+)
+from sqlalchemy import select, update, exc, exists, delete
 
 router = APIRouter()
 
@@ -32,25 +40,38 @@ router = APIRouter()
 async def run_flow(
     fa_req: FAWorkflow,
     background_tasks: BackgroundTasks,
-) -> FARunResponse:
+) -> FAWorkflowOperationResponse:
     if settings.DEBUG:
         await asyncio.sleep(1)
     taskid = str(uuid.uuid4()).replace("-", "")
-    if fa_req.name is None:
-        fa_req.name = taskid
     fav = FAValidator()
     flowdata = VFlowData.model_validate(fa_req.vflow)
     validate_result = await fav.validate(taskid, flowdata)
     if len(validate_result) > 0:
-        return FARunResponse(
-            success=False,
-            tid=None,
-            validation_errors=validate_result,
+        return FAWorkflowOperationResponse(
+            success=True, data={"validation_errors": validate_result}
         )
+
     # 通过检查 =============================================
     await ALL_TASKS_MGR.create(taskid)
     background_tasks.add_task(ALL_TASKS_MGR.run, taskid, fa_req)
-    return FARunResponse(success=True, tid=taskid)
+    try:
+        async with get_db_ctxmgr() as db:
+            await db.execute(
+                update(FAWorkflowModel)
+                .where(FAWorkflowModel.wid == fa_req.wid)
+                .values(
+                    vflow=fa_req.vflow,
+                    last_modified=datetime.now(ZoneInfo("Asia/Shanghai")),
+                )
+            )
+            await db.commit()
+
+    except Exception as e:
+        errmsg = traceback.format_exc()
+        logger.error(f"update workflow error: {errmsg}")
+        return FAWorkflowOperationResponse(success=False, message=errmsg)
+    return FAWorkflowOperationResponse(success=True, data={"tid": taskid})
 
 
 @router.get("/progress")

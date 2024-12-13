@@ -28,3 +28,4 @@ bcrypt
 tenacity
 python-multipart
 tzdata
+uuid7
