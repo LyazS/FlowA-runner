@@ -63,14 +63,13 @@ class FANode_cond_branch(FABaseNode):
 
     async def run(self) -> List[FANodeUpdateData]:
         try:
-            condElseKey = "cond-else"
             isAnyConditionMet = False
             theresults = self.data.results
             for rid in theresults.order:
                 item: VFNodeContentData = theresults.byId[rid]
                 if item.type == VFNodeContentDataType.ConditionDict:
                     ikey = item.key
-                    if ikey == condElseKey:
+                    if ikey == "cond-else":
                         continue
                     idata = Single_ConditionDict.model_validate(item.data)
                     iOutputKey = idata.outputKey
@@ -144,12 +143,9 @@ class FANode_cond_branch(FABaseNode):
                         break
             if not isAnyConditionMet:
                 self.setAllOutputStatus(FANodeStatus.Canceled)
-                self.setOutputStatus(condElseKey, FANodeStatus.Success)
+                self.setOutputStatus("output-else", FANodeStatus.Success)
             return []
         except Exception as e:
             errmsg = traceback.format_exc()
-            logger.error(errmsg)
-            return []
-        finally:
-            return []
+            raise Exception(f"节点执行失败：{errmsg}")
         pass
