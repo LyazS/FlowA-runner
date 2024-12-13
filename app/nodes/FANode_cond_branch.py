@@ -51,10 +51,10 @@ class FANode_cond_branch(FABaseNode):
                                 error_msgs.append(f"变量未定义{refdata}")
                             pass
                 else:
-                    error_msgs.append(f"payloads内容类型错误{item.type}")
+                    error_msgs.append(f"results内容类型错误{item.type}")
         except Exception as e:
             errmsg = traceback.format_exc()
-            error_msgs.append(f"获取payloads内容失败:{errmsg}")
+            error_msgs.append(f"获取results内容失败:{errmsg}")
             logger.error(errmsg)
         finally:
             if len(error_msgs) > 0:
