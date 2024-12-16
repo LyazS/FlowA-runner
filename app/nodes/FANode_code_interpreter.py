@@ -11,7 +11,7 @@ import traceback
 import base64
 import subprocess
 from enum import Enum
-from app.schemas.fanode import FANodeStatus, FANodeWaitType
+from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.vfnode_contentdata import Single_CodeInput
 from app.schemas.farequest import (
@@ -96,6 +96,7 @@ async def SimplePythonRun(code, evaltype: EvalType, snekboxUrl: str = ""):
 class FANode_code_interpreter(FABaseNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
+        self.validateNeededs = [FANodeValidateNeed.Self]
         pass
 
     def validateContent(self, selfVars: List[str]) -> List[str]:
@@ -180,8 +181,11 @@ class FANode_code_interpreter(FABaseNode):
             error_msgs.append(f"获取内容失败{str(errmsg)}")
             return error_msgs
 
-    def validate(self, validateVars: Dict[str, List[str]]) -> Optional[ValidationError]:
-        selfVars = validateVars["self"]
+    def validate(
+        self,
+        validateVars: Dict[FANodeValidateNeed, Any],
+    ) -> Optional[ValidationError]:
+        selfVars = validateVars[FANodeValidateNeed.Self]
         errors_payloads = self.validateContent(selfVars)
         if len(errors_payloads) > 0:
             return ValidationError(nid=self.id, errors=errors_payloads)

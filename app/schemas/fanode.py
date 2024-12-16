@@ -27,3 +27,10 @@ class FANodeWaitType(Enum):
     OR = "OR"
     pass
 
+
+class FANodeValidateNeed(Enum):
+    Self = "Self"
+    Attach = "Attach"
+    InputNodes = "InputNodes"
+    InputNodesWVars = "InputNodesWVars"
+    pass

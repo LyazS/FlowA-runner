@@ -1,9 +1,9 @@
-from typing import List, Union, Dict, Optional
+from typing import List, Union, Dict, Optional, Any
 import traceback
 import asyncio
 import ast
 from loguru import logger
-from app.schemas.fanode import FANodeStatus, FANodeWaitType
+from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo
 from app.schemas.farequest import ValidationError
 from .basenode import FABaseNode
@@ -26,10 +26,14 @@ class CompareException(Exception):
 class FANode_cond_branch(FABaseNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
+        self.validateNeededs = [FANodeValidateNeed.Self]
         pass
 
-    def validate(self, validateVars: Dict[str, List[str]]) -> Optional[ValidationError]:
-        selfVars = validateVars["self"]
+    def validate(
+        self,
+        validateVars: Dict[FANodeValidateNeed, Any],
+    ) -> Optional[ValidationError]:
+        selfVars = validateVars[FANodeValidateNeed.Self]
         error_msgs = []
         try:
             theresults = self.data.getContent("results")

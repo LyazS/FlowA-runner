@@ -1,10 +1,11 @@
-from typing import Dict, List
+from typing import Dict, List, Optional, Any
 from app.schemas.farequest import VarItem, ValidationError
 from app.schemas.vfnode import (
     VFNodeConnectionDataType,
     VFlowData,
     VFNodeConnectionDataAttachedType,
 )
+from app.schemas.fanode import FANodeValidateNeed
 from app.nodes import FABaseNode, FANODECOLLECTION
 
 
@@ -204,25 +205,57 @@ class FAValidator:
         validations: List[ValidationError] = []
         for nid in self.nodes.keys():
             node = self.nodes[nid]
-            selfVarSelections = [
-                f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}"
-                for item in self.recursive_find_variables(
-                    nid, ["self"], [], [], False, [], False, []
-                )
-            ]
-            selfVarSelections_aouput = [
-                f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}"
-                for item in self.recursive_find_variables(
-                    nid, ["attach_output"], [], [], False, [], False, []
-                )
-            ]
-
-            validation = node.validate(
-                {
-                    "self": selfVarSelections,
-                    "attach_output": selfVarSelections_aouput,
+            if len(node.validateNeededs) <= 0:
+                continue
+            validateVarDict: Dict[FANodeValidateNeed, Any] = {}
+            if FANodeValidateNeed.Self in node.validateNeededs:
+                validateVarDict[FANodeValidateNeed.Self] = [
+                    f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}"
+                    for item in self.recursive_find_variables(
+                        nid, ["self"], [], [], False, [], False, []
+                    )
+                ]
+                pass
+            if FANodeValidateNeed.Attach in node.validateNeededs:
+                validateVarDict[FANodeValidateNeed.Attach] = [
+                    f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}"
+                    for item in self.recursive_find_variables(
+                        nid, ["attach"], [], [], False, [], False, []
+                    )
+                ]
+                pass
+            if FANodeValidateNeed.InputNodes in node.validateNeededs:
+                validateVarDict[FANodeValidateNeed.InputNodes] = {
+                    inhid: [
+                        f"{item['nid']}/{item['hid']}"
+                        for item in self.get_handle_connections(nid, "target", inhid)
+                    ]
+                    for inhid in node.data.connections.inputs.keys()
                 }
-            )
+            if FANodeValidateNeed.InputNodesWVars in node.validateNeededs:
+                validateVarDict[FANodeValidateNeed.InputNodesWVars] = {
+                    inhid: {
+                        item["nid"]: {
+                            item["hid"]: [
+                                f"{item2.nodeId}/{item2.dpath[0]}/{item2.dpath[1]}"
+                                for item2 in self.recursive_find_variables(
+                                    item["nid"],
+                                    [],
+                                    [],
+                                    [],
+                                    False,
+                                    [],
+                                    False,
+                                    [item["hid"]],
+                                )
+                            ]
+                        }
+                        for item in self.get_handle_connections(nid, "target", inhid)
+                    }
+                    for inhid in node.data.connections.inputs.keys()
+                }
+                pass
+            validation = node.validate(validateVarDict)
             if validation:
                 validations.append(validation)
         pass

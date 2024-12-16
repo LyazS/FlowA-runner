@@ -1,6 +1,6 @@
-from typing import List, Union, Dict, Optional
+from typing import List, Union, Dict, Optional, Any
 import asyncio
-from app.schemas.fanode import FANodeStatus, FANodeWaitType
+from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.farequest import ValidationError
 from .basenode import FABaseNode
@@ -9,14 +9,18 @@ from .basenode import FABaseNode
 class FANode_text_print(FABaseNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
+        self.validateNeededs = [FANodeValidateNeed.Self]
         pass
 
     async def run(self):
         self.setAllOutputStatus(FANodeStatus.Success)
         pass
 
-    def validate(self, validateVars: Dict[str, List[str]]) -> Optional[ValidationError]:
-        selfVars = validateVars["self"]
+    def validate(
+        self,
+        validateVars: Dict[FANodeValidateNeed, Any],
+    ) -> Optional[ValidationError]:
+        selfVars = validateVars[FANodeValidateNeed.Self]
         error_msgs = []
         try:
             for pid in self.data.getContent("payloads").order:
