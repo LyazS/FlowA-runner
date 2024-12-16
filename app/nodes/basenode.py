@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, TYPE_CHECKING
+from typing import List, Dict, Optional, TYPE_CHECKING, Any
 import asyncio
 import re
 from pydantic import BaseModel
@@ -6,7 +6,7 @@ import traceback
 import json
 import copy
 from loguru import logger
-from app.schemas.fanode import FANodeStatus, FANodeWaitType
+from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeData
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentDataType
 from app.schemas.farequest import (
@@ -63,6 +63,9 @@ class FABaseNode:
         }
         # 该节点的运行状态
         self.runStatus = FANodeStatus.Pending
+
+        # 该节点需求的验证内容
+        self.validateNeededs: List[FANodeValidateNeed] = []
         pass
 
     def store(self):
@@ -232,5 +235,8 @@ class FABaseNode:
             )
         ]
 
-    def validate(self, validateVars: Dict[str, List[str]]) -> Optional[ValidationError]:
+    def validate(
+        self,
+        validateVars: Dict[FANodeValidateNeed, Any],
+    ) -> Optional[ValidationError]:
         return None

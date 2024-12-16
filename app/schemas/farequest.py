@@ -21,23 +21,17 @@ class VarSelectOption(BaseModel):
     value: str
 
 
-class FARunRequest(BaseModel):
-    name: str
-    vflow: Any
-    pass
-
-
 class ValidationError(BaseModel):
     nid: str
     errors: List[str]  # 可能存在多条错误信息。如果isValid为True，则messages应该为空。
     pass
 
 
-class FARunResponse(BaseModel):
-    success: bool
-    tid: Optional[str] = None
-    validation_errors: Optional[List[ValidationError]] = None
-    pass
+# class FARunResponse(BaseModel):
+#     success: bool
+#     tid: Optional[str] = None
+#     validation_errors: Optional[List[ValidationError]] = None
+#     pass
 
 
 class FANodeUpdateType(Enum):
@@ -89,53 +83,6 @@ class SSEResponse(BaseModel):
     pass
 
 
-# class FARunnerHistory(BaseModel):
-#     tid: str
-#     isfile: bool
-#     status: Optional[FARunnerStatus]
-#     starttime: Optional[datetime]
-#     endtime: Optional[datetime]
-#     pass
-
-
-# class FARunnerHistorys(BaseModel):
-#     historys: List[FARunnerHistory]
-#     pass
-
-
-# class FARunnerWorkflows(BaseModel):
-#     workflows: List[str]
-#     pass
-
-
-# class NodeStoreHistory(BaseModel):
-#     tid: str
-#     id: str
-#     oriid: str
-#     data: VFNodeData
-#     ntype: str
-#     parentNode: Optional[str]
-#     runStatus: FANodeStatus
-#     pass
-
-
-# class RunnerStoreHistory(BaseModel):
-#     name: str
-#     tid: str
-#     oriflowdata: dict
-#     result: List[NodeStoreHistory]
-#     status: FARunnerStatus
-#     starttime: datetime
-#     endtime: datetime
-#     pass
-
-
-# class SaveWorkflow(BaseModel):
-#     name: str
-#     vflow: Any
-#     pass
-
-
 class FAWorkflowNodeResult(BaseModel):
     tid: str
     id: str
@@ -149,6 +96,7 @@ class FAWorkflowNodeResult(BaseModel):
 
 class FAWorkflowResult(BaseModel):
     tid: str
+    usedvflow: Optional[dict]
     noderesult: Optional[List[FAWorkflowNodeResult]]
     status: FARunnerStatus
     starttime: datetime
@@ -157,8 +105,50 @@ class FAWorkflowResult(BaseModel):
 
 
 class FAWorkflow(BaseModel):
-    name: Optional[str]
-    vflow: Optional[Any]
-    result: Optional[FAWorkflowResult] = None
-    isCache: bool = False
+    wid: Optional[int] = None
+    name: Optional[str] = None
+    vflow: Optional[dict] = None
+    results: Optional[List[FAWorkflowResult]] = None
+    pass
+
+
+class FAWorkflowLocation(Enum):
+    name = "name"
+    vflow = "vflow"
+    results = "results"
+    pass
+
+
+class FAWorkflowUpdateRequset(BaseModel):
+    wid: int
+    location: FAWorkflowLocation
+    data: Optional[Any] = None
+
+
+class FAWorkflowReadRequest(BaseModel):
+    wid: int
+    locations: List[FAWorkflowLocation]
+    tid: Optional[str] = None
+    pass
+
+
+class FAWorkflowBaseInfo(BaseModel):
+    wid: int
+    name: str
+    last_modified: Optional[datetime]
+    pass
+
+
+class FAResultBaseInfo(BaseModel):
+    tid: str
+    status: Optional[str]
+    starttime: Optional[datetime]
+    endtime: Optional[datetime]
+    pass
+
+
+class FAWorkflowOperationResponse(BaseModel):
+    success: bool
+    message: Optional[str] = None
+    data: Optional[Any] = None
     pass
