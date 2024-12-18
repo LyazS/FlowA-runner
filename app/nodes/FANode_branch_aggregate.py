@@ -43,22 +43,25 @@ class FANode_branch_aggregate(FABaseNode):
         try:
             InputNodes = validateVars[FANodeValidateNeed.InputNodes]["input"]
             InputNodesWVars = validateVars[FANodeValidateNeed.InputNodesWVars]["input"]
-            branches: List[Single_AggregateBranch] = self.data.payloads.byId[
-                "D_BRANCHES"
-            ].data
-            for item in branches:
-                branch = Single_AggregateBranch.model_validate(item)
-                if branch.node not in InputNodes:
-                    error_msgs.append(f"分支节点{branch.node}不在输入节点列表中")
+            for pid in self.data.payloads.order:
+                item: VFNodeContentData = self.data.payloads.byId[pid]
+                if item.type == VFNodeContentDataType.AggregateBranch:
+                    branches: List[Single_AggregateBranch] = item.data
+                    for ibranch in branches:
+                        branch = Single_AggregateBranch.model_validate(ibranch)
+                        if branch.node not in InputNodes:
+                            error_msgs.append(
+                                f"分支节点{branch.node}不在输入节点列表中"
+                            )
+                            pass
+                        nid, ohid = branch.node.split("/")
+                        if branch.refdata not in InputNodesWVars[nid][ohid]:
+                            error_msgs.append(
+                                f"分支节点{branch.node}的输出变量{branch.refdata}不在输入节点{nid}的输出变量列表中"
+                            )
+                            pass
+                        pass
                     pass
-                nid, ohid = branch.node.split("/")
-                if branch.refdata not in InputNodesWVars[nid][ohid]:
-                    error_msgs.append(
-                        f"分支节点{branch.node}的输出变量{branch.refdata}不在输入节点{nid}的输出变量列表中"
-                    )
-                    pass
-                pass
-            pass
         except Exception as e:
             errmsg = traceback.format_exc()
             error_msgs.append(f"获取payloads内容失败:{errmsg}")
@@ -76,9 +79,11 @@ class FANode_branch_aggregate(FABaseNode):
                 thisowstatus = thenode.outputStatus[thiswstatus.output]
                 if thisowstatus == FANodeStatus.Success:
                     preNodeSuccess.add(thiswstatus.nid)
-            branches: List[Single_AggregateBranch] = self.data.payloads.byId[
-                "D_BRANCHES"
-            ].data
+            branches: List[Single_AggregateBranch] = []
+            for pid in self.data.payloads.order:
+                cdata: VFNodeContentData = self.data.payloads.byId[pid]
+                if cdata.type == VFNodeContentDataType.AggregateBranch:
+                    branches = cdata.data
             for item in branches:
                 branch = Single_AggregateBranch.model_validate(item)
                 nid, ohid = branch.node.split("/")

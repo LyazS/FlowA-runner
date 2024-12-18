@@ -15,7 +15,7 @@ class VarType(Enum):
     pass
 
 
-class Single_LLMInput(BaseModel):
+class Single_VarInput(BaseModel):
     key: str
     type: VarType
     value: str
@@ -86,7 +86,7 @@ class VFNodeContentDataType(Enum):
     PDF = "PDF"
     # OtherContentDataType
     CodeInput = "CodeInput"
-    LLMInput = "LLMInput"
+    VarsInput = "VarsInput"
     ConditionDict = "ConditionDict"
     Prompts = "Prompts"
     IterIndex = "IterIndex"
@@ -104,7 +104,7 @@ VFNodeContentDataSchema = Optional[
         dict,
         list,
         List[Single_CodeInput],
-        List[Single_LLMInput],
+        List[Single_VarInput],
         Single_ConditionDict,
         List[Single_Prompt],
         List[str],  # 对于文件类型
