@@ -7,7 +7,7 @@ import json
 import copy
 from loguru import logger
 from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
-from app.schemas.vfnode_contentdata import Single_VarInput
+from app.schemas.vfnode_contentdata import Single_VarInput,VarType
 from app.schemas.vfnode import VFNodeData
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentDataType
 from app.schemas.farequest import (
@@ -222,17 +222,17 @@ class FABaseNode:
         level = list(map(int, matches))
         return level
 
-    def getVar(self, var: Single_VarInput):
-        if var.type == "String":
+    async def getVar(self, var: Single_VarInput):
+        if var.type == VarType.String:
             return str(var.value)
-        elif var.type == "Number":
+        elif var.type == VarType.Number:
             return float(var.value)
-        elif var.type == "Boolean":
+        elif var.type == VarType.Boolean:
             return bool(var.value)
-        elif var.type == "Integer":
+        elif var.type == VarType.Integer:
             return int(var.value)
-        elif var.type == "ref":
-            return self.getRefData(var.value)
+        elif var.type == VarType.ref:
+            return await self.getRefData(var.value)
         pass
 
     # 需要子类实现的函数 ===============================================================

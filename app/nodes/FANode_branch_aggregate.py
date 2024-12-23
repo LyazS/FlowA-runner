@@ -44,8 +44,7 @@ class FANode_branch_aggregate(FABaseNode):
             InputNodes = validateVars[FANodeValidateNeed.InputNodes]["input"]
             InputNodesWVars = validateVars[FANodeValidateNeed.InputNodesWVars]["input"]
             D_BRANCHES: VFNodeContentData = self.data.payloads.byId["D_BRANCHES"]
-            branches: List[Single_AggregateBranch] = D_BRANCHES.data
-            for ibranch in branches:
+            for ibranch in D_BRANCHES.data:
                 branch = Single_AggregateBranch.model_validate(ibranch)
                 if branch.node not in InputNodes:
                     error_msgs.append(f"分支节点{branch.node}不在输入节点列表中")

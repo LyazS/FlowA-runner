@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Dict, Union, Optional
+from typing import List, Dict, Union, Optional, Any
 from enum import Enum
 
 
@@ -11,14 +11,18 @@ class Single_CodeInput(BaseModel):
 
 class VarType(Enum):
     ref = "ref"
-    value = "value"
+    # value = "value"
+    String = "String"
+    Integer = "Integer"
+    Number = "Number"
+    Boolean = "Boolean"
     pass
 
 
 class Single_VarInput(BaseModel):
     key: str
     type: VarType
-    value: str
+    value: Any
     pass
 
 

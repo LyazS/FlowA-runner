@@ -88,7 +88,7 @@ async def SimplePythonRun(code, evaltype: EvalType, snekboxUrl: str = ""):
                 return CodeOutput(success=False, error="代码执行失败，请检查代码输出")
 
     elif evaltype == EvalType.SnekBox:
-        pass
+        raise Exception(f"不支持的执行类型{evaltype}")
     else:
         raise Exception(f"不支持的执行类型{evaltype}")
 
@@ -111,8 +111,8 @@ class FANode_code_interpreter(FABaseNode):
             node_payloads = self.data.getContent("payloads")
             node_results = self.data.getContent("results")
 
-            D_CODEINPUT: VFNodeContentData = node_payloads.byId["D_CODEINPUT"]
-            for var_dict in D_CODEINPUT.data:
+            D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
+            for var_dict in D_VARSINPUT.data:
                 var = Single_VarInput.model_validate(var_dict)
                 if var.type == "ref" and var.value not in selfVars:
                     error_msgs.append(f"变量未定义{var.value=}")
@@ -182,12 +182,11 @@ class FANode_code_interpreter(FABaseNode):
         node_payloads = self.data.getContent("payloads")
         node_results = self.data.getContent("results")
 
-        D_CODEINPUT: VFNodeContentData = node_payloads.byId["D_CODEINPUT"]
-        for var_dict in D_CODEINPUT.data:
-            var = Single_CodeInput.model_validate(var_dict)
-            CodeInputArgs[var.key] = await self.getRefData(var.refdata)
+        D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
+        for var_dict in D_VARSINPUT.data:
+            var = Single_VarInput.model_validate(var_dict)
+            CodeInputArgs[var.key] = await self.getVar(var)
         D_CODE: VFNodeContentData = node_payloads.byId["D_CODE"]
-        CodeStr: str = D_CODE.data
 
         # 开始执行代码
         code_in_args = json.dumps(CodeInputArgs, ensure_ascii=False)
@@ -195,7 +194,7 @@ class FANode_code_interpreter(FABaseNode):
             "utf-8"
         )
         code_run: str = copy.deepcopy(CODE_TEMPLATE)
-        code_run = code_run.replace(CODE_TEMPLATE_FUNCTION, CodeStr).replace(
+        code_run = code_run.replace(CODE_TEMPLATE_FUNCTION, D_CODE.data).replace(
             CODE_TEMPLATE_INPUT, code_in_args_b64
         )
         # 需要返回输出结果

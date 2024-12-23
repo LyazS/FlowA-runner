@@ -84,15 +84,13 @@ class FANode_iter_run(FABaseNode):
                 asyncio.create_task(node.invoke())
                 pass
         pass
-        # 开始迭代
+        # 获取迭代数组
         nest_layout = self.getNestLayout()
         node_payloads = self.data.getContent("payloads")
-        for pid in node_payloads.order:
-            item: VFNodeContentData = node_payloads.byId[pid]
-            if item.key == "iter_var":
-                self.iter_var = await self.getRefData(item.data)
-                self.iter_var_len = len(self.iter_var)
-                break
+        D_ITERLIST: VFNodeContentData = node_payloads.byId["D_ITERLIST"]
+        self.iter_var = await self.getRefData(D_ITERLIST.data)
+        self.iter_var_len = len(self.iter_var)
+        # 开始迭代
         AllChildNodeNames: Set[str] = set()
         for iter_idx in range(self.iter_var_len):
             # 构建next附属节点
