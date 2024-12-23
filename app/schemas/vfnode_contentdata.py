@@ -49,7 +49,7 @@ class Single_Condition(BaseModel):
     refdata: str
     operator: str
     comparetype: VarType
-    value: str
+    value: Any
     pass
 
 

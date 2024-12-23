@@ -9,7 +9,12 @@ from app.schemas.farequest import ValidationError
 from .basenode import FABaseNode
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
-from app.schemas.vfnode_contentdata import Single_ConditionDict, VarType, ConditionType
+from app.schemas.vfnode_contentdata import (
+    Single_ConditionDict,
+    VarType,
+    ConditionType,
+    Single_VarInput,
+)
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
@@ -88,12 +93,12 @@ class FANode_cond_branch(FABaseNode):
                             or condition.operator == "isnull"
                             or condition.operator == "notnull"
                         ):
-                            if condition.comparetype == VarType.ref:
-                                comp_refdata = await self.getRefData(condition.value)
-                            else:
-                                comp_refdata = type(refdata)(
-                                    ast.literal_eval(condition.value)
-                                )
+                            tmpvarinput = Single_VarInput(
+                                key="tmp",
+                                type=condition.comparetype,
+                                value=condition.value,
+                            )
+                            comp_refdata = await self.getVar(tmpvarinput)
 
                         if condition.operator == "eq":
                             isConditionMet.append(refdata == comp_refdata)
