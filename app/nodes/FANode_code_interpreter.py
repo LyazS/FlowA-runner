@@ -115,7 +115,7 @@ class FANode_code_interpreter(FABaseNode):
             for var_dict in D_VARSINPUT.data:
                 var = Single_VarInput.model_validate(var_dict)
                 if var.type == "ref" and var.value not in selfVars:
-                    error_msgs.append(f"变量未定义{var.value=}")
+                    error_msgs.append(f"变量未定义{var.value}")
                 else:
                     CodeInputArgs.add(var.key)
             for pid in node_results.order:
