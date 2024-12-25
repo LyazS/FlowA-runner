@@ -202,6 +202,7 @@ class FABaseNode:
         content = thenode.data.getContent(contentname).byId[ctid]
         rtype = content.type
         rdata = None
+        # 针对迭代特殊处理
         if rtype == VFNodeContentDataType.IterIndex:
             nest_layout = self.getNestLayout()
             rdata = nest_layout[nid_layout]
