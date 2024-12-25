@@ -149,27 +149,44 @@ class FANode_http_requests(FABaseNode):
                     response_data = response
                     content_type = response.headers.get("Content-Type", "").lower()
 
-                    if content_type.startswith("text/") or content_type in [
-                        "application/json",
-                        "application/xml",
-                    ]:
+                    # 判断是否为文本数据
+                    is_text_data = (
+                        content_type.startswith("text/")
+                        or "application/json" in content_type
+                        or "application/xml" in content_type
+                        or "application/javascript" in content_type
+                        or "application/ld+json" in content_type
+                        or "application/x-yaml" in content_type
+                        or "application/xhtml+xml" in content_type
+                        or "application/rss+xml" in content_type
+                        or "application/atom+xml" in content_type
+                    )
+
+                    if is_text_data:
                         # 处理文本数据
-                        response_data = await response.text()
+                        charset = "utf-8"  # 默认使用 UTF-8
+                        if "charset=" in content_type:
+                            charset = content_type.split("charset=")[-1].strip()
+                        response_data = await response.text(
+                            encoding=charset, errors="replace"
+                        )
                     else:
                         # 处理二进制数据
-                        response_data = await response.read()
-                        # 转换为base64编码
-                        binary_data = base64.b64encode(response_data)
-                        response_data = binary_data.decode()
-                    node_results.byId["DR_STATUS"] = response.status
-                    node_results.byId["DR_HEADER"] = [
+                        binary_data = await response.read()
+                        base64_data = base64.b64encode(binary_data).decode("utf-8")
+                        response_data = base64_data
+
+                    node_results.byId["DR_STATUS"].data = response.status
+                    node_results.byId["DR_HEADER"].data = [
                         (k, v) for k, v in response.headers.items()
                     ]
-                    node_results.byId["DR_COOKIE"] = [
+                    node_results.byId["DR_COOKIE"].data = [
                         (k, v) for k, v in response.cookies.items()
                     ]
-                    node_results.byId["DR_RESPONSE"] = response_data
+                    node_results.byId["DR_CONTENTTYPE"].data = content_type
+                    node_results.byId["DR_RESPONSE"].data = response_data
 
+                    self.setAllOutputStatus(FANodeStatus.Success)
                     return [
                         FANodeUpdateData(
                             type=FANodeUpdateType.overwrite,
@@ -185,6 +202,11 @@ class FANode_http_requests(FABaseNode):
                             type=FANodeUpdateType.overwrite,
                             path=["results", "byId", "DR_COOKIE", "data"],
                             data=node_results.byId["DR_COOKIE"],
+                        ),
+                        FANodeUpdateData(
+                            type=FANodeUpdateType.overwrite,
+                            path=["results", "byId", "DR_CONTENTTYPE", "data"],
+                            data=content_type,
                         ),
                         FANodeUpdateData(
                             type=FANodeUpdateType.overwrite,

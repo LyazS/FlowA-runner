@@ -11,7 +11,6 @@ class VarType(Enum):
     Number = "Number"
     Boolean = "Boolean"
     File = "File"
-    Binary = "Binary"
     pass
 
 
@@ -98,7 +97,6 @@ class HttpBodyModel(BaseModel):
 class HttpConfigModel(BaseModel):
     method: HttpMethod
     url: str
-    response2json: bool
     headers: List[Single_KeyVar]
     body: HttpBodyModel
     cookies: List[Single_KeyVar]
@@ -121,7 +119,6 @@ class VFNodeContentDataType(Enum):
     Boolean = "Boolean"  # bool
     List = "List"
     Dict = "Dict"  # dict
-    MultiDict = "MultiDict"  # MultiDict
     # CodeContentDataType
     CodePython = "CodePython"
     CodeJavaScript = "CodeJavaScript"
@@ -145,6 +142,7 @@ class VFNodeContentDataType(Enum):
     AggregateBranch = "AggregateBranch"
     HttpRequestConfig = "HttpRequestConfig"
     HttpTimeoutConfig = "HttpTimeoutConfig"
+    HttpContent = "HttpContent"
     pass
 
 
