@@ -1,4 +1,5 @@
 from typing import List, Dict, Optional, TYPE_CHECKING, Any
+from abc import ABC, abstractmethod
 import asyncio
 import re
 from pydantic import BaseModel
@@ -40,7 +41,7 @@ class NodeCancelException(Exception):
         super().__init__(self.message)
 
 
-class FABaseNode:
+class FABaseNode(ABC):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         cpnodeinfo = copy.deepcopy(nodeinfo)
         self.tid = tid
@@ -237,6 +238,7 @@ class FABaseNode:
         pass
 
     # 需要子类实现的函数 ===============================================================
+    # @abstractmethod
     async def run(self) -> List[FANodeUpdateData]:
         self.setAllOutputStatus(FANodeStatus.Success)
         pass
