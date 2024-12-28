@@ -96,8 +96,9 @@ class FANode_http_requests(FABaseNode):
             }
             # 准备请求体
             data = None
+            json_data = None
             if d_config.body.type == HttpBodyType.json:
-                data = json.loads(replace_vars(d_config.body.content1, InputArgs))
+                json_data = json.loads(replace_vars(d_config.body.content1, InputArgs))
 
             elif d_config.body.type == HttpBodyType.text:
                 data = replace_vars(d_config.body.content1, InputArgs)
@@ -145,6 +146,7 @@ class FANode_http_requests(FABaseNode):
                     url,
                     headers=headers,
                     data=data,
+                    json=json_data,
                 ) as response:
                     response_data = response
                     content_type = response.headers.get("Content-Type", "").lower()
