@@ -141,141 +141,135 @@ class ReactiveDict(dict):
 # ========================================================
 
 
-# 测试 1: 基本类型（整数）
-def test_primitive():
-    print("=== 测试 1: 基本类型（整数） ===")
-    count = Ref(0)
-
-    def on_update():
-        print(f"Count updated to: {count.value}")
-
-    count.add_dependency(on_update)
-
-    count.value = 1
-    # 输出: Triggering update... Count updated to: 1
-    count.value += 1
-    # 输出: Triggering update... Count updated to: 2
-    print()
-
-
-# 测试 2: 基本类型（字符串）
-def test_string():
-    print("=== 测试 2: 基本类型（字符串） ===")
-    name = Ref("Alice")
-
-    def on_update():
-        print(f"Name updated to: {name.value}")
-
-    name.add_dependency(on_update)
-
-    name.value = "Bob"
-    # 输出: Triggering update... Name updated to: Bob
-    print()
-
-
-# 测试 3: 列表（嵌套基本类型）
-def test_list_with_primitives():
-    print("=== 测试 3: 列表（嵌套基本类型） ===")
-    items = Ref([1, 2, 3])
-
-    def on_update():
-        print(f"List updated: {items.value}")
-
-    items.add_dependency(on_update)
-
-    items.value.append(4)
-    # 输出: Triggering update... List updated: [1, 2, 3, 4]
-    items.value[0] = 10
-    # 输出: Triggering update... List updated: [10, 2, 3, 4]
-    items.value.pop()
-    # 输出: Triggering update... List updated: [10, 2, 3]
-    print("len: ", len(items.value))
-    print()
-
-
-# 测试 4: 字典（嵌套基本类型）
-def test_dict_with_primitives():
-    print("=== 测试 4: 字典（嵌套基本类型） ===")
-    user = Ref({"name": "Alice", "age": 25})
-
-    def on_update():
-        print(f"Dict updated: {user.value}")
-
-    user.add_dependency(on_update)
-
-    user.value["age"] = (
-        26
-        # 输出: Triggering update... Dict updated: {'name': 'Alice', 'age': 26}
-    )
-    user.value["city"] = (
-        "New York"
-        # 输出: Triggering update... Dict updated: {'name': 'Alice', 'age': 26, 'city': 'New York'}
-    )
-    del user.value["city"]
-    # 输出: Triggering update... Dict updated: {'name': 'Alice', 'age': 26}
-    print()
-
-
-# 测试 5: 列表（嵌套字典）
-def test_list_with_dict():
-    print("=== 测试 5: 列表（嵌套字典） ===")
-    items = Ref([{"name": "Alice", "age": 25}, {"name": "Bob", "age": 30}])
-
-    def on_update():
-        print(f"List updated: {items.value}")
-
-    items.add_dependency(on_update)
-
-    items.value[0]["age"] += 1
-    # 输出: Triggering update... List updated: [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}]
-    items.value.append({"name": "Charlie", "age": 35})
-    # 输出: Triggering update... List updated: [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}, {'name': 'Charlie', 'age': 35}]
-    print()
-
-
-# 测试 6: 字典（嵌套列表）
-def test_dict_with_list():
-    print("=== 测试 6: 字典（嵌套列表） ===")
-    user = Ref({"name": "Alice", "scores": [80, 90, 85]})
-
-    def on_update():
-        print(f"Dict updated: {user.value}")
-
-    user.add_dependency(on_update)
-
-    user.value["scores"].append(95)
-    # 输出: Triggering update... Dict updated: {'name': 'Alice', 'scores': [80, 90, 85, 95]}
-    user.value["scores"][0] = 100
-    # 输出: Triggering update... Dict updated: {'name': 'Alice', 'scores': [100, 90, 85, 95]}
-    print()
-
-
-# 测试 7: 复杂嵌套（字典中嵌套列表，列表中嵌套字典）
-def test_complex_nesting():
-    print("=== 测试 7: 复杂嵌套（字典中嵌套列表，列表中嵌套字典） ===")
-    data = Ref(
-        {
-            "users": [{"name": "Alice", "age": 25}, {"name": "Bob", "age": 30}],
-            "metadata": {"total": 2, "timestamp": "2023-10-01"},
-        }
-    )
-
-    def on_update():
-        print(f"Data updated: {data.value}")
-
-    data.add_dependency(on_update)
-
-    data.value["users"][0]["age"] += 1
-    # 输出: Triggering update... Data updated: {'users': [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}], 'metadata': {'total': 2, 'timestamp': '2023-10-01'}}
-    data.value["metadata"]["total"] += 1
-    # 输出: Triggering update... Data updated: {'users': [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}], 'metadata': {'total': 3, 'timestamp': '2023-10-01'}}
-    data.value["users"].append({"name": "Charlie", "age": 35})
-    # 输出: Triggering update... Data updated: {'users': [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}, {'name': 'Charlie', 'age': 35}], 'metadata': {'total': 3, 'timestamp': '2023-10-01'}}
-    print()
-
-
 # 运行所有测试
 if __name__ == "__main__":
+
+    # 测试 1: 基本类型（整数）
+    def test_primitive():
+        print("=== 测试 1: 基本类型（整数） ===")
+        count = Ref(0)
+
+        def on_update():
+            print(f"Count updated to: {count.value}")
+
+        count.add_dependency(on_update)
+
+        count.value = 1
+        # 输出: Triggering update... Count updated to: 1
+        count.value += 1
+        # 输出: Triggering update... Count updated to: 2
+        print()
+
+    # 测试 2: 基本类型（字符串）
+    def test_string():
+        print("=== 测试 2: 基本类型（字符串） ===")
+        name = Ref("Alice")
+
+        def on_update():
+            print(f"Name updated to: {name.value}")
+
+        name.add_dependency(on_update)
+
+        name.value = "Bob"
+        # 输出: Triggering update... Name updated to: Bob
+        print()
+
+    # 测试 3: 列表（嵌套基本类型）
+    def test_list_with_primitives():
+        print("=== 测试 3: 列表（嵌套基本类型） ===")
+        items = Ref([1, 2, 3])
+
+        def on_update():
+            print(f"List updated: {items.value}")
+
+        items.add_dependency(on_update)
+
+        items.value.append(4)
+        # 输出: Triggering update... List updated: [1, 2, 3, 4]
+        items.value[0] = 10
+        # 输出: Triggering update... List updated: [10, 2, 3, 4]
+        items.value.pop()
+        # 输出: Triggering update... List updated: [10, 2, 3]
+        print("len: ", len(items.value))
+        print()
+
+    # 测试 4: 字典（嵌套基本类型）
+    def test_dict_with_primitives():
+        print("=== 测试 4: 字典（嵌套基本类型） ===")
+        user = Ref({"name": "Alice", "age": 25})
+
+        def on_update():
+            print(f"Dict updated: {user.value}")
+
+        user.add_dependency(on_update)
+
+        user.value["age"] = (
+            26
+            # 输出: Triggering update... Dict updated: {'name': 'Alice', 'age': 26}
+        )
+        user.value["city"] = (
+            "New York"
+            # 输出: Triggering update... Dict updated: {'name': 'Alice', 'age': 26, 'city': 'New York'}
+        )
+        del user.value["city"]
+        # 输出: Triggering update... Dict updated: {'name': 'Alice', 'age': 26}
+        print()
+
+    # 测试 5: 列表（嵌套字典）
+    def test_list_with_dict():
+        print("=== 测试 5: 列表（嵌套字典） ===")
+        items = Ref([{"name": "Alice", "age": 25}, {"name": "Bob", "age": 30}])
+
+        def on_update():
+            print(f"List updated: {items.value}")
+
+        items.add_dependency(on_update)
+
+        items.value[0]["age"] += 1
+        # 输出: Triggering update... List updated: [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}]
+        items.value.append({"name": "Charlie", "age": 35})
+        # 输出: Triggering update... List updated: [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}, {'name': 'Charlie', 'age': 35}]
+        print()
+
+    # 测试 6: 字典（嵌套列表）
+    def test_dict_with_list():
+        print("=== 测试 6: 字典（嵌套列表） ===")
+        user = Ref({"name": "Alice", "scores": [80, 90, 85]})
+
+        def on_update():
+            print(f"Dict updated: {user.value}")
+
+        user.add_dependency(on_update)
+
+        user.value["scores"].append(95)
+        # 输出: Triggering update... Dict updated: {'name': 'Alice', 'scores': [80, 90, 85, 95]}
+        user.value["scores"][0] = 100
+        # 输出: Triggering update... Dict updated: {'name': 'Alice', 'scores': [100, 90, 85, 95]}
+        print()
+
+    # 测试 7: 复杂嵌套（字典中嵌套列表，列表中嵌套字典）
+    def test_complex_nesting():
+        print("=== 测试 7: 复杂嵌套（字典中嵌套列表，列表中嵌套字典） ===")
+        data = Ref(
+            {
+                "users": [{"name": "Alice", "age": 25}, {"name": "Bob", "age": 30}],
+                "metadata": {"total": 2, "timestamp": "2023-10-01"},
+            }
+        )
+
+        def on_update():
+            print(f"Data updated: {data.value}")
+
+        data.add_dependency(on_update)
+
+        data.value["users"][0]["age"] += 1
+        # 输出: Triggering update... Data updated: {'users': [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}], 'metadata': {'total': 2, 'timestamp': '2023-10-01'}}
+        data.value["metadata"]["total"] += 1
+        # 输出: Triggering update... Data updated: {'users': [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}], 'metadata': {'total': 3, 'timestamp': '2023-10-01'}}
+        data.value["users"].append({"name": "Charlie", "age": 35})
+        # 输出: Triggering update... Data updated: {'users': [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}, {'name': 'Charlie', 'age': 35}], 'metadata': {'total': 3, 'timestamp': '2023-10-01'}}
+        print()
+
     test_primitive()
     test_string()
     test_list_with_primitives()
