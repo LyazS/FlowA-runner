@@ -1,47 +1,3 @@
-class Ref:
-    def __init__(self, value):
-        self._dependencies = set()  # 初始化 _dependencies
-        self._value = self._wrap_value(value)
-
-    @property
-    def value(self):
-        self._track()
-        return self._value
-
-    @value.setter
-    def value(self, new_value):
-        if new_value != self._value:
-            self._value = self._wrap_value(new_value)
-            self._trigger()
-
-    def _wrap_value(self, value):
-        # 如果是列表或字典，包装为响应式对象
-        if isinstance(value, list):
-            return ReactiveList(value, self._trigger)
-        elif isinstance(value, dict):
-            return ReactiveDict(value, self._trigger)
-        else:
-            return value
-
-    def _track(self):
-        # 模拟依赖收集
-        # print("Tracking dependency...")
-        pass
-
-    def _trigger(self):
-        # 触发所有依赖回调
-        print("Triggering update...")
-        for callback in self._dependencies:
-            callback()
-
-    def add_dependency(self, callback):
-        # 添加依赖回调
-        self._dependencies.add(callback)
-
-    def __repr__(self):
-        return f"Ref(value={self._value})"
-
-
 class ReactiveList(list):
     def __init__(self, iterable, trigger_callback=None):
         super().__init__(iterable)
@@ -136,6 +92,50 @@ class ReactiveDict(dict):
         # 触发更新
         if self._trigger_callback:
             self._trigger_callback()
+
+
+class Ref:
+    def __init__(self, value):
+        self._dependencies = set()  # 初始化 _dependencies
+        self._value = self._wrap_value(value)
+
+    @property
+    def value(self):
+        self._track()
+        return self._value
+
+    @value.setter
+    def value(self, new_value):
+        if new_value != self._value:
+            self._value = self._wrap_value(new_value)
+            self._trigger()
+
+    def _wrap_value(self, value):
+        # 如果是列表或字典，包装为响应式对象
+        if isinstance(value, list):
+            return ReactiveList(value, self._trigger)
+        elif isinstance(value, dict):
+            return ReactiveDict(value, self._trigger)
+        else:
+            return value
+
+    def _track(self):
+        # 模拟依赖收集
+        # print("Tracking dependency...")
+        pass
+
+    def _trigger(self):
+        # 触发所有依赖回调
+        print("Triggering update...")
+        for callback in self._dependencies:
+            callback()
+
+    def add_dependency(self, callback):
+        # 添加依赖回调
+        self._dependencies.add(callback)
+
+    def __repr__(self):
+        return self._value.__repr__()
 
 
 # ========================================================
@@ -270,6 +270,17 @@ if __name__ == "__main__":
         # 输出: Triggering update... Data updated: {'users': [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}, {'name': 'Charlie', 'age': 35}], 'metadata': {'total': 3, 'timestamp': '2023-10-01'}}
         print()
 
+    def test_deepcopy():
+        print("=== 测试 deepcopy ===")
+        import copy
+        data = Ref([1, 2, 3])
+        data.value.append(4)
+        data_copy = copy.deepcopy(data)
+        data_copy.value.append(5)
+        print(data.value)  # [1, 2, 3, 4]
+        print(data_copy.value)  # [1, 2, 3, 4, 5]
+
+    # ==================================================
     test_primitive()
     test_string()
     test_list_with_primitives()
@@ -277,3 +288,4 @@ if __name__ == "__main__":
     test_list_with_dict()
     test_dict_with_list()
     test_complex_nesting()
+    test_deepcopy()
