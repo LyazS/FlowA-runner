@@ -1,3 +1,16 @@
+from typing import Any
+
+from pydantic_core import core_schema
+from typing_extensions import Annotated
+
+from pydantic import (
+    BaseModel,
+    GetCoreSchemaHandler,
+    GetJsonSchemaHandler,
+)
+from pydantic.json_schema import JsonSchemaValue
+
+
 class ReactiveList(list):
     def __init__(self, iterable, trigger_callback=None):
         super().__init__(iterable)
@@ -138,6 +151,46 @@ class Ref:
         return self._value.__repr__()
 
 
+# Pydantic ===============================================
+
+
+class _RefTypePydanticAnnotation:
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls,
+        _source_type: Any,
+        _handler: GetCoreSchemaHandler,
+    ) -> core_schema.CoreSchema:
+
+        def validate_from_any(value: Any) -> Ref:
+            result = Ref(value)
+            return result
+
+        from_any_schema = core_schema.no_info_plain_validator_function(
+            validate_from_any
+        )
+
+        return core_schema.json_or_python_schema(
+            json_schema=from_any_schema,
+            python_schema=core_schema.union_schema(
+                [
+                    core_schema.is_instance_schema(Ref),
+                    from_any_schema,
+                ]
+            ),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda instance: instance.value
+            ),
+        )
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, _core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        return handler(core_schema.any_schema())
+
+
+RefType = Annotated[Ref, _RefTypePydanticAnnotation]
 # ========================================================
 
 
@@ -273,12 +326,28 @@ if __name__ == "__main__":
     def test_deepcopy():
         print("=== 测试 deepcopy ===")
         import copy
+
         data = Ref([1, 2, 3])
         data.value.append(4)
         data_copy = copy.deepcopy(data)
         data_copy.value.append(5)
         print(data.value)  # [1, 2, 3, 4]
         print(data_copy.value)  # [1, 2, 3, 4, 5]
+
+    def test_pydantic():
+        print("=== 测试 pydantic ===")
+        from pydantic import BaseModel
+
+        class User(BaseModel):
+            name: RefType
+            age: RefType
+            friend: RefType = []
+
+        user = User(name="Alice", age=25, friend=[{"name": "Bob", "age": 30}])
+        user.age.value += 1
+        user.friend.value.append({"name": "Charlie", "age": 35})
+        user.friend.value[1]["age"] += 1
+        print(user.model_dump_json())
 
     # ==================================================
     test_primitive()
@@ -289,3 +358,4 @@ if __name__ == "__main__":
     test_dict_with_list()
     test_complex_nesting()
     test_deepcopy()
+    test_pydantic()
