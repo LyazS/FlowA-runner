@@ -1,8 +1,7 @@
 from typing import Any
-
+import copy
 from pydantic_core import core_schema
 from typing_extensions import Annotated
-
 from pydantic import (
     BaseModel,
     GetCoreSchemaHandler,
@@ -112,6 +111,12 @@ class Ref:
         self._dependencies = set()  # 初始化 _dependencies
         self._value = self._wrap_value(value)
 
+    def __deepcopy__(self, memo):
+        # 创建一个新的 Ref 实例，复制 _value 但不复制 _dependencies
+        new_instance = self.__class__(copy.deepcopy(self._value, memo))
+        # 如果需要，可以在这里复制其他属性
+        return new_instance
+
     @property
     def value(self):
         self._track()
@@ -139,7 +144,7 @@ class Ref:
 
     def _trigger(self):
         # 触发所有依赖回调
-        print("Triggering update...")
+        # print("Triggering update...")
         for callback in self._dependencies:
             callback()
 
@@ -342,8 +347,12 @@ if __name__ == "__main__":
             name: RefType
             age: RefType
             friend: RefType = []
-
+        def on_update():
+            print(f"trigger updated")
         user = User(name="Alice", age=25, friend=[{"name": "Bob", "age": 30}])
+        user.name.add_dependency(on_update)
+        user.age.add_dependency(on_update)
+        user.friend.add_dependency(on_update)
         user.age.value += 1
         user.friend.value.append({"name": "Charlie", "age": 35})
         user.friend.value[1]["age"] += 1
