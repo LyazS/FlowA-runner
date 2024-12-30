@@ -10,112 +10,26 @@ from pydantic import (
 from pydantic.json_schema import JsonSchemaValue
 
 
-class ReactiveList(list):
-    def __init__(self, iterable, trigger_callback=None):
-        super().__init__(iterable)
-        self._trigger_callback = trigger_callback
-        # 将嵌套的字典或列表转换为响应式对象
-        for i, item in enumerate(self):
-            if isinstance(item, dict):
-                self[i] = ReactiveDict(item, self._trigger_callback)
-            elif isinstance(item, list):
-                self[i] = ReactiveList(item, self._trigger_callback)
-
-    def __setitem__(self, key, value):
-        # 如果值是字典或列表，包装为响应式对象
-        if isinstance(value, dict):
-            value = ReactiveDict(value, self._trigger_callback)
-        elif isinstance(value, list):
-            value = ReactiveList(value, self._trigger_callback)
-        super().__setitem__(key, value)
-        self._notify()
-
-    def __getitem__(self, key):
-        value = super().__getitem__(key)
-        # 如果值是字典或列表，确保返回的是响应式对象
-        if isinstance(value, dict) and not isinstance(value, ReactiveDict):
-            value = ReactiveDict(value, self._trigger_callback)
-            self[key] = value
-        elif isinstance(value, list) and not isinstance(value, ReactiveList):
-            value = ReactiveList(value, self._trigger_callback)
-            self[key] = value
-        return value
-
-    def __delitem__(self, key):
-        super().__delitem__(key)
-        self._notify()
-
-    def append(self, value):
-        # 如果值是字典或列表，包装为响应式对象
-        if isinstance(value, dict):
-            value = ReactiveDict(value, self._trigger_callback)
-        elif isinstance(value, list):
-            value = ReactiveList(value, self._trigger_callback)
-        super().append(value)
-        self._notify()
-
-    def pop(self, index=-1):
-        result = super().pop(index)
-        self._notify()
-        return result
-
-    def _notify(self):
-        # 触发更新
-        if self._trigger_callback:
-            self._trigger_callback()
-
-
-class ReactiveDict(dict):
-    def __init__(self, mapping, trigger_callback=None):
-        super().__init__(mapping)
-        self._trigger_callback = trigger_callback
-        # 将嵌套的字典或列表转换为响应式对象
-        for key, value in self.items():
-            if isinstance(value, dict):
-                self[key] = ReactiveDict(value, self._trigger_callback)
-            elif isinstance(value, list):
-                self[key] = ReactiveList(value, self._trigger_callback)
-
-    def __setitem__(self, key, value):
-        # 如果值是字典或列表，包装为响应式对象
-        if isinstance(value, dict):
-            value = ReactiveDict(value, self._trigger_callback)
-        elif isinstance(value, list):
-            value = ReactiveList(value, self._trigger_callback)
-        super().__setitem__(key, value)
-        self._notify()
-
-    def __getitem__(self, key):
-        value = super().__getitem__(key)
-        # 如果值是字典或列表，确保返回的是响应式对象
-        if isinstance(value, dict) and not isinstance(value, ReactiveDict):
-            value = ReactiveDict(value, self._trigger_callback)
-            self[key] = value
-        elif isinstance(value, list) and not isinstance(value, ReactiveList):
-            value = ReactiveList(value, self._trigger_callback)
-            self[key] = value
-        return value
-
-    def __delitem__(self, key):
-        super().__delitem__(key)
-        self._notify()
-
-    def _notify(self):
-        # 触发更新
-        if self._trigger_callback:
-            self._trigger_callback()
-
-
 class Ref:
-    def __init__(self, value):
+    def __init__(self, value, path=None):
         self._dependencies = set()  # 初始化 _dependencies
-        self._value = self._wrap_value(value)
+        self._path = path or []  # 当前路径
+        self._value = self._wrap_value(value, self._path)
 
     def __deepcopy__(self, memo):
         # 创建一个新的 Ref 实例，复制 _value 但不复制 _dependencies
         new_instance = self.__class__(copy.deepcopy(self._value, memo))
         # 如果需要，可以在这里复制其他属性
         return new_instance
+
+    def _wrap_value(self, value, path):
+        # 如果是列表或字典，包装为响应式对象
+        if isinstance(value, list):
+            return ReactiveList(value, path, self._trigger)
+        elif isinstance(value, dict):
+            return ReactiveDict(value, path, self._trigger)
+        else:
+            return value
 
     @property
     def value(self):
@@ -125,28 +39,19 @@ class Ref:
     @value.setter
     def value(self, new_value):
         if new_value != self._value:
-            self._value = self._wrap_value(new_value)
-            self._trigger()
-
-    def _wrap_value(self, value):
-        # 如果是列表或字典，包装为响应式对象
-        if isinstance(value, list):
-            return ReactiveList(value, self._trigger)
-        elif isinstance(value, dict):
-            return ReactiveDict(value, self._trigger)
-        else:
-            return value
+            old_value = self._value
+            self._value = self._wrap_value(new_value, self._path)
+            self._trigger(self._path, "set", new_value, old_value)  # 直接触发全局更新
 
     def _track(self):
         # 模拟依赖收集
         # print("Tracking dependency...")
         pass
 
-    def _trigger(self):
-        # 触发所有依赖回调
-        # print("Triggering update...")
+    def _trigger(self, path=None, operation=None, new_value=None, old_value=None):
+        # 触发所有依赖回调，并传递路径、操作类型、新值和旧值
         for callback in self._dependencies:
-            callback()
+            callback(path, operation, new_value, old_value)
 
     def add_dependency(self, callback):
         # 添加依赖回调
@@ -154,6 +59,89 @@ class Ref:
 
     def __repr__(self):
         return self._value.__repr__()
+
+
+class ReactiveDict(dict):
+    def __init__(self, mapping, path, trigger_callback):
+        super().__init__(mapping)
+        self._trigger_callback = trigger_callback
+        self._path = path
+        # 将嵌套的字典或列表转换为响应式对象
+        for key, value in self.items():
+            v = self._wrap_value(value, self._path + [key])
+            super().__setitem__(key, v)
+
+    def _wrap_value(self, value, path):
+        # 如果是列表或字典，包装为响应式对象
+        if isinstance(value, list):
+            return ReactiveList(value, path, self._trigger_callback)
+        elif isinstance(value, dict):
+            return ReactiveDict(value, path, self._trigger_callback)
+        else:
+            return value
+
+    def __setitem__(self, key, value):
+        old_value = self.get(key)
+        value = self._wrap_value(value, self._path + [key])
+        super().__setitem__(key, value)
+        self._trigger_callback(
+            self._path + [key], "setitem", value, old_value
+        )  # 传递路径、操作类型、新值和旧值
+
+    def __delitem__(self, key):
+        old_value = self.get(key)
+        super().__delitem__(key)
+        self._trigger_callback(
+            self._path + [key], "delitem", None, old_value
+        )  # 传递路径、操作类型、新值和旧值
+
+
+class ReactiveList(list):
+    def __init__(self, iterable, path, trigger_callback):
+        super().__init__(iterable)
+        self._trigger_callback = trigger_callback
+        self._path = path
+        # 将嵌套的字典或列表转换为响应式对象
+        for i, item in enumerate(self):
+            v = self._wrap_value(item, self._path + [i])
+            super().__setitem__(i, v)
+
+    def _wrap_value(self, value, path):
+        # 如果是列表或字典，包装为响应式对象
+        if isinstance(value, list):
+            return ReactiveList(value, path, self._trigger_callback)
+        elif isinstance(value, dict):
+            return ReactiveDict(value, path, self._trigger_callback)
+        else:
+            return value
+
+    def __setitem__(self, key, value):
+        old_value = self[key]
+        value = self._wrap_value(value, self._path + [key])
+        super().__setitem__(key, value)
+        self._trigger_callback(
+            self._path + [key], "setitem", value, old_value
+        )  # 传递路径、操作类型、新值和旧值
+
+    def __delitem__(self, key):
+        old_value = self[key]
+        super().__delitem__(key)
+        self._trigger_callback(
+            self._path + [key], "delitem", None, old_value
+        )  # 传递路径、操作类型、新值和旧值
+
+    def append(self, value):
+        value = self._wrap_value(value, self._path + [len(self)])
+        super().append(value)
+        self._trigger_callback(self._path, "append", value, None)  # 路径只到列表本身
+
+    def pop(self, index=-1):
+        old_value = self[index]
+        result = super().pop(index)
+        self._trigger_callback(
+            self._path + [index], "pop", None, old_value
+        )  # 传递路径、操作类型、新值和旧值
+        return result
 
 
 # Pydantic ===============================================
@@ -207,7 +195,7 @@ if __name__ == "__main__":
         print("=== 测试 1: 基本类型（整数） ===")
         count = Ref(0)
 
-        def on_update():
+        def on_update(path, operation, new_value, old_value):
             print(f"Count updated to: {count.value}")
 
         count.add_dependency(on_update)
@@ -223,7 +211,7 @@ if __name__ == "__main__":
         print("=== 测试 2: 基本类型（字符串） ===")
         name = Ref("Alice")
 
-        def on_update():
+        def on_update(path, operation, new_value, old_value):
             print(f"Name updated to: {name.value}")
 
         name.add_dependency(on_update)
@@ -237,7 +225,7 @@ if __name__ == "__main__":
         print("=== 测试 3: 列表（嵌套基本类型） ===")
         items = Ref([1, 2, 3])
 
-        def on_update():
+        def on_update(path, operation, new_value, old_value):
             print(f"List updated: {items.value}")
 
         items.add_dependency(on_update)
@@ -256,7 +244,7 @@ if __name__ == "__main__":
         print("=== 测试 4: 字典（嵌套基本类型） ===")
         user = Ref({"name": "Alice", "age": 25})
 
-        def on_update():
+        def on_update(path, operation, new_value, old_value):
             print(f"Dict updated: {user.value}")
 
         user.add_dependency(on_update)
@@ -278,7 +266,7 @@ if __name__ == "__main__":
         print("=== 测试 5: 列表（嵌套字典） ===")
         items = Ref([{"name": "Alice", "age": 25}, {"name": "Bob", "age": 30}])
 
-        def on_update():
+        def on_update(path, operation, new_value, old_value):
             print(f"List updated: {items.value}")
 
         items.add_dependency(on_update)
@@ -294,7 +282,7 @@ if __name__ == "__main__":
         print("=== 测试 6: 字典（嵌套列表） ===")
         user = Ref({"name": "Alice", "scores": [80, 90, 85]})
 
-        def on_update():
+        def on_update(path, operation, new_value, old_value):
             print(f"Dict updated: {user.value}")
 
         user.add_dependency(on_update)
@@ -315,7 +303,7 @@ if __name__ == "__main__":
             }
         )
 
-        def on_update():
+        def on_update(path, operation, new_value, old_value):
             print(f"Data updated: {data.value}")
 
         data.add_dependency(on_update)
@@ -347,8 +335,10 @@ if __name__ == "__main__":
             name: RefType
             age: RefType
             friend: RefType = []
-        def on_update():
-            print(f"trigger updated")
+
+        def on_update(path, operation, new_value, old_value):
+            print(f"{path} {operation}: {new_value}")
+
         user = User(name="Alice", age=25, friend=[{"name": "Bob", "age": 30}])
         user.name.add_dependency(on_update)
         user.age.add_dependency(on_update)
