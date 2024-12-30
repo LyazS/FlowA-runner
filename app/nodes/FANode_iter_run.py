@@ -88,7 +88,7 @@ class FANode_iter_run(FABaseNode):
         nest_layout = self.getNestLayout()
         node_payloads = self.data.getContent("payloads")
         D_ITERLIST: VFNodeContentData = node_payloads.byId["D_ITERLIST"]
-        self.iter_var = await self.getRefData(D_ITERLIST.data)
+        self.iter_var = await self.getRefData(D_ITERLIST.data.value)
         self.iter_var_len = len(self.iter_var)
         # 开始迭代
         AllChildNodeNames: Set[str] = set()
@@ -192,7 +192,7 @@ class FANode_iter_run(FABaseNode):
                     node = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
                     ndata = node.data.getContent(contentname).byId[ctid]
                     arraydata.append(ndata.data)
-                node_results.byId[rid].data = arraydata
+                node_results.byId[rid].data.value = arraydata
                 returnUpdateData.append(
                     FANodeUpdateData(
                         type=FANodeUpdateType.overwrite,

@@ -73,7 +73,11 @@ class SSEResponse(BaseModel):
         if isinstance(self.data, SSEResponseData):
             data = self.data.model_dump_json()
         elif isinstance(self.data, list):
-            model_datas = [json.loads(d.model_dump_json()) for d in self.data]
+            model_datas = []
+            for d in self.data:
+                d_json = d.model_dump_json()
+                model_datas.append(json.loads(d_json))
+            # model_datas = [json.loads(d.model_dump_json()) for d in self.data]
             data = json.dumps(model_datas)
         return {
             "event": self.event.value,

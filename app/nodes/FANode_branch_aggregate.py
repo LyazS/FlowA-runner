@@ -44,7 +44,7 @@ class FANode_branch_aggregate(FABaseNode):
             InputNodes = validateVars[FANodeValidateNeed.InputNodes]["input"]
             InputNodesWVars = validateVars[FANodeValidateNeed.InputNodesWVars]["input"]
             D_BRANCHES: VFNodeContentData = self.data.payloads.byId["D_BRANCHES"]
-            for ibranch in D_BRANCHES.data:
+            for ibranch in D_BRANCHES.data.value:
                 branch = Single_AggregateBranch.model_validate(ibranch)
                 if branch.node not in InputNodes:
                     error_msgs.append(f"分支节点{branch.node}不在输入节点列表中")
@@ -75,37 +75,16 @@ class FANode_branch_aggregate(FABaseNode):
                 if thisowstatus == FANodeStatus.Success:
                     preNodeSuccess.add(thiswstatus.nid)
             D_BRANCHES: VFNodeContentData = self.data.payloads.byId["D_BRANCHES"]
-            for item in D_BRANCHES.data:
+            for item in D_BRANCHES.data.value:
                 branch = Single_AggregateBranch.model_validate(item)
                 nid, ohid = branch.node.split("/")
                 if nid in preNodeSuccess:
                     refdata = await self.getRefData(branch.refdata)
-                    self.data.results.byId["D_OUTPUT"].data = refdata
+                    self.data.results.byId["D_OUTPUT"].data.value = refdata
                     break
             self.setAllOutputStatus(FANodeStatus.Success)
-            return [
-                FANodeUpdateData(
-                    type=FANodeUpdateType.overwrite,
-                    path=["results", "byId", "D_OUTPUT", "data"],
-                    data=self.data.results.byId["D_OUTPUT"].data,
-                )
-            ]
+            return []
 
         except Exception as e:
             errmsg = traceback.format_exc()
             raise Exception(f"聚合节点运行失败: {errmsg}")
-
-    def getCurData(self) -> Optional[List[FANodeUpdateData]]:
-        return [
-            FANodeUpdateData(
-                type=FANodeUpdateType.overwrite,
-                path=["state", "status"],
-                data=self.runStatus,
-            )
-        ] + [
-            FANodeUpdateData(
-                type=FANodeUpdateType.overwrite,
-                path=["results", "byId", "D_OUTPUT", "data"],
-                data=self.data.results.byId["D_OUTPUT"].data,
-            )
-        ]

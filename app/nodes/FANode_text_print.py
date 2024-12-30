@@ -26,7 +26,7 @@ class FANode_text_print(FABaseNode):
             for pid in self.data.getContent("payloads").order:
                 item: VFNodeContentData = self.data.getContent("payloads").byId[pid]
                 if item.type == VFNodeContentDataType.List:
-                    for refdata in item.data:
+                    for refdata in item.data.value:
                         if refdata not in selfVars:
                             error_msgs.append(f"变量未定义{refdata}")
                         pass

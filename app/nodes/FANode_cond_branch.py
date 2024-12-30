@@ -48,7 +48,7 @@ class FANode_cond_branch(FABaseNode):
                     ikey = item.key
                     if ikey == "cond-else":
                         continue
-                    idata = Single_ConditionDict.model_validate(item.data)
+                    idata = Single_ConditionDict.model_validate(item.data.value)
                     icondition = idata.conditions
                     for condition in icondition:
                         refdata = condition.refdata
@@ -80,7 +80,7 @@ class FANode_cond_branch(FABaseNode):
                     ikey = item.key
                     if ikey == "cond-else":
                         continue
-                    idata = Single_ConditionDict.model_validate(item.data)
+                    idata = Single_ConditionDict.model_validate(item.data.value)
                     iOutputKey = idata.outputKey
                     icondType = idata.condType
                     icondition = idata.conditions

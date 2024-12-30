@@ -54,7 +54,7 @@ class FANode_http_requests(FABaseNode):
             D_CONFIG: VFNodeContentData = node_payloads.byId["D_CONFIG"]
             D_TIMEOUT: VFNodeContentData = node_payloads.byId["D_TIMEOUT"]
 
-            for var_dict in D_VARSINPUT.data:
+            for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
                 if var.type == "ref" and var.value not in selfVars:
                     error_msgs.append(f"变量未定义{var.value}")
@@ -76,12 +76,12 @@ class FANode_http_requests(FABaseNode):
             D_TIMEOUT: VFNodeContentData = node_payloads.byId["D_TIMEOUT"]
 
             InputArgs = {}
-            for var_dict in D_VARSINPUT.data:
+            for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
                 InputArgs[var.key] = await self.getVar(var)
 
-            d_config = HttpConfigModel.model_validate(D_CONFIG.data)
-            d_timeout = HttpTimeoutModel.model_validate(D_TIMEOUT.data)
+            d_config = HttpConfigModel.model_validate(D_CONFIG.data.value)
+            d_timeout = HttpTimeoutModel.model_validate(D_TIMEOUT.data.value)
             # 准备url
             url = replace_vars(d_config.url, InputArgs)
             # 准备headers
@@ -178,15 +178,15 @@ class FANode_http_requests(FABaseNode):
                         base64_data = base64.b64encode(binary_data).decode("utf-8")
                         response_data = base64_data
 
-                    node_results.byId["DR_STATUS"].data = response.status
-                    node_results.byId["DR_HEADER"].data = [
+                    node_results.byId["DR_STATUS"].data.value = response.status
+                    node_results.byId["DR_HEADER"].data.value = [
                         (k, v) for k, v in response.headers.items()
                     ]
-                    node_results.byId["DR_COOKIE"].data = [
+                    node_results.byId["DR_COOKIE"].data.value = [
                         (k, v) for k, v in response.cookies.items()
                     ]
-                    node_results.byId["DR_CONTENTTYPE"].data = content_type
-                    node_results.byId["DR_RESPONSE"].data = response_data
+                    node_results.byId["DR_CONTENTTYPE"].data.value = content_type
+                    node_results.byId["DR_RESPONSE"].data.value = response_data
 
                     self.setAllOutputStatus(FANodeStatus.Success)
                     return [
@@ -198,12 +198,12 @@ class FANode_http_requests(FABaseNode):
                         FANodeUpdateData(
                             type=FANodeUpdateType.overwrite,
                             path=["results", "byId", "DR_HEADER", "data"],
-                            data=node_results.byId["DR_HEADER"],
+                            data=node_results.byId["DR_HEADER"].data.value,
                         ),
                         FANodeUpdateData(
                             type=FANodeUpdateType.overwrite,
                             path=["results", "byId", "DR_COOKIE", "data"],
-                            data=node_results.byId["DR_COOKIE"],
+                            data=node_results.byId["DR_COOKIE"].data.value,
                         ),
                         FANodeUpdateData(
                             type=FANodeUpdateType.overwrite,

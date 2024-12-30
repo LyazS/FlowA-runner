@@ -351,6 +351,7 @@ if __name__ == "__main__":
         user.age.add_dependency(update_callback)
         user.friend.add_dependency(update_callback)
         user.age.value += 1
+        user.name.value = None
         user.friend.value.append({"name": "Charlie", "age": 35})
         user.friend.value[1]["age"] += 1
         print(user.model_dump_json())

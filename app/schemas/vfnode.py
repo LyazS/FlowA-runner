@@ -5,7 +5,7 @@ from enum import Enum
 from pydantic import BaseModel
 import json
 from .vfnode_contentdata import VFNodeContentDataType, VFNodeContentDataSchema
-
+from app.utils.vueRef import RefType
 
 class VFNodeContentDataConfig(BaseModel):
     ref: Optional[str] = None
@@ -15,7 +15,7 @@ class VFNodeContentData(BaseModel):
     label: str
     type: VFNodeContentDataType
     key: str
-    data: Any
+    data: RefType
     config: Optional[VFNodeContentDataConfig] = None
     hid: Optional[str] = None
     oid: Optional[str] = None

@@ -214,7 +214,7 @@ class FABaseNode(ABC):
             rdata = iterNode.iter_var[nest_layout[nid_layout]]
             pass
         else:
-            rdata = content.data
+            rdata = content.data.value
         pass
         return rdata
 

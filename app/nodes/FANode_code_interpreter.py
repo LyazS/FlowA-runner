@@ -112,7 +112,7 @@ class FANode_code_interpreter(FABaseNode):
             node_results = self.data.getContent("results")
 
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
-            for var_dict in D_VARSINPUT.data:
+            for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
                 if var.type == "ref" and var.value not in selfVars:
                     error_msgs.append(f"变量未定义{var.value}")
@@ -124,10 +124,10 @@ class FANode_code_interpreter(FABaseNode):
                 pass
 
             D_CODE: VFNodeContentData = node_payloads.byId["D_CODE"]
-            if not isinstance(D_CODE.data, str):
+            if not isinstance(D_CODE.data.value, str):
                 raise Exception(f"Python代码格式错误")
             try:
-                tree = ast.parse(D_CODE.data)
+                tree = ast.parse(D_CODE.data.value)
                 hasMain = False
                 for node in ast.walk(tree):
                     if isinstance(node, ast.FunctionDef) and node.name == "main":
@@ -183,7 +183,7 @@ class FANode_code_interpreter(FABaseNode):
         node_results = self.data.getContent("results")
 
         D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
-        for var_dict in D_VARSINPUT.data:
+        for var_dict in D_VARSINPUT.data.value:
             var = Single_VarInput.model_validate(var_dict)
             CodeInputArgs[var.key] = await self.getVar(var)
         D_CODE: VFNodeContentData = node_payloads.byId["D_CODE"]
@@ -194,7 +194,7 @@ class FANode_code_interpreter(FABaseNode):
             "utf-8"
         )
         code_run: str = copy.deepcopy(CODE_TEMPLATE)
-        code_run = code_run.replace(CODE_TEMPLATE_FUNCTION, D_CODE.data).replace(
+        code_run = code_run.replace(CODE_TEMPLATE_FUNCTION, D_CODE.data.value).replace(
             CODE_TEMPLATE_INPUT, code_in_args_b64
         )
         # 需要返回输出结果
@@ -213,25 +213,10 @@ class FANode_code_interpreter(FABaseNode):
                     )
                 )
                 # 更新内部数据
-                self.data.results.byId[rid].data = codeResult.output[item.key]
+                self.data.results.byId[rid].data.value = codeResult.output[item.key]
             # 返回之前先设置好输出handle状态
             self.setAllOutputStatus(FANodeStatus.Success)
             return returnUpdateData
         else:
             raise Exception(f"执行代码失败：{codeResult.error}")
-
-    def getCurData(self) -> Optional[List[FANodeUpdateData]]:
-        return [
-            FANodeUpdateData(
-                type=FANodeUpdateType.overwrite,
-                path=["state", "status"],
-                data=self.runStatus,
-            )
-        ] + [
-            FANodeUpdateData(
-                type=FANodeUpdateType.overwrite,
-                path=["results", "byId", rid, "data"],
-                data=self.data.results.byId[rid].data,
-            )
-            for rid in self.data.results.order
-        ]
+        pass
