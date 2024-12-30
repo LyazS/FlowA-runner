@@ -11,10 +11,14 @@ from pydantic.json_schema import JsonSchemaValue
 
 
 class Ref:
-    def __init__(self, value, path=None):
+    def __init__(self, value):
         self._dependencies = set()  # 初始化 _dependencies
-        self._path = path or []  # 当前路径
-        self._value = self._wrap_value(value, self._path)
+        self._value = self._wrap_value(
+            value,
+            lambda path, operation, new_value, old_value: self._trigger(
+                path, operation, new_value, old_value
+            ),
+        )
 
     def __deepcopy__(self, memo):
         # 创建一个新的 Ref 实例，复制 _value 但不复制 _dependencies
@@ -22,12 +26,15 @@ class Ref:
         # 如果需要，可以在这里复制其他属性
         return new_instance
 
-    def _wrap_value(self, value, path):
+    def _wrap_value(self, value, trigger):
         # 如果是列表或字典，包装为响应式对象
         if isinstance(value, list):
-            return ReactiveList(value, path, self._trigger)
+            return ReactiveList(value, trigger)
         elif isinstance(value, dict):
-            return ReactiveDict(value, path, self._trigger)
+            return ReactiveDict(value, trigger)
+        elif isinstance(value, Ref):
+            value.add_dependency(trigger)
+            return value
         else:
             return value
 
@@ -40,15 +47,20 @@ class Ref:
     def value(self, new_value):
         if new_value != self._value:
             old_value = self._value
-            self._value = self._wrap_value(new_value, self._path)
-            self._trigger(self._path, "set", new_value, old_value)  # 直接触发全局更新
+            self._value = self._wrap_value(
+                new_value,
+                lambda path, operation, new_value, old_value: self._trigger(
+                    path, operation, new_value, old_value
+                ),
+            )
+            self._trigger([], "set", new_value, old_value)  # 直接触发全局更新
 
     def _track(self):
         # 模拟依赖收集
         # print("Tracking dependency...")
         pass
 
-    def _trigger(self, path=None, operation=None, new_value=None, old_value=None):
+    def _trigger(self, path, operation, new_value, old_value):
         # 触发所有依赖回调，并传递路径、操作类型、新值和旧值
         for callback in self._dependencies:
             callback(path, operation, new_value, old_value)
@@ -62,85 +74,112 @@ class Ref:
 
 
 class ReactiveDict(dict):
-    def __init__(self, mapping, path, trigger_callback):
+    def __init__(self, mapping, trigger_callback):
         super().__init__(mapping)
         self._trigger_callback = trigger_callback
-        self._path = path
         # 将嵌套的字典或列表转换为响应式对象
         for key, value in self.items():
-            v = self._wrap_value(value, self._path + [key])
+            v = self._wrap_value(
+                value,
+                lambda path, operation, new_value, old_value, key=key: self._trigger_callback(
+                    [key] + path, operation, new_value, old_value
+                ),
+            )
             super().__setitem__(key, v)
 
-    def _wrap_value(self, value, path):
+    def _wrap_value(self, value, trigger):
         # 如果是列表或字典，包装为响应式对象
         if isinstance(value, list):
-            return ReactiveList(value, path, self._trigger_callback)
+            return ReactiveList(value, trigger)
         elif isinstance(value, dict):
-            return ReactiveDict(value, path, self._trigger_callback)
+            return ReactiveDict(value, trigger)
+        elif isinstance(value, Ref):
+            value.add_dependency(trigger)
+            return value
         else:
             return value
 
     def __setitem__(self, key, value):
         old_value = self.get(key)
-        value = self._wrap_value(value, self._path + [key])
+        value = self._wrap_value(
+            value,
+            lambda path, operation, new_value, old_value: self._trigger_callback(
+                [key] + path, operation, new_value, old_value
+            ),
+        )
         super().__setitem__(key, value)
         self._trigger_callback(
-            self._path + [key], "setitem", value, old_value
+            [key], "setitem", value, old_value
         )  # 传递路径、操作类型、新值和旧值
 
     def __delitem__(self, key):
         old_value = self.get(key)
         super().__delitem__(key)
         self._trigger_callback(
-            self._path + [key], "delitem", None, old_value
+            [key], "delitem", None, old_value
         )  # 传递路径、操作类型、新值和旧值
 
 
 class ReactiveList(list):
-    def __init__(self, iterable, path, trigger_callback):
+    def __init__(self, iterable, trigger_callback):
         super().__init__(iterable)
         self._trigger_callback = trigger_callback
-        self._path = path
         # 将嵌套的字典或列表转换为响应式对象
         for i, item in enumerate(self):
-            v = self._wrap_value(item, self._path + [i])
+            v = self._wrap_value(
+                item,
+                lambda path, operation, new_value, old_value, i=i: self._trigger_callback(
+                    [i] + path, operation, new_value, old_value
+                ),
+            )
             super().__setitem__(i, v)
 
-    def _wrap_value(self, value, path):
+    def _wrap_value(self, value, trigger):
         # 如果是列表或字典，包装为响应式对象
         if isinstance(value, list):
-            return ReactiveList(value, path, self._trigger_callback)
+            return ReactiveList(value, trigger)
         elif isinstance(value, dict):
-            return ReactiveDict(value, path, self._trigger_callback)
+            return ReactiveDict(value, trigger)
+        elif isinstance(value, Ref):
+            value.add_dependency(trigger)
+            return value
         else:
             return value
 
     def __setitem__(self, key, value):
         old_value = self[key]
-        value = self._wrap_value(value, self._path + [key])
+        value = self._wrap_value(
+            value,
+            lambda path, operation, new_value, old_value: self._trigger_callback(
+                [key] + path, operation, new_value, old_value
+            ),
+        )
         super().__setitem__(key, value)
         self._trigger_callback(
-            self._path + [key], "setitem", value, old_value
+            [key], "setitem", value, old_value
         )  # 传递路径、操作类型、新值和旧值
 
     def __delitem__(self, key):
         old_value = self[key]
         super().__delitem__(key)
         self._trigger_callback(
-            self._path + [key], "delitem", None, old_value
+            [key], "delitem", None, old_value
         )  # 传递路径、操作类型、新值和旧值
 
     def append(self, value):
-        value = self._wrap_value(value, self._path + [len(self)])
+        value = self._wrap_value(
+            value,
+            lambda path, operation, new_value, old_value: self._trigger_callback(
+                path, operation, new_value, old_value
+            ),
+        )
         super().append(value)
-        self._trigger_callback(self._path, "append", value, None)  # 路径只到列表本身
+        self._trigger_callback([], "append", value, None)  # 路径只到列表本身
 
     def pop(self, index=-1):
         old_value = self[index]
         result = super().pop(index)
-        self._trigger_callback(
-            self._path + [index], "pop", None, old_value
-        )  # 传递路径、操作类型、新值和旧值
+        self._trigger_callback([], "pop", None, old_value)  # 路径只到列表本身
         return result
 
 
@@ -190,52 +229,39 @@ RefType = Annotated[Ref, _RefTypePydanticAnnotation]
 # 运行所有测试
 if __name__ == "__main__":
 
+    def update_callback(path, operation, new_value, old_value):
+        print(f"Update detected at path: {path}")
+        print(f"Operation: {operation}")
+        print(f"New value: {new_value}")
+        print(f"Old value: {old_value}")
+        print("------")
+
     # 测试 1: 基本类型（整数）
     def test_primitive():
         print("=== 测试 1: 基本类型（整数） ===")
         count = Ref(0)
-
-        def on_update(path, operation, new_value, old_value):
-            print(f"Count updated to: {count.value}")
-
-        count.add_dependency(on_update)
-
+        count.add_dependency(update_callback)
         count.value = 1
-        # 输出: Triggering update... Count updated to: 1
         count.value += 1
-        # 输出: Triggering update... Count updated to: 2
         print()
 
     # 测试 2: 基本类型（字符串）
     def test_string():
         print("=== 测试 2: 基本类型（字符串） ===")
         name = Ref("Alice")
-
-        def on_update(path, operation, new_value, old_value):
-            print(f"Name updated to: {name.value}")
-
-        name.add_dependency(on_update)
-
+        name.add_dependency(update_callback)
         name.value = "Bob"
-        # 输出: Triggering update... Name updated to: Bob
+        name.value += " Smith"
         print()
 
     # 测试 3: 列表（嵌套基本类型）
     def test_list_with_primitives():
         print("=== 测试 3: 列表（嵌套基本类型） ===")
         items = Ref([1, 2, 3])
-
-        def on_update(path, operation, new_value, old_value):
-            print(f"List updated: {items.value}")
-
-        items.add_dependency(on_update)
-
+        items.add_dependency(update_callback)
         items.value.append(4)
-        # 输出: Triggering update... List updated: [1, 2, 3, 4]
         items.value[0] = 10
-        # 输出: Triggering update... List updated: [10, 2, 3, 4]
         items.value.pop()
-        # 输出: Triggering update... List updated: [10, 2, 3]
         print("len: ", len(items.value))
         print()
 
@@ -243,54 +269,34 @@ if __name__ == "__main__":
     def test_dict_with_primitives():
         print("=== 测试 4: 字典（嵌套基本类型） ===")
         user = Ref({"name": "Alice", "age": 25})
-
-        def on_update(path, operation, new_value, old_value):
-            print(f"Dict updated: {user.value}")
-
-        user.add_dependency(on_update)
-
-        user.value["age"] = (
-            26
-            # 输出: Triggering update... Dict updated: {'name': 'Alice', 'age': 26}
-        )
-        user.value["city"] = (
-            "New York"
-            # 输出: Triggering update... Dict updated: {'name': 'Alice', 'age': 26, 'city': 'New York'}
-        )
+        user.add_dependency(update_callback)
+        user.value["age"] = 26
+        user.value["city"] = "New York"
+        user.value["name"] += " Smith"
         del user.value["city"]
-        # 输出: Triggering update... Dict updated: {'name': 'Alice', 'age': 26}
+
         print()
 
     # 测试 5: 列表（嵌套字典）
     def test_list_with_dict():
         print("=== 测试 5: 列表（嵌套字典） ===")
         items = Ref([{"name": "Alice", "age": 25}, {"name": "Bob", "age": 30}])
-
-        def on_update(path, operation, new_value, old_value):
-            print(f"List updated: {items.value}")
-
-        items.add_dependency(on_update)
-
+        items.add_dependency(update_callback)
         items.value[0]["age"] += 1
-        # 输出: Triggering update... List updated: [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}]
         items.value.append({"name": "Charlie", "age": 35})
-        # 输出: Triggering update... List updated: [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}, {'name': 'Charlie', 'age': 35}]
+        items.value.append([])
+        items.value[3].append({"name": "Dave", "age": 40})
+        items.value[3][0]["age"] += 1
+        print("len: ", len(items.value))
         print()
 
     # 测试 6: 字典（嵌套列表）
     def test_dict_with_list():
         print("=== 测试 6: 字典（嵌套列表） ===")
         user = Ref({"name": "Alice", "scores": [80, 90, 85]})
-
-        def on_update(path, operation, new_value, old_value):
-            print(f"Dict updated: {user.value}")
-
-        user.add_dependency(on_update)
-
+        user.add_dependency(update_callback)
         user.value["scores"].append(95)
-        # 输出: Triggering update... Dict updated: {'name': 'Alice', 'scores': [80, 90, 85, 95]}
         user.value["scores"][0] = 100
-        # 输出: Triggering update... Dict updated: {'name': 'Alice', 'scores': [100, 90, 85, 95]}
         print()
 
     # 测试 7: 复杂嵌套（字典中嵌套列表，列表中嵌套字典）
@@ -302,18 +308,22 @@ if __name__ == "__main__":
                 "metadata": {"total": 2, "timestamp": "2023-10-01"},
             }
         )
-
-        def on_update(path, operation, new_value, old_value):
-            print(f"Data updated: {data.value}")
-
-        data.add_dependency(on_update)
-
+        data.add_dependency(update_callback)
         data.value["users"][0]["age"] += 1
-        # 输出: Triggering update... Data updated: {'users': [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}], 'metadata': {'total': 2, 'timestamp': '2023-10-01'}}
         data.value["metadata"]["total"] += 1
-        # 输出: Triggering update... Data updated: {'users': [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}], 'metadata': {'total': 3, 'timestamp': '2023-10-01'}}
         data.value["users"].append({"name": "Charlie", "age": 35})
-        # 输出: Triggering update... Data updated: {'users': [{'name': 'Alice', 'age': 26}, {'name': 'Bob', 'age': 30}, {'name': 'Charlie', 'age': 35}], 'metadata': {'total': 3, 'timestamp': '2023-10-01'}}
+        print()
+
+    def test_reset():
+        print("=== 测试 reset ===")
+        data = Ref(
+            {
+                "users": [{"name": "Alice", "age": 25}, {"name": "Bob", "age": 30}],
+                "metadata": {"total": 2, "timestamp": "2023-10-01"},
+            }
+        )
+        data.add_dependency(update_callback)
+        data.value = [{"name": "Charlie", "age": 35}]
         print()
 
     def test_deepcopy():
@@ -336,17 +346,39 @@ if __name__ == "__main__":
             age: RefType
             friend: RefType = []
 
-        def on_update(path, operation, new_value, old_value):
-            print(f"{path} {operation}: {new_value}")
-
         user = User(name="Alice", age=25, friend=[{"name": "Bob", "age": 30}])
-        user.name.add_dependency(on_update)
-        user.age.add_dependency(on_update)
-        user.friend.add_dependency(on_update)
+        user.name.add_dependency(update_callback)
+        user.age.add_dependency(update_callback)
+        user.friend.add_dependency(update_callback)
         user.age.value += 1
         user.friend.value.append({"name": "Charlie", "age": 35})
         user.friend.value[1]["age"] += 1
         print(user.model_dump_json())
+
+    def test_chain_nested_refs():
+        print("=== 测试 chain_nested_refs ===")
+        data = RefType(0)
+        mat = RefType([])
+        mat.add_dependency(
+            lambda path, operation, new_value, old_value: {
+                print("mat", end=" "),
+                update_callback(path, operation, new_value, old_value),
+            }
+        )
+        mat.value.append(data)
+        mat2 = RefType({"a": []})
+        mat2.add_dependency(
+            lambda path, operation, new_value, old_value: {
+                print("mat2", end=" "),
+                update_callback(path, operation, new_value, old_value),
+            }
+        )
+        mat2.value["a"].append(data)
+        print(mat.value)
+        print(mat2.value)
+        data.value = 2
+        print(mat.value)
+        print(mat2.value)
 
     # ==================================================
     test_primitive()
@@ -356,5 +388,7 @@ if __name__ == "__main__":
     test_list_with_dict()
     test_dict_with_list()
     test_complex_nesting()
+    test_reset()
     test_deepcopy()
     test_pydantic()
+    test_chain_nested_refs()
