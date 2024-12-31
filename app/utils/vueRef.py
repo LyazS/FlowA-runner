@@ -112,6 +112,12 @@ class ReactiveDict(dict):
             [key], "setitem", value, old_value
         )  # 传递路径、操作类型、新值和旧值
 
+    def __getitem__(self, key):
+        result = super().__getitem__(key)
+        if isinstance(result, Ref):
+            return result.value
+        return result
+
     def __delitem__(self, key):
         old_value = self.get(key)
         super().__delitem__(key)
@@ -159,6 +165,12 @@ class ReactiveList(list):
             [key], "setitem", value, old_value
         )  # 传递路径、操作类型、新值和旧值
 
+    def __getitem__(self, key):
+        result = super().__getitem__(key)
+        if isinstance(result, Ref):
+            return result.value
+        return result
+
     def __delitem__(self, key):
         old_value = self[key]
         super().__delitem__(key)
@@ -203,6 +215,18 @@ class _RefTypePydanticAnnotation:
             validate_from_any
         )
 
+        def serialize_value(value):
+            if isinstance(value, (str, int, float, bool)):
+                return value
+            elif isinstance(value, list):
+                return [serialize_value(item) for item in value]
+            elif isinstance(value, dict):
+                return {key: serialize_value(val) for key, val in value.items()}
+            elif isinstance(value, Ref):
+                return serialize_value(value.value)
+            else:
+                return str(value)  # 默认转换为字符串
+
         return core_schema.json_or_python_schema(
             json_schema=from_any_schema,
             python_schema=core_schema.union_schema(
@@ -212,7 +236,7 @@ class _RefTypePydanticAnnotation:
                 ]
             ),
             serialization=core_schema.plain_serializer_function_ser_schema(
-                lambda instance: instance.value
+                lambda instance: serialize_value(instance.value)
             ),
         )
 
@@ -345,16 +369,17 @@ if __name__ == "__main__":
         class User(BaseModel):
             name: RefType
             age: RefType
-            friend: RefType = []
+            friend: RefType
 
-        user = User(name="Alice", age=25, friend=[{"name": "Bob", "age": 30}])
+        bob = RefType({"name": "Bob", "age": 30})
+        user = User(name="Alice", age=25, friend=[])
         user.name.add_dependency(update_callback)
         user.age.add_dependency(update_callback)
         user.friend.add_dependency(update_callback)
         user.age.value += 1
         user.name.value = None
-        user.friend.value.append({"name": "Charlie", "age": 35})
-        user.friend.value[1]["age"] += 1
+        user.friend.value.append(bob)
+        user.friend.value[0]["age"] += 1
         print(user.model_dump_json())
 
     def test_chain_nested_refs():
@@ -381,7 +406,7 @@ if __name__ == "__main__":
         data.value = 2
         print(mat.value)
         print(mat2.value)
-        mat.value[0].value=3
+        mat.value[0] = 3
         print(data)
 
     # ==================================================

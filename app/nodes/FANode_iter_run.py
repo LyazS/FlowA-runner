@@ -213,42 +213,42 @@ class FANode_iter_run(FABaseNode):
         task_output = asyncio.create_task(attach_nodes["attached_node_output"].invoke())
         await task_output
         if attach_nodes["attached_node_output"].runStatus == FANodeStatus.Success:
-            node_results = self.data.getContent("results")
-            Niter_pattern = r"#(\w+)"
             returnUpdateData = []
-            for rid in node_results.order:
-                item: VFNodeContentData = node_results.byId[rid]
-                item_ref = item.config.ref
-                nidNiter, contentname, ctid = item_ref.split("/")
-                nid_matches = re.findall(Niter_pattern, nidNiter)
-                if len(nest_layout) != len(nid_matches) - 1:
-                    raise Exception("迭代节点嵌套层数不匹配")
-                for level_idx in range(len(nest_layout)):
-                    nid_matches[level_idx] = nest_layout[level_idx]
-                    pass
-                nid_pattern = (
-                    nidNiter.split("#", 1)[0]
-                    + "".join(map(lambda x: "#" + str(x), nid_matches[:-1]))
-                    + "#"
-                )
-                nids = [
-                    item for item in AllChildNodeNames if item.startswith(nid_pattern)
-                ]
-                sort_nids = sorted(nids, key=lambda x: int(x.replace(nid_pattern, "")))
-                arraydata = []
-                for nid in sort_nids:
-                    node = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
-                    ndata = node.data.getContent(contentname).byId[ctid]
-                    arraydata.append(ndata.data.value)
-                node_results.byId[rid].data.value = arraydata
-                returnUpdateData.append(
-                    FANodeUpdateData(
-                        type=FANodeUpdateType.overwrite,
-                        path=["results", "byId", rid, "data"],
-                        data=arraydata,
-                    )
-                )
-                pass
+            # node_results = self.data.getContent("results")
+            # Niter_pattern = r"#(\w+)"
+            # for rid in node_results.order:
+            #     item: VFNodeContentData = node_results.byId[rid]
+            #     item_ref = item.config.ref
+            #     nidNiter, contentname, ctid = item_ref.split("/")
+            #     nid_matches = re.findall(Niter_pattern, nidNiter)
+            #     if len(nest_layout) != len(nid_matches) - 1:
+            #         raise Exception("迭代节点嵌套层数不匹配")
+            #     for level_idx in range(len(nest_layout)):
+            #         nid_matches[level_idx] = nest_layout[level_idx]
+            #         pass
+            #     nid_pattern = (
+            #         nidNiter.split("#", 1)[0]
+            #         + "".join(map(lambda x: "#" + str(x), nid_matches[:-1]))
+            #         + "#"
+            #     )
+            #     nids = [
+            #         item for item in AllChildNodeNames if item.startswith(nid_pattern)
+            #     ]
+            #     sort_nids = sorted(nids, key=lambda x: int(x.replace(nid_pattern, "")))
+            #     arraydata = []
+            #     for nid in sort_nids:
+            #         node = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
+            #         ndata = node.data.getContent(contentname).byId[ctid]
+            #         arraydata.append(ndata.data.value)
+            #     node_results.byId[rid].data.value = arraydata
+            #     returnUpdateData.append(
+            #         FANodeUpdateData(
+            #             type=FANodeUpdateType.overwrite,
+            #             path=["results", "byId", rid, "data"],
+            #             data=arraydata,
+            #         )
+            #     )
+            #     pass
 
             self.setAllOutputStatus(FANodeStatus.Success)
             return returnUpdateData
