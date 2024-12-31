@@ -381,6 +381,8 @@ if __name__ == "__main__":
         data.value = 2
         print(mat.value)
         print(mat2.value)
+        mat.value[0].value=3
+        print(data)
 
     # ==================================================
     test_primitive()

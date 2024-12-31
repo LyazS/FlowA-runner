@@ -96,9 +96,9 @@ class FABaseNode(ABC):
         pass
 
     async def invoke(self):
-        logger.debug(f"invoke {self.data.label} {self.id}")
+        # logger.debug(f"invoke {self.data.label} {self.id}")
         await asyncio.gather(*(event.wait() for event in self.waitEvents))
-        logger.debug(f"wait done {self.data.label} {self.id}")
+        # logger.debug(f"wait done {self.data.label} {self.id}")
         try:
             if len(self.waitStatus) > 0:
                 # 如果是AND，要求不能出现任何error或cancel状态
@@ -115,14 +115,14 @@ class FABaseNode(ABC):
                 # 前置节点出错或取消，本节点取消运行
                 if not canRunNode:
                     raise NodeCancelException("前置节点出错或取消，本节点取消运行")
-                logger.debug(f"can run {self.data.label} {self.id}")
+                # logger.debug(f"can run {self.data.label} {self.id}")
             self.setAllOutputStatus(FANodeStatus.Running)
             self.putNodeStatus(FANodeStatus.Running)
 
             # 前置节点全部成功，本节点开始运行
             updateDatas = await self.run()
             # 运行成功
-            logger.debug(f"run success {self.data.label} {self.id}")
+            # logger.debug(f"run success {self.data.label} {self.id}")
             # self.setAllOutputStatus(FANodeStatus.Success)
             # 各个输出handle的成功需要由子类函数来设置
             self.putNodeStatus(FANodeStatus.Success)
