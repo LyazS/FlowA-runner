@@ -103,7 +103,7 @@ class ReactiveDict(dict):
         old_value = self.get(key)
         value = self._wrap_value(
             value,
-            lambda path, operation, new_value, old_value: self._trigger_callback(
+            lambda path, operation, new_value, old_value, key=key: self._trigger_callback(
                 [key] + path, operation, new_value, old_value
             ),
         )
@@ -150,7 +150,7 @@ class ReactiveList(list):
         old_value = self[key]
         value = self._wrap_value(
             value,
-            lambda path, operation, new_value, old_value: self._trigger_callback(
+            lambda path, operation, new_value, old_value, key=key: self._trigger_callback(
                 [key] + path, operation, new_value, old_value
             ),
         )
@@ -167,10 +167,11 @@ class ReactiveList(list):
         )  # 传递路径、操作类型、新值和旧值
 
     def append(self, value):
+        nowlen = len(self)
         value = self._wrap_value(
             value,
-            lambda path, operation, new_value, old_value: self._trigger_callback(
-                path, operation, new_value, old_value
+            lambda path, operation, new_value, old_value, nowlen=nowlen: self._trigger_callback(
+                [nowlen] + path, operation, new_value, old_value
             ),
         )
         super().append(value)
