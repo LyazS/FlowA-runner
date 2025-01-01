@@ -13,7 +13,7 @@ import subprocess
 from enum import Enum
 from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
-from app.schemas.vfnode_contentdata import Single_VarInput
+from app.schemas.vfnode_contentdata import Single_VarInput,VarType
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
@@ -114,7 +114,7 @@ class FANode_code_interpreter(FATaskNode):
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
-                if var.type == "ref" and var.value not in selfVars:
+                if var.type == VarType.ref and var.value not in selfVars:
                     error_msgs.append(f"变量未定义{var.value}")
                 else:
                     CodeInputArgs.add(var.key)

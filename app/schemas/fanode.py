@@ -10,6 +10,7 @@ class FANodeStatus(Enum):
     Success = "Success"
     Canceled = "Canceled"
     Error = "Error"
+    Passive = "Passive"
     pass
 
 

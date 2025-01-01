@@ -15,6 +15,8 @@ from .FANode_text_input import FANode_text_input
 from .FANode_text_print import FANode_text_print
 from .FANode_branch_aggregate import FANode_branch_aggregate
 
+from .FANode_jinja2_template import FANode_jinja2_template
+
 FANODECOLLECTION = {
     "attached_node_callbackFunc": FANode_attached_node_callbackFunc,
     "attached_node_callbackUser": FANode_attached_node_callbackUser,
@@ -28,5 +30,6 @@ FANODECOLLECTION = {
     "http_requests": FANode_http_requests,
     "text_input": FANode_text_input,
     "text_print": FANode_text_print,
-    "branch_aggregate": FANode_branch_aggregate
+    "branch_aggregate": FANode_branch_aggregate,
+    "jinja2_template": FANode_jinja2_template,
 }

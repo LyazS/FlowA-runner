@@ -17,8 +17,6 @@ if settings.DEBUG:
 async def lifespan(app: FastAPI):
     init_logging(settings.LOG_FILE_PATH)
     await init_db()
-    if not await aiofiles_os.path.exists(settings.WORKFLOW_FOLDER):
-        await aiofiles_os.mkdir(settings.WORKFLOW_FOLDER)
     yield
     # 这里可以放置清理代码
     await close_db_connection()

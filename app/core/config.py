@@ -27,9 +27,6 @@ class Settings(BaseSettings):
     # 其他配置
     DEBUG: bool = Field(default=False, description="是否开启调试模式")
 
-    # 工作流文件夹
-    WORKFLOW_FOLDER: str = Field(default="workflows", description="工作流文件夹")
-
     # 数据库配置
     DATABASE_URL: str = Field(
         default="sqlite+aiosqlite:///data.db", description="数据库连接字符串"
