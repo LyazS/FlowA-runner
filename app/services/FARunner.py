@@ -33,7 +33,7 @@ from sqlalchemy import select, update, exc, exists, delete
 from sqlalchemy.orm import selectinload
 
 if TYPE_CHECKING:
-    from app.nodes import FABaseNode
+    from app.nodes import FATaskNode
 
 
 class FARunner:
@@ -42,22 +42,22 @@ class FARunner:
         self.wid = None
         self.oriflowdata = None
         self.flowdata: VFlowData = None
-        self.nodes: Dict[str, "FABaseNode"] = {}
+        self.nodes: Dict[str, "FATaskNode"] = {}
         self.status: FARunnerStatus = FARunnerStatus.Pending
         # 时间戳
         self.starttime = None
         self.endtime = None
         pass
 
-    def addNode(self, nid, node: "FABaseNode"):
+    def addNode(self, nid, node: "FATaskNode"):
         self.nodes[nid] = node
         pass
 
-    def getNode(self, nid: str) -> "FABaseNode":
+    def getNode(self, nid: str) -> "FATaskNode":
         return self.nodes[nid]
 
     def buildNodes(self):
-        from app.nodes.basenode import FANodeWaitStatus
+        from app.nodes.tasknode import FANodeWaitStatus
         from app.nodes import FANODECOLLECTION
 
         # 初始化大图节点，即parentNode == None
@@ -183,7 +183,7 @@ class FARunner:
                     nodeinfo_dict[nodeinfo.id] = nodeinfo
                     pass
                 for noderesult in store.noderesults:
-                    thenode: "FABaseNode" = FANODECOLLECTION[noderesult.ntype](
+                    thenode: "FATaskNode" = FANODECOLLECTION[noderesult.ntype](
                         self.tid, nodeinfo_dict[noderesult.oriid]
                     )
 

@@ -16,12 +16,12 @@ from app.schemas.farequest import (
     FANodeUpdateType,
     FANodeUpdateData,
 )
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 
 
-class FANode_branch_aggregate(FABaseNode):
+class FANode_branch_aggregate(FATaskNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
         self.waitType = FANodeWaitType.OR

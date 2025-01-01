@@ -23,10 +23,10 @@ from app.schemas.farequest import (
 )
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 
 
-class FANode_iter_run(FABaseNode):
+class FANode_iter_run(FATaskNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
         self.iter_var_len = 0
@@ -34,7 +34,7 @@ class FANode_iter_run(FABaseNode):
         pass
 
     async def run(self) -> List[FANodeUpdateData]:
-        from app.nodes.basenode import FANodeWaitStatus
+        from app.nodes.tasknode import FANodeWaitStatus
         from app.nodes import FANODECOLLECTION
 
         flowdata: VFlowData = (await ALL_TASKS_MGR.get(self.tid)).flowdata
@@ -64,7 +64,7 @@ class FANode_iter_run(FABaseNode):
             ]
         )
         attach_nodeinfo: Dict[str, VFNodeInfo] = {}
-        attach_nodes: Dict[str, FABaseNode] = {}
+        attach_nodes: Dict[str, FATaskNode] = {}
         for child_id, child_info in child_node_infos.items():
             if child_info.data.ntype in attach_node_name:
                 attach_nodeinfo[child_info.data.ntype] = child_info
@@ -73,7 +73,7 @@ class FANode_iter_run(FABaseNode):
             if attached_name == "attached_node_next":
                 continue
             nodeinfo = attach_nodeinfo[attached_name]
-            node: FABaseNode = (FANODECOLLECTION[nodeinfo.data.ntype])(
+            node: FATaskNode = (FANODECOLLECTION[nodeinfo.data.ntype])(
                 self.tid,
                 nodeinfo,
             )
@@ -113,7 +113,7 @@ class FANode_iter_run(FABaseNode):
         for iter_idx in range(self.iter_var_len):
             # 构建next附属节点
             nodeinfo_next = attach_nodeinfo["attached_node_next"]
-            node_next: FABaseNode = (FANODECOLLECTION[nodeinfo_next.data.ntype])(
+            node_next: FATaskNode = (FANODECOLLECTION[nodeinfo_next.data.ntype])(
                 self.tid,
                 nodeinfo_next,
             )
@@ -145,11 +145,11 @@ class FANode_iter_run(FABaseNode):
                     "ctid": ctid,
                 }
             # 构建其余子节点
-            child_nodes: Dict[str, FABaseNode] = {}
+            child_nodes: Dict[str, FATaskNode] = {}
             for child_id, child_info in child_node_infos.items():
                 if child_info.data.ntype in attach_node_name:
                     continue
-                child_node: FABaseNode = (FANODECOLLECTION[child_info.data.ntype])(
+                child_node: FATaskNode = (FANODECOLLECTION[child_info.data.ntype])(
                     self.tid,
                     child_info,
                 )

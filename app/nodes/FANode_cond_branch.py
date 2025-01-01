@@ -6,7 +6,7 @@ from loguru import logger
 from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo
 from app.schemas.farequest import ValidationError
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.vfnode_contentdata import (
@@ -20,7 +20,7 @@ from app.schemas.farequest import (
     FANodeUpdateType,
     FANodeUpdateData,
 )
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 
 
@@ -28,7 +28,7 @@ class CompareException(Exception):
     pass
 
 
-class FANode_cond_branch(FABaseNode):
+class FANode_cond_branch(FATaskNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
         self.validateNeededs = [FANodeValidateNeed.Self]

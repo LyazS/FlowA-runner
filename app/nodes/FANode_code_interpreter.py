@@ -20,7 +20,7 @@ from app.schemas.farequest import (
     FANodeUpdateData,
 )
 from app.utils.tools import read_yaml
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 
 
@@ -93,7 +93,7 @@ async def SimplePythonRun(code, evaltype: EvalType, snekboxUrl: str = ""):
         raise Exception(f"不支持的执行类型{evaltype}")
 
 
-class FANode_code_interpreter(FABaseNode):
+class FANode_code_interpreter(FATaskNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
         self.validateNeededs = [FANodeValidateNeed.Self]

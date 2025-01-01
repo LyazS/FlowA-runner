@@ -13,7 +13,7 @@ from app.utils.tools import replace_vars
 from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo
 from app.schemas.farequest import ValidationError
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 from app.schemas.fanode import FANodeStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.vfnode_contentdata import (
@@ -32,11 +32,11 @@ from app.schemas.farequest import (
     FANodeUpdateType,
     FANodeUpdateData,
 )
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 
 
-class FANode_http_requests(FABaseNode):
+class FANode_http_requests(FATaskNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
         self.validateNeededs = [FANodeValidateNeed.Self]

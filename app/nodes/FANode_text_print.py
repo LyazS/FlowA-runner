@@ -3,10 +3,10 @@ import asyncio
 from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.farequest import ValidationError
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 
 
-class FANode_text_print(FABaseNode):
+class FANode_text_print(FATaskNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
         self.validateNeededs = [FANodeValidateNeed.Self]

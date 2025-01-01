@@ -1,4 +1,4 @@
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 
 from .FANode_attached_node_callbackFunc import FANode_attached_node_callbackFunc
 from .FANode_attached_node_callbackUser import FANode_attached_node_callbackUser

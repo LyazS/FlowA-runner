@@ -41,7 +41,7 @@ class NodeCancelException(Exception):
         super().__init__(self.message)
 
 
-class FABaseNode(ABC):
+class FATaskNode(ABC):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         cpnodeinfo = copy.deepcopy(nodeinfo)
         self.tid = tid
