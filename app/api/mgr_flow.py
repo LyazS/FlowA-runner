@@ -36,6 +36,8 @@ from app.schemas.farequest import (
     FAWorkflowOperationResponse,
     FAWorkflowBaseInfo,
     FAResultBaseInfo,
+    FAWorkflowNodeRequest,
+    FAWorkflowOperationResponse,
 )
 from app.services.FARunner import FARunner
 from app.db.session import get_db_ctxmgr
@@ -282,9 +284,7 @@ async def read_all_results(wid: int):
                 )
         # 将result按照开始时间最新在前排序
         result.sort(
-            key=lambda x: x.starttime.replace(
-                tzinfo=ZoneInfo("Asia/Shanghai")
-            ),
+            key=lambda x: x.starttime.replace(tzinfo=ZoneInfo("Asia/Shanghai")),
             reverse=True,
         )
         return FAWorkflowOperationResponse(success=True, data=result)
@@ -320,3 +320,9 @@ async def load_result(wid: int, tid: str):
         errmsg = traceback.format_exc()
         logger.error(f"load result error: {errmsg}")
         return FAWorkflowOperationResponse(success=False, message=errmsg)
+
+
+@router.post("/noderequest")
+async def node_request(noderequest: FAWorkflowNodeRequest):
+    
+    pass

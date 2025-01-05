@@ -21,6 +21,8 @@ from app.schemas.farequest import (
     FAWorkflowNodeResult,
     FAWorkflowResult,
     FAWorkflow,
+    FAWorkflowNodeRequest,
+    FAWorkflowOperationResponse,
 )
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
@@ -83,3 +85,7 @@ class FABaseNode(ABC):
         validateVars: Dict[FANodeValidateNeed, Any],
     ) -> Optional[ValidationError]:
         return None
+    
+    @abstractmethod
+    async def processRequest(self, request: dict):
+        return FAWorkflowOperationResponse(success=True)

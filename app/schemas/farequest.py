@@ -151,8 +151,29 @@ class FAResultBaseInfo(BaseModel):
     pass
 
 
+class FAWorkflowNodeRequest(BaseModel):
+    wid: int
+    tid: str
+    nid: str
+    request: dict
+    pass
+
+
 class FAWorkflowOperationResponse(BaseModel):
     success: bool
     message: Optional[str] = None
     data: Optional[Any] = None
+    pass
+
+
+class FAProgressNodeType(Enum):
+    ALL_TASK_NODE = "ALL_TASK_NODE"
+    SELECTED = "SELECTED"
+    pass
+
+
+class FAProgressRequest(BaseModel):
+    tid: str
+    node_type: FAProgressNodeType
+    selected_nids: Optional[List[str]] = None
     pass

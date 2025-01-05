@@ -24,6 +24,8 @@ from app.schemas.farequest import (
     SSEResponseType,
     FAWorkflow,
     FAWorkflowOperationResponse,
+    FAProgressNodeType,
+    FAProgressRequest,
 )
 from app.db.session import get_db_ctxmgr
 from app.models.fastore import (
@@ -74,11 +76,14 @@ async def run_flow(
     return FAWorkflowOperationResponse(success=True, data={"tid": taskid})
 
 
-@router.get("/progress")
-async def get_task_progress(taskid: str):
+@router.post("/progress")
+async def get_task_progress(prequest: FAProgressRequest):
+    taskid = prequest.tid
     logger.debug("get_task_progress", taskid)
 
     async def event_generator():
+        if await ALL_MESSAGES_MGR.has(taskid):
+            return
         try:
             # 第一步，创建消息管理器
             # 推送整体情况
@@ -89,7 +94,16 @@ async def get_task_progress(taskid: str):
             if farunner is None:
                 raise Exception("Task not found")
             all_sse_data: List[SSEResponseData] = []
-            for nid in farunner.nodes.keys():
+            fetch_nids = []
+            if prequest.node_type == FAProgressNodeType.ALL_TASK_NODE:
+                for nid in farunner.nodes.keys():
+                    node=farunner.getNode(nid)
+                    pass
+                pass
+            elif prequest.node_type == FAProgressNodeType.SELECTED:
+                fetch_nids = prequest.selected_nodes
+                pass
+            for nid in fetch_nids:
                 ndata = farunner.nodes[nid].getCurData()
                 if ndata is None:
                     continue
@@ -99,6 +113,7 @@ async def get_task_progress(taskid: str):
                     data=ndata,
                 )
                 all_sse_data.append(sse_data)
+                pass
             ALL_MESSAGES_MGR.put(
                 taskid,
                 SSEResponse(

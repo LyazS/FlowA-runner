@@ -9,10 +9,15 @@ from app.schemas.farequest import (
     SSEResponseType,
 )
 
+
 class ProjectMessageMgr:
     def __init__(self):
         self.message_queue: Dict[str, asyncio.Queue] = dict()
         self.lock = asyncio.Lock()
+
+    async def has(self, task_name: str) -> bool:
+        async with self.lock:
+            return task_name in self.message_queue
 
     async def create(self, task_name: str):
         async with self.lock:
