@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     )
     DATABASE_POOL_SIZE: int = Field(default=20, description="数据库连接池大小")
 
+    # SSE回传最多消息
+    SSE_MAX_MSG: int = Field(default=2, description="SSE回传最多消息")
+
     class Config:
         env_file = ".env"  # 读取.env文件中的环境变量
         case_sensitive = True  # 环境变量区分大小写

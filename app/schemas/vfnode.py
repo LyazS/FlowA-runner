@@ -87,14 +87,15 @@ class VFNodeFlag(Flag):
     isNested = 0x01
     isAttached = 0x02
     isTask = 0x04
+    isPassive = 0x08
     pass
 
 
-class VFNodeFlags(BaseModel):
-    isNested: bool
-    isAttached: bool
-    isTask: bool
-    isDisabled: bool
+# class VFNodeFlags(BaseModel):
+#     isNested: bool
+#     isAttached: bool
+#     isTask: bool
+#     isDisabled: bool
 
 
 class VFNodeAttaching(BaseModel):

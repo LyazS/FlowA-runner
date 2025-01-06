@@ -199,6 +199,19 @@ class ReactiveList(list):
 # Pydantic ===============================================
 
 
+def serialize_ref(value):
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    elif isinstance(value, list):
+        return [serialize_ref(item) for item in value]
+    elif isinstance(value, dict):
+        return {key: serialize_ref(val) for key, val in value.items()}
+    elif isinstance(value, Ref):
+        return serialize_ref(value.value)
+    else:
+        return str(value)  # 默认转换为字符串
+
+
 class _RefTypePydanticAnnotation:
     @classmethod
     def __get_pydantic_core_schema__(
@@ -215,17 +228,17 @@ class _RefTypePydanticAnnotation:
             validate_from_any
         )
 
-        def serialize_value(value):
-            if isinstance(value, (str, int, float, bool)):
-                return value
-            elif isinstance(value, list):
-                return [serialize_value(item) for item in value]
-            elif isinstance(value, dict):
-                return {key: serialize_value(val) for key, val in value.items()}
-            elif isinstance(value, Ref):
-                return serialize_value(value.value)
-            else:
-                return str(value)  # 默认转换为字符串
+        # def serialize_value(value):
+        #     if isinstance(value, (str, int, float, bool)):
+        #         return value
+        #     elif isinstance(value, list):
+        #         return [serialize_value(item) for item in value]
+        #     elif isinstance(value, dict):
+        #         return {key: serialize_value(val) for key, val in value.items()}
+        #     elif isinstance(value, Ref):
+        #         return serialize_value(value.value)
+        #     else:
+        #         return str(value)  # 默认转换为字符串
 
         return core_schema.json_or_python_schema(
             json_schema=from_any_schema,
@@ -236,7 +249,7 @@ class _RefTypePydanticAnnotation:
                 ]
             ),
             serialization=core_schema.plain_serializer_function_ser_schema(
-                lambda instance: serialize_value(instance.value)
+                lambda instance: serialize_ref(instance)
             ),
         )
 

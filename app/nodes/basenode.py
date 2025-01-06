@@ -85,7 +85,7 @@ class FABaseNode(ABC):
         validateVars: Dict[FANodeValidateNeed, Any],
     ) -> Optional[ValidationError]:
         return None
-    
+
     @abstractmethod
     async def processRequest(self, request: dict):
         return FAWorkflowOperationResponse(success=True)

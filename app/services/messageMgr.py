@@ -33,6 +33,11 @@ class ProjectMessageMgr:
             return await self.message_queue[task_name].get()
         return None
 
+    def empty(self, task_name: str) -> bool:
+        if task_name in self.message_queue:
+            return self.message_queue[task_name].empty()
+        return True
+
     def task_done(self, task_name: str):
         if task_name in self.message_queue:
             self.message_queue[task_name].task_done()

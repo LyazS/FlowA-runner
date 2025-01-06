@@ -43,7 +43,7 @@ class FANodeUpdateType(Enum):
 
 class FANodeUpdateData(BaseModel):
     type: FANodeUpdateType
-    path: Optional[List[str]] = None
+    path: Optional[List[Union[str, int]]] = None
     data: Optional[Any] = None
     pass
 

@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 import traceback
 from loguru import logger
 from app.core.config import settings
-from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData
+from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData, VFNodeFlag
 from app.schemas.fanode import FARunnerStatus
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.schemas.farequest import (
@@ -77,6 +77,11 @@ class FARunner:
                 if (
                     self.getNode(edgeinfo.source).parentNode != None
                     or self.getNode(edgeinfo.target).parentNode != None
+                ):
+                    continue
+                if not (
+                    (VFNodeFlag.isTask & self.getNode(edgeinfo.source).data.flag)
+                    and (VFNodeFlag.isTask & self.getNode(edgeinfo.target).data.flag)
                 ):
                     continue
                 source_handle = edgeinfo.sourceHandle

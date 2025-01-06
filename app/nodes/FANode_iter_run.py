@@ -12,6 +12,7 @@ from app.schemas.vfnode import (
     VFNodeData,
     VFlowData,
     VFNodeContentData,
+    VFNodeFlag,
 )
 from app.schemas.farequest import (
     ValidationError,
@@ -42,7 +43,10 @@ class FANode_iter_run(FATaskNode):
         child_edge_infos: Dict[str, VFEdgeInfo] = {}
         # 收集所有子节点
         for nodeinfo in flowdata.nodes:
-            if nodeinfo.parentNode == self.oriid:
+            if nodeinfo.parentNode == self.oriid and (
+                VFNodeFlag.isTask & nodeinfo.data.flag
+                or VFNodeFlag.isAttached & nodeinfo.data.flag
+            ):
                 child_node_infos[nodeinfo.id] = nodeinfo
             pass
         pass
@@ -94,20 +98,20 @@ class FANode_iter_run(FATaskNode):
         node_results = self.data.getContent("results")
         Niter_pattern = r"#(\w+)"
 
-        def update_callback(path, operation, new_value, old_value):
-            print(f"Update detected at path: {path}")
-            print(f"Operation: {operation}")
-            print(f"New value: {new_value}")
-            print(f"Old value: {old_value}")
-            print("------")
+        # def update_callback(path, operation, new_value, old_value):
+        #     print(f"Update detected at path: {path}")
+        #     print(f"Operation: {operation}")
+        #     print(f"New value: {new_value}")
+        #     print(f"Old value: {old_value}")
+        #     print("------")
 
-        for rid in node_results.order:
-            node_results.byId[rid].data.add_dependency(
-                lambda path, operation, new_value, old_value, rid=rid: {
-                    print(rid, end=" | "),
-                    update_callback(path, operation, new_value, old_value),
-                }
-            )
+        # for rid in node_results.order:
+        #     node_results.byId[rid].data.add_dependency(
+        #         lambda path, operation, new_value, old_value, rid=rid: {
+        #             print(rid, end=" | "),
+        #             update_callback(path, operation, new_value, old_value),
+        #         }
+        #     )
         # 开始迭代
         AllChildNodeNames: Set[str] = set()
         for iter_idx in range(self.iter_var_len):
