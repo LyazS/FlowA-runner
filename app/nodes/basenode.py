@@ -76,6 +76,14 @@ class FABaseNode(ABC):
         pass
 
     @abstractmethod
+    async def startReport(self):
+        pass
+
+    @abstractmethod
+    async def stopReport(self):
+        pass
+
+    @abstractmethod
     async def getCurData(self) -> Optional[List[FANodeUpdateData]]:
         return []
 

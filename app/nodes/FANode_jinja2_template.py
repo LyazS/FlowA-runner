@@ -37,6 +37,51 @@ class FANode_jinja2_template(FABaseNode):
         super().__init__(tid, nodeinfo)
         self.validateNeededs = [FANodeValidateNeed.Self]
         self.runStatus = FANodeStatus.Passive
+        self.inReporting = False
+        pass
+
+    async def startReport(self):
+        self.inReporting = True
+        pass
+
+    async def stopReport(self):
+        self.inReporting = False
+        pass
+
+    async def report(
+        self,
+        path,
+        operation,
+        new_value,
+        old_value,
+        key,
+        tid,
+        nid,
+        oriid,
+    ):
+        if not self.inReporting:
+            return
+        ALL_MESSAGES_MGR.put(
+            f"{tid}/Jinja2",
+            SSEResponse(
+                event=SSEResponseType.updatenode,
+                data=SSEResponseData(
+                    nid=nid,
+                    oriid=oriid,
+                    data=[
+                        FANodeUpdateData(
+                            type=FANodeUpdateType.overwrite,
+                            path=[key] + path,
+                            data={
+                                "operation": operation,
+                                "new_value": serialize_ref(new_value),
+                                "old_value": old_value,
+                            },
+                        )
+                    ],
+                ),
+            ),
+        )
         pass
 
     async def invoke(self):
@@ -50,47 +95,21 @@ class FANode_jinja2_template(FABaseNode):
                     nid, contentname, ctid = refdata.split("/")
                     thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
                     thenode.data.getContent(contentname).byId[ctid].data.add_dependency(
-                        lambda path, operation, new_value, old_value, key=var.key, tid=self.tid, nid=self.id, oriid=self.oriid: ALL_MESSAGES_MGR.put(
-                            f"{tid}/Jinja2",
-                            SSEResponse(
-                                event=SSEResponseType.updatenode,
-                                data=SSEResponseData(
-                                    nid=nid,
-                                    oriid=oriid,
-                                    data=[
-                                        FANodeUpdateData(
-                                            type=FANodeUpdateType.overwrite,
-                                            path=[key] + path,
-                                            data={
-                                                "operation": operation,
-                                                "new_value": serialize_ref(new_value),
-                                                "old_value": old_value,
-                                            },
-                                        )
-                                    ],
-                                ),
-                            ),
+                        lambda path, operation, new_value, old_value, key=var.key, tid=self.tid, nid=self.id, oriid=self.oriid: (
+                            self.report(
+                                path,
+                                operation,
+                                new_value,
+                                old_value,
+                                key,
+                                tid,
+                                nid,
+                                oriid,
+                            )
                         )
                     )
                     pass
-                else:
-                    ALL_MESSAGES_MGR.put(
-                        self.tid,
-                        SSEResponse(
-                            event=SSEResponseType.updatenode,
-                            data=SSEResponseData(
-                                nid=self.id,
-                                oriid=self.oriid,
-                                data=[
-                                    FANodeUpdateData(
-                                        type=FANodeUpdateType.overwrite,
-                                        path=var.key,
-                                        data=var.value,
-                                    )
-                                ],
-                            ),
-                        ),
-                    )
+
         except Exception as e:
             errmsg = traceback.format_exc()
             logger.error(f"执行Jinja2节点{self.id}出错{str(errmsg)}")
@@ -114,6 +133,14 @@ class FANode_jinja2_template(FABaseNode):
                         data=serialize_ref(
                             thenode.data.getContent(contentname).byId[ctid].data
                         ),
+                    )
+                )
+            else:
+                curData.append(
+                    FANodeUpdateData(
+                        type=FANodeUpdateType.overwrite,
+                        path=var.key,
+                        data=var.value,
                     )
                 )
         return curData

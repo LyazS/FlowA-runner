@@ -86,6 +86,7 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
     async def event_generator():
         if await ALL_MESSAGES_MGR.has(task_name):
             return
+        fetch_nids = []
         try:
             # 第一步，创建消息管理器
             # 推送整体情况
@@ -102,7 +103,6 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
             if farunner is None:
                 raise Exception("Task not found")
             all_sse_data: List[SSEResponseData] = []
-            fetch_nids = []
             if prequest.node_type == FAProgressNodeType.ALL_TASK_NODE:
                 for nid in farunner.nodes.keys():
                     node = farunner.getNode(nid)
@@ -114,6 +114,7 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
                 fetch_nids = prequest.selected_nids
                 pass
             for nid in fetch_nids:
+                await farunner.nodes[nid].startReport()
                 ndata = await farunner.nodes[nid].getCurData()
                 if ndata is None:
                     continue
@@ -158,6 +159,9 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
             pass
         finally:
             await ALL_MESSAGES_MGR.remove(task_name)
+            for nid in fetch_nids:
+                await farunner.nodes[nid].stopReport()
+                pass
             logger.info("task done", task_name)
             pass
 

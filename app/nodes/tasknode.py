@@ -99,6 +99,12 @@ class FATaskNode(FABaseNode):
         self.id = newid
         pass
 
+    async def startReport(self):
+        pass
+
+    async def stopReport(self):
+        pass
+
     async def invoke(self):
         # logger.debug(f"invoke {self.data.label} {self.id}")
         await asyncio.gather(*(event.wait() for event in self.waitEvents))
