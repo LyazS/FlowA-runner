@@ -9,6 +9,7 @@ import sys
 import json
 import traceback
 import base64
+from loguru import logger
 import subprocess
 from enum import Enum
 from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
@@ -29,6 +30,7 @@ from .basenode import FABaseNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 from app.utils.vueRef import serialize_ref
+
 
 class FANode_jinja2_template(FABaseNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
@@ -91,11 +93,30 @@ class FANode_jinja2_template(FABaseNode):
                     )
         except Exception as e:
             errmsg = traceback.format_exc()
+            logger.error(f"执行Jinja2节点{self.id}出错{str(errmsg)}")
             pass
         pass
 
-    def getCurData(self) -> Optional[List[FANodeUpdateData]]:
-        return []
+    async def getCurData(self) -> Optional[List[FANodeUpdateData]]:
+        curData = []
+        node_payloads = self.data.getContent("payloads")
+        D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
+        for var_dict in D_VARSINPUT.data.value:
+            var = Single_VarInput.model_validate(var_dict)
+            if var.type == VarType.ref:
+                refdata: str = var.value
+                nid, contentname, ctid = refdata.split("/")
+                thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
+                curData.append(
+                    FANodeUpdateData(
+                        type=FANodeUpdateType.overwrite,
+                        path=[var.key],
+                        data=serialize_ref(
+                            thenode.data.getContent(contentname).byId[ctid].data
+                        ),
+                    )
+                )
+        return curData
 
     def validate(
         self,

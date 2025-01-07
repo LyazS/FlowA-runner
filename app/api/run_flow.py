@@ -114,7 +114,7 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
                 fetch_nids = prequest.selected_nids
                 pass
             for nid in fetch_nids:
-                ndata = farunner.nodes[nid].getCurData()
+                ndata = await farunner.nodes[nid].getCurData()
                 if ndata is None:
                     continue
                 sse_data = SSEResponseData(
@@ -145,7 +145,7 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
                 p_msg = await ALL_MESSAGES_MGR.get(task_name)
                 # if p_msg is None:
                 #     continue
-                # logger.debug(p_msg.model_dump_json(indent=2))
+                logger.debug(p_msg.model_dump_json(indent=2))
                 yield p_msg.toSSEResponse()
                 ALL_MESSAGES_MGR.task_done(task_name)
                 if p_msg.event == SSEResponseType.flowfinish:

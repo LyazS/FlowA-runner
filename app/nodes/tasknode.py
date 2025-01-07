@@ -247,7 +247,7 @@ class FATaskNode(FABaseNode):
         self.setAllOutputStatus(FANodeStatus.Success)
         pass
 
-    def getCurData(self) -> Optional[List[FANodeUpdateData]]:
+    async def getCurData(self) -> Optional[List[FANodeUpdateData]]:
         return [
             FANodeUpdateData(
                 type=FANodeUpdateType.overwrite,

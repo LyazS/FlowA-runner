@@ -76,7 +76,7 @@ class FABaseNode(ABC):
         pass
 
     @abstractmethod
-    def getCurData(self) -> Optional[List[FANodeUpdateData]]:
+    async def getCurData(self) -> Optional[List[FANodeUpdateData]]:
         return []
 
     @abstractmethod
