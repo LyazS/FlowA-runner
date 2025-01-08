@@ -1,5 +1,7 @@
-from typing import Any
+from typing import Any, List, Dict, Union
 import copy
+from enum import Enum
+import asyncio
 from pydantic_core import core_schema
 from typing_extensions import Annotated
 from pydantic import (
@@ -10,14 +12,29 @@ from pydantic import (
 from pydantic.json_schema import JsonSchemaValue
 
 
+class RefOptions(Enum):
+    set = "set"
+    setitem = "setitem"
+    delitem = "delitem"
+    append = "append"
+    pop = "pop"
+    pass
+
+
+class RefTriggerData(BaseModel):
+    path: List[Union[str, int]]
+    operation: RefOptions
+    new_value: Any
+    old_value: Any
+    pass
+
+
 class Ref:
     def __init__(self, value):
         self._dependencies = set()  # 初始化 _dependencies
         self._value = self._wrap_value(
             value,
-            lambda path, operation, new_value, old_value: self._trigger(
-                path, operation, new_value, old_value
-            ),
+            lambda triggerdata: self._trigger(triggerdata),
         )
 
     def __deepcopy__(self, memo):
@@ -49,21 +66,26 @@ class Ref:
             old_value = self._value
             self._value = self._wrap_value(
                 new_value,
-                lambda path, operation, new_value, old_value: self._trigger(
-                    path, operation, new_value, old_value
-                ),
+                lambda triggerdata: self._trigger(triggerdata),
             )
-            self._trigger([], "set", new_value, old_value)  # 直接触发全局更新
+            self._trigger(
+                RefTriggerData(
+                    path=[],
+                    operation=RefOptions.set,
+                    new_value=new_value,
+                    old_value=old_value,
+                )
+            )
 
     def _track(self):
         # 模拟依赖收集
         # print("Tracking dependency...")
         pass
 
-    def _trigger(self, path, operation, new_value, old_value):
+    def _trigger(self, triggerdata: RefTriggerData):
         # 触发所有依赖回调，并传递路径、操作类型、新值和旧值
         for callback in self._dependencies:
-            callback(path, operation, new_value, old_value)
+            callback(triggerdata)
 
     def add_dependency(self, callback):
         # 添加依赖回调
@@ -81,8 +103,13 @@ class ReactiveDict(dict):
         for key, value in self.items():
             v = self._wrap_value(
                 value,
-                lambda path, operation, new_value, old_value, key=key: self._trigger_callback(
-                    [key] + path, operation, new_value, old_value
+                lambda triggerdata, key=key: self._trigger_callback(
+                    RefTriggerData(
+                        path=[key] + triggerdata.path,
+                        operation=triggerdata.operation,
+                        new_value=triggerdata.new_value,
+                        old_value=triggerdata.old_value,
+                    )
                 ),
             )
             super().__setitem__(key, v)
@@ -103,13 +130,23 @@ class ReactiveDict(dict):
         old_value = self.get(key)
         value = self._wrap_value(
             value,
-            lambda path, operation, new_value, old_value, key=key: self._trigger_callback(
-                [key] + path, operation, new_value, old_value
+            lambda triggerdata, key=key: self._trigger_callback(
+                RefTriggerData(
+                    path=[key] + triggerdata.path,
+                    operation=triggerdata.operation,
+                    new_value=triggerdata.new_value,
+                    old_value=triggerdata.old_value,
+                )
             ),
         )
         super().__setitem__(key, value)
         self._trigger_callback(
-            [key], "setitem", value, old_value
+            RefTriggerData(
+                path=[key],
+                operation=RefOptions.setitem,
+                new_value=value,
+                old_value=old_value,
+            )
         )  # 传递路径、操作类型、新值和旧值
 
     def __getitem__(self, key):
@@ -122,7 +159,12 @@ class ReactiveDict(dict):
         old_value = self.get(key)
         super().__delitem__(key)
         self._trigger_callback(
-            [key], "delitem", None, old_value
+            RefTriggerData(
+                path=[key],
+                operation=RefOptions.delitem,
+                new_value=None,
+                old_value=old_value,
+            )
         )  # 传递路径、操作类型、新值和旧值
 
 
@@ -134,8 +176,13 @@ class ReactiveList(list):
         for i, item in enumerate(self):
             v = self._wrap_value(
                 item,
-                lambda path, operation, new_value, old_value, i=i: self._trigger_callback(
-                    [i] + path, operation, new_value, old_value
+                lambda triggerdata, i=i: self._trigger_callback(
+                    RefTriggerData(
+                        path=[i] + triggerdata.path,
+                        operation=triggerdata.operation,
+                        new_value=triggerdata.new_value,
+                        old_value=triggerdata.old_value,
+                    )
                 ),
             )
             super().__setitem__(i, v)
@@ -156,13 +203,23 @@ class ReactiveList(list):
         old_value = self[key]
         value = self._wrap_value(
             value,
-            lambda path, operation, new_value, old_value, key=key: self._trigger_callback(
-                [key] + path, operation, new_value, old_value
+            lambda triggerdata, key=key: self._trigger_callback(
+                RefTriggerData(
+                    path=[key] + triggerdata.path,
+                    operation=triggerdata.operation,
+                    new_value=triggerdata.new_value,
+                    old_value=triggerdata.old_value,
+                )
             ),
         )
         super().__setitem__(key, value)
         self._trigger_callback(
-            [key], "setitem", value, old_value
+            RefTriggerData(
+                path=[key],
+                operation=RefOptions.setitem,
+                new_value=value,
+                old_value=old_value,
+            )
         )  # 传递路径、操作类型、新值和旧值
 
     def __getitem__(self, key):
@@ -175,24 +232,49 @@ class ReactiveList(list):
         old_value = self[key]
         super().__delitem__(key)
         self._trigger_callback(
-            [key], "delitem", None, old_value
+            RefTriggerData(
+                path=[key],
+                operation=RefOptions.delitem,
+                new_value=None,
+                old_value=old_value,
+            )
         )  # 传递路径、操作类型、新值和旧值
 
     def append(self, value):
         nowlen = len(self)
         value = self._wrap_value(
             value,
-            lambda path, operation, new_value, old_value, nowlen=nowlen: self._trigger_callback(
-                [nowlen] + path, operation, new_value, old_value
+            lambda triggerdata, nowlen=nowlen: self._trigger_callback(
+                RefTriggerData(
+                    path=[nowlen] + triggerdata.path,
+                    operation=triggerdata.operation,
+                    new_value=triggerdata.new_value,
+                    old_value=triggerdata.old_value,
+                )
             ),
         )
         super().append(value)
-        self._trigger_callback([], "append", value, None)  # 路径只到列表本身
+        self._trigger_callback(
+            RefTriggerData(
+                path=[],
+                operation=RefOptions.append,
+                new_value=value,
+                old_value=None,
+            )
+        )  # 路径只到列表本身
 
     def pop(self, index=-1):
         old_value = self[index]
         result = super().pop(index)
-        self._trigger_callback([], "pop", None, old_value)  # 路径只到列表本身
+        self._trigger_callback(
+            RefTriggerData(
+                path=[],
+                operation=RefOptions.pop,
+                new_value=None,
+                old_value=old_value,
+            )
+        )  # 路径只到列表本身
+
         return result
 
 
@@ -267,11 +349,11 @@ RefType = Annotated[Ref, _RefTypePydanticAnnotation]
 # 运行所有测试
 if __name__ == "__main__":
 
-    def update_callback(path, operation, new_value, old_value):
-        print(f"Update detected at path: {path}")
-        print(f"Operation: {operation}")
-        print(f"New value: {new_value}")
-        print(f"Old value: {old_value}")
+    def update_callback(triggerdata: RefTriggerData):
+        print(f"Update detected at path: {triggerdata.path}")
+        print(f"Operation: {triggerdata.operation}")
+        print(f"New value: {triggerdata.new_value}")
+        print(f"Old value: {triggerdata.old_value}")
         print("------")
 
     # 测试 1: 基本类型（整数）
@@ -400,17 +482,17 @@ if __name__ == "__main__":
         data = RefType(0)
         mat = RefType([])
         mat.add_dependency(
-            lambda path, operation, new_value, old_value: {
+            lambda triggerdata: {
                 print("mat", end=" "),
-                update_callback(path, operation, new_value, old_value),
+                update_callback(triggerdata),
             }
         )
         mat.value.append(data)
         mat2 = RefType({"a": []})
         mat2.add_dependency(
-            lambda path, operation, new_value, old_value: {
+            lambda triggerdata: {
                 print("mat2", end=" "),
-                update_callback(path, operation, new_value, old_value),
+                update_callback(triggerdata),
             }
         )
         mat2.value["a"].append(data)

@@ -38,6 +38,7 @@ class FANodeUpdateType(Enum):
     overwrite = "overwrite"
     append = "append"
     remove = "remove"
+    dontcare = "dontcare"
     pass
 
 

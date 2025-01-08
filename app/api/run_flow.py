@@ -114,6 +114,9 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
                 fetch_nids = prequest.selected_nids
                 pass
             for nid in fetch_nids:
+                if nid not in farunner.nodes:
+                    logger.warning(f"node {nid} not found in task {taskid}")
+                    continue
                 await farunner.nodes[nid].startReport()
                 ndata = await farunner.nodes[nid].getCurData()
                 if ndata is None:
@@ -146,7 +149,8 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
                 p_msg = await ALL_MESSAGES_MGR.get(task_name)
                 # if p_msg is None:
                 #     continue
-                logger.debug(p_msg.model_dump_json(indent=2))
+                if prequest.node_type == FAProgressNodeType.SELECTED:
+                    logger.debug(p_msg.model_dump_json(indent=2))
                 yield p_msg.toSSEResponse()
                 ALL_MESSAGES_MGR.task_done(task_name)
                 if p_msg.event == SSEResponseType.flowfinish:
@@ -162,7 +166,7 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
             for nid in fetch_nids:
                 await farunner.nodes[nid].stopReport()
                 pass
-            logger.info("task done", task_name)
+            logger.info(f"task done {task_name}" )
             pass
 
     return EventSourceResponse(event_generator())

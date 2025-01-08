@@ -29,7 +29,7 @@ from app.utils.tools import read_yaml
 from .basenode import FABaseNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
-from app.utils.vueRef import serialize_ref
+from app.utils.vueRef import serialize_ref, RefOptions, RefTriggerData
 
 
 class FANode_jinja2_template(FABaseNode):
@@ -48,12 +48,9 @@ class FANode_jinja2_template(FABaseNode):
         self.inReporting = False
         pass
 
-    async def report(
+    def report(
         self,
-        path,
-        operation,
-        new_value,
-        old_value,
+        triggerdata: RefTriggerData,
         key,
         tid,
         nid,
@@ -70,13 +67,14 @@ class FANode_jinja2_template(FABaseNode):
                     oriid=oriid,
                     data=[
                         FANodeUpdateData(
-                            type=FANodeUpdateType.overwrite,
-                            path=[key] + path,
-                            data={
-                                "operation": operation,
-                                "new_value": serialize_ref(new_value),
-                                "old_value": old_value,
-                            },
+                            type=FANodeUpdateType.dontcare,
+                            path=[key],
+                            data=RefTriggerData(
+                                path=triggerdata.path,
+                                operation=triggerdata.operation,
+                                new_value=serialize_ref(triggerdata.new_value),
+                                old_value=serialize_ref(triggerdata.old_value),
+                            ),
                         )
                     ],
                 ),
@@ -95,12 +93,9 @@ class FANode_jinja2_template(FABaseNode):
                     nid, contentname, ctid = refdata.split("/")
                     thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
                     thenode.data.getContent(contentname).byId[ctid].data.add_dependency(
-                        lambda path, operation, new_value, old_value, key=var.key, tid=self.tid, nid=self.id, oriid=self.oriid: (
+                        lambda triggerdata, key=var.key, tid=self.tid, nid=self.id, oriid=self.oriid: (
                             self.report(
-                                path,
-                                operation,
-                                new_value,
-                                old_value,
+                                triggerdata,
                                 key,
                                 tid,
                                 nid,
@@ -128,19 +123,29 @@ class FANode_jinja2_template(FABaseNode):
                 thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
                 curData.append(
                     FANodeUpdateData(
-                        type=FANodeUpdateType.overwrite,
+                        type=FANodeUpdateType.dontcare,
                         path=[var.key],
-                        data=serialize_ref(
-                            thenode.data.getContent(contentname).byId[ctid].data
+                        data=RefTriggerData(
+                            path=[],
+                            operation=RefOptions.set,
+                            new_value=serialize_ref(
+                                thenode.data.getContent(contentname).byId[ctid].data
+                            ),
+                            old_value=None,
                         ),
                     )
                 )
             else:
                 curData.append(
                     FANodeUpdateData(
-                        type=FANodeUpdateType.overwrite,
-                        path=var.key,
-                        data=var.value,
+                        type=FANodeUpdateType.dontcare,
+                        path=[var.key],
+                        data=RefTriggerData(
+                            path=[],
+                            operation=RefOptions.set,
+                            new_value=var.value,
+                            old_value=None,
+                        ),
                     )
                 )
         return curData
