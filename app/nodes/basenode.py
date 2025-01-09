@@ -1,5 +1,5 @@
 from typing import List, Dict, Optional, TYPE_CHECKING, Any
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 import asyncio
 import re
 from pydantic import BaseModel
@@ -94,6 +94,6 @@ class FABaseNode(ABC):
     ) -> Optional[ValidationError]:
         return None
 
-    @abstractmethod
-    async def processRequest(self, request: dict):
-        return FAWorkflowOperationResponse(success=True)
+    @staticmethod
+    def getNodeConfig():
+        return {}

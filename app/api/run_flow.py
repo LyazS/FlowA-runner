@@ -149,8 +149,8 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
                 p_msg = await ALL_MESSAGES_MGR.get(task_name)
                 # if p_msg is None:
                 #     continue
-                if prequest.node_type == FAProgressNodeType.SELECTED:
-                    logger.debug(p_msg.model_dump_json(indent=2))
+                # if prequest.node_type == FAProgressNodeType.SELECTED:
+                #     logger.debug(p_msg.model_dump_json(indent=2))
                 yield p_msg.toSSEResponse()
                 ALL_MESSAGES_MGR.task_done(task_name)
                 if p_msg.event == SSEResponseType.flowfinish:

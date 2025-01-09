@@ -321,8 +321,3 @@ async def load_result(wid: int, tid: str):
         logger.error(f"load result error: {errmsg}")
         return FAWorkflowOperationResponse(success=False, message=errmsg)
 
-
-@router.post("/noderequest")
-async def node_request(noderequest: FAWorkflowNodeRequest):
-    
-    pass

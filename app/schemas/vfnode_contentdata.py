@@ -34,6 +34,24 @@ class LLMRole(Enum):
     pass
 
 
+class Single_LLMModelConfig(BaseModel):
+    type: str
+    value: Optional[Union[str, int, float, bool]]
+    pass
+
+
+class LLMModelConfig(BaseModel):
+    model: Single_LLMModelConfig
+    stream: bool
+    max_tokens: Single_LLMModelConfig
+    temperature: Single_LLMModelConfig
+    top_p: Single_LLMModelConfig
+    top_k: Single_LLMModelConfig
+    frequency_penalty: Single_LLMModelConfig
+    response_format: Single_LLMModelConfig
+    stop: Single_LLMModelConfig
+
+
 class Single_Prompt(BaseModel):
     role: LLMRole
     content: str

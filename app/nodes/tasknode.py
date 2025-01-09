@@ -268,5 +268,6 @@ class FATaskNode(FABaseNode):
     ) -> Optional[ValidationError]:
         return None
 
-    async def processRequest(self, request: dict):
-        return FAWorkflowOperationResponse(success=True)
+    @staticmethod
+    def getNodeConfig():
+        return {}

@@ -170,5 +170,6 @@ class FANode_jinja2_template(FABaseNode):
             return ValidationError(nid=self.id, errors=error_msgs)
         return None
 
-    async def processRequest(self, request: dict):
-        return FAWorkflowOperationResponse(success=True)
+    @staticmethod
+    def getNodeConfig():
+        return {}
