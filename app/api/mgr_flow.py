@@ -37,7 +37,6 @@ from app.schemas.farequest import (
     FAWorkflowBaseInfo,
     FAResultBaseInfo,
     FAWorkflowNodeRequest,
-    FAWorkflowOperationResponse,
 )
 from app.services.FARunner import FARunner
 from app.db.session import get_db_ctxmgr

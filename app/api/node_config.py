@@ -37,16 +37,12 @@ from app.schemas.farequest import (
     FAWorkflowBaseInfo,
     FAResultBaseInfo,
     FAWorkflowNodeRequest,
-    FAWorkflowOperationResponse,
 )
-from app.services.FARunner import FARunner
-from app.db.session import get_db_ctxmgr
 from app.models.fastore import (
     FAWorkflowModel,
     FAWorkflowResultModel,
     FAWorkflowNodeResultModel,
 )
-from sqlalchemy import select, update, exc, exists, delete
 from app.nodes import FANODECOLLECTION
 from app.nodes.basenode import FABaseNode
 
@@ -57,7 +53,9 @@ router = APIRouter()
 async def nodeconfig(ntype: str):
     if ntype in FANODECOLLECTION:
         node: "FABaseNode" = FANODECOLLECTION[ntype]
-        return node.getNodeConfig()
+        return FAWorkflowOperationResponse(success=True, data=node.getNodeConfig())
     else:
-        return {"error": "node type not found"}
-    pass
+        return FAWorkflowOperationResponse(
+            success=False,
+            message=f"Node type {ntype} not found in FANODECOLLECTION",
+        )
