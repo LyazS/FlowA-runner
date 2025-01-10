@@ -10,13 +10,25 @@ import json
 import traceback
 import base64
 import subprocess
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, NotGiven
 from openai.types.chat import ChatCompletion
 from enum import Enum
 from decimal import Decimal
+from app.utils.tools import replace_vars
 from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
-from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
-from app.schemas.vfnode_contentdata import Single_VarInput, VarType, LLMModelConfig
+from app.schemas.vfnode import (
+    VFNodeInfo,
+    VFNodeContentData,
+    VFNodeContentDataType,
+)
+from app.schemas.vfnode_contentdata import (
+    Single_VarInput,
+    VarType,
+    LLMModelConfig,
+    Single_LLMModelConfig_type,
+    Single_LLMModelConfig,
+    Single_Prompt,
+)
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
@@ -59,6 +71,7 @@ MODELS = {
     )
     for m in NodeConfig["models"]
 }
+AsyncOAIClient = AsyncOpenAI(base_url=BASE_URL, api_key=API_KEY)
 
 
 class FANode_LLM_inference(FATaskNode):
@@ -66,6 +79,12 @@ class FANode_LLM_inference(FATaskNode):
         super().__init__(tid, nodeinfo)
         self.validateNeededs = [FANodeValidateNeed.Self]
         pass
+
+    def validateConfigVar(self, s_config: Single_LLMModelConfig, selfVars):
+        if s_config.type == Single_LLMModelConfig_type.REF:
+            if s_config.value not in selfVars:
+                return False
+        return True
 
     def validate(
         self,
@@ -85,11 +104,85 @@ class FANode_LLM_inference(FATaskNode):
             model_cfg = LLMModelConfig.model_validate(D_MODELCONFIG.data.value)
             if model_cfg.model.value not in MODELS:
                 error_msgs.append(f"模型{model_cfg.model.value}不在支持列表中")
+            if not self.validateConfigVar(model_cfg.model, selfVars):
+                error_msgs.append(f"模型配置变量{model_cfg.model.value}未定义")
+            if not self.validateConfigVar(model_cfg.max_tokens, selfVars):
+                error_msgs.append(f"模型配置变量{model_cfg.max_tokens.value}未定义")
+            if not self.validateConfigVar(model_cfg.temperature, selfVars):
+                error_msgs.append(f"模型配置变量{model_cfg.temperature.value}未定义")
+            if not self.validateConfigVar(model_cfg.top_p, selfVars):
+                error_msgs.append(f"模型配置变量{model_cfg.top_p.value}未定义")
+            if not self.validateConfigVar(model_cfg.frequency_penalty, selfVars):
+                error_msgs.append(
+                    f"模型配置变量{model_cfg.frequency_penalty.value}未定义"
+                )
+            if not self.validateConfigVar(model_cfg.response_format, selfVars):
+                error_msgs.append(
+                    f"模型配置变量{model_cfg.response_format.value}未定义"
+                )
+
         except Exception as e:
             pass
         if len(error_msgs) > 0:
             return ValidationError(nid=self.id, errors=error_msgs)
         return None
+
+    async def getConfigVar(self, s_config: Single_LLMModelConfig):
+        if s_config.type == Single_LLMModelConfig_type.REF:
+            return await self.getVar(
+                Single_VarInput(
+                    key="",
+                    type=VarType.ref,
+                    value=s_config.value,
+                )
+            )
+            pass
+        elif s_config.type == Single_LLMModelConfig_type.VALUE:
+            return s_config.value
+        elif s_config.type == Single_LLMModelConfig_type.NULL:
+            return NotGiven
+        return NotGiven
+
+    async def run(self) -> List[FANodeUpdateData]:
+        try:
+            node_payloads = self.data.getContent("payloads")
+            D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
+            D_MODELCONFIG: VFNodeContentData = node_payloads.byId["D_MODELCONFIG"]
+            D_PROMPTS: VFNodeContentData = node_payloads.byId["D_PROMPTS"]
+            InputArgs = {}
+            for var_dict in D_VARSINPUT.data.value:
+                var = Single_VarInput.model_validate(var_dict)
+                InputArgs[var.key] = await self.getVar(var)
+            model_cfg = LLMModelConfig.model_validate(D_MODELCONFIG.data.value)
+            completions_params = {
+                "model": await self.getConfigVar(model_cfg.model),
+                "stream": model_cfg.stream,
+                "max_tokens": await self.getConfigVar(model_cfg.max_tokens),
+                "temperature": await self.getConfigVar(model_cfg.temperature),
+                "top_p": await self.getConfigVar(model_cfg.top_p),
+                # "top_k": await self.getConfigVar(model_cfg.top_k),
+                "frequency_penalty": await self.getConfigVar(
+                    model_cfg.frequency_penalty
+                ),
+            }
+            if await self.getConfigVar(model_cfg.response_format) == "json":
+                completions_params["response_format"] = {"type": "json_object"}
+            # messages
+            messages = []
+            for prompt in D_PROMPTS.data.value:
+                prompt_obj = Single_Prompt.model_validate(prompt)
+                prompt_obj.content = replace_vars(prompt_obj.content, InputArgs)
+                messages.append(prompt_obj.model_dump_json())
+                pass
+            completions_params["messages"] = messages
+            chat_completion: ChatCompletion = await AsyncOAIClient.with_options(
+                max_retries=10
+            ).chat.completions.create(**completions_params)
+            self.setAllOutputStatus(FANodeStatus.Success)
+        except Exception as e:
+            errmsg = traceback.format_exc()
+            raise Exception(f"节点运行失败：{errmsg}")
+        pass
 
     @staticmethod
     def getNodeConfig():
