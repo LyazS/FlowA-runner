@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, Any, Optional
+from typing import List, Union, Dict, Any, Optional, cast
 from pydantic import BaseModel
 import asyncio
 import os
@@ -10,8 +10,9 @@ import json
 import traceback
 import base64
 import subprocess
+from loguru import logger
 from openai import AsyncOpenAI, NotGiven
-from openai.types.chat import ChatCompletion
+from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from enum import Enum
 from decimal import Decimal
 from app.utils.tools import replace_vars
@@ -146,9 +147,15 @@ class FANode_LLM_inference(FATaskNode):
     async def run(self) -> List[FANodeUpdateData]:
         try:
             node_payloads = self.data.getContent("payloads")
+            node_results = self.data.getContent("results")
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
             D_MODELCONFIG: VFNodeContentData = node_payloads.byId["D_MODELCONFIG"]
             D_PROMPTS: VFNodeContentData = node_payloads.byId["D_PROMPTS"]
+            D_ANSWER: VFNodeContentData = node_results.byId["D_ANSWER"]
+            D_MODEL: VFNodeContentData = node_results.byId["D_MODEL"]
+            D_IN_TOKEN: VFNodeContentData = node_results.byId["D_IN_TOKEN"]
+            D_OUT_TOKEN: VFNodeContentData = node_results.byId["D_OUT_TOKEN"]
+            D_STOP_REASON: VFNodeContentData = node_results.byId["D_STOP_REASON"]
             InputArgs = {}
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
@@ -165,6 +172,9 @@ class FANode_LLM_inference(FATaskNode):
                     model_cfg.frequency_penalty
                 ),
             }
+            if model_cfg.stream:
+                completions_params["stream_options"] = {"include_usage": True}
+                pass
             if await self.getConfigVar(model_cfg.response_format) == "json":
                 completions_params["response_format"] = {"type": "json_object"}
             # messages
@@ -172,16 +182,42 @@ class FANode_LLM_inference(FATaskNode):
             for prompt in D_PROMPTS.data.value:
                 prompt_obj = Single_Prompt.model_validate(prompt)
                 prompt_obj.content = replace_vars(prompt_obj.content, InputArgs)
-                messages.append(prompt_obj.model_dump_json())
+                messages.append(json.loads(prompt_obj.model_dump_json()))
                 pass
             completions_params["messages"] = messages
+            completions_params = {
+                k: v for k, v in completions_params.items() if v is not NotGiven
+            }
             chat_completion: ChatCompletion = await AsyncOAIClient.with_options(
                 max_retries=10
             ).chat.completions.create(**completions_params)
+            D_ANSWER.data.value = ""
+            if model_cfg.stream:
+                async for chunk in chat_completion:
+                    chunk = cast(ChatCompletionChunk, chunk)
+                    if len(chunk.choices) > 0:
+                        content = chunk.choices[0].delta.content
+                        D_ANSWER.data.value += content
+                        D_STOP_REASON.data.value = chunk.choices[0].finish_reason
+                        pass
+                    if chunk.usage is not None:
+                        D_IN_TOKEN.data.value = chunk.usage.prompt_tokens
+                        D_OUT_TOKEN.data.value = chunk.usage.completion_tokens
+                        pass
+            else:
+                D_ANSWER.data.value = chat_completion.choices[0].message.content
+                D_IN_TOKEN.data.value = chat_completion.usage.prompt_tokens
+                D_OUT_TOKEN.data.value = chat_completion.usage.completion_tokens
+                D_STOP_REASON.data.value = chat_completion.choices[0].finish_reason
+                pass
+            D_MODEL.data.value = completions_params["model"]
+            logger.info(
+                f"补全Tokens：{D_IN_TOKEN.data.value} + {D_OUT_TOKEN.data.value}"
+            )
             self.setAllOutputStatus(FANodeStatus.Success)
         except Exception as e:
             errmsg = traceback.format_exc()
-            raise Exception(f"节点运行失败：{errmsg}")
+            raise Exception(f"LLM节点运行失败：{errmsg}")
         pass
 
     @staticmethod
