@@ -30,7 +30,7 @@ class BigJSONType(TypeDecorator):
     def process_bind_param(self, value, dialect):
         """插入数据时，将 dict 序列化为 JSON 字符串"""
         if value is not None:
-            return json.dumps(value)
+            return json.dumps(value, ensure_ascii=False)
         return None
 
     def process_result_value(self, value, dialect):
