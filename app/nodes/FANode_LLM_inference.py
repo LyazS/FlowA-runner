@@ -11,6 +11,7 @@ import traceback
 import base64
 import subprocess
 from loguru import logger
+import openai
 from openai import AsyncOpenAI, NotGiven
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from enum import Enum
@@ -215,6 +216,21 @@ class FANode_LLM_inference(FATaskNode):
                 f"补全Tokens：{D_IN_TOKEN.data.value} + {D_OUT_TOKEN.data.value}"
             )
             self.setAllOutputStatus(FANodeStatus.Success)
+        except openai.APIConnectionError as e:
+            logger.error("The server could not be reached")
+            logger.error(e.__cause__)  # an underlying Exception, likely raised within httpx.
+            errmsg = traceback.format_exc()
+            raise Exception(f"LLM节点运行失败：{errmsg}")
+        except openai.RateLimitError as e:
+            logger.error("A 429 status code was received; we should back off a bit.")
+            errmsg = traceback.format_exc()
+            raise Exception(f"LLM节点运行失败：{errmsg}")
+        except openai.APIStatusError as e:
+            logger.error("Another non-200-range status code was received")
+            logger.error(e.status_code)
+            logger.error(e.response)
+            errmsg = traceback.format_exc()
+            raise Exception(f"LLM节点运行失败：{errmsg}")
         except Exception as e:
             errmsg = traceback.format_exc()
             raise Exception(f"LLM节点运行失败：{errmsg}")
