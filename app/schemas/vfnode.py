@@ -1,10 +1,11 @@
 import asyncio
 import uuid
 from typing import List, Any, Dict, Optional
-from enum import Enum
+from enum import Enum, Flag
 from pydantic import BaseModel
 import json
-from .vfnode_contentdata import VFNodeContentDataType, VFNodeContentDataSchema
+from .vfnode_contentdata import VFNodeContentDataType
+from app.utils.vueRef import RefType
 
 
 class VFNodeContentDataConfig(BaseModel):
@@ -15,7 +16,7 @@ class VFNodeContentData(BaseModel):
     label: str
     type: VFNodeContentDataType
     key: str
-    data: Any
+    data: RefType
     config: Optional[VFNodeContentDataConfig] = None
     hid: Optional[str] = None
     oid: Optional[str] = None
@@ -82,10 +83,19 @@ class VFNodeConnections(BaseModel):
     pass
 
 
-class VFNodeFlags(BaseModel):
-    isNested: bool
-    isAttached: bool
-    isDisabled: bool
+class VFNodeFlag(Flag):
+    isNested = 0x01
+    isAttached = 0x02
+    isTask = 0x04
+    isPassive = 0x08
+    pass
+
+
+# class VFNodeFlags(BaseModel):
+#     isNested: bool
+#     isAttached: bool
+#     isTask: bool
+#     isDisabled: bool
 
 
 class VFNodeAttaching(BaseModel):
@@ -122,7 +132,8 @@ class VFNodeNesting(BaseModel):
 class VFNodeData(BaseModel):
     ntype: str
     vtype: str
-    flags: VFNodeFlags
+    # flags: VFNodeFlags
+    flag: VFNodeFlag
     label: str
     placeholderlabel: str
     size: Optional[VFNodeSize] = None

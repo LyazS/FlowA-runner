@@ -3,10 +3,10 @@ import asyncio
 from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.farequest import ValidationError
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 
 
-class FANode_text_print(FABaseNode):
+class FANode_text_print(FATaskNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
         self.validateNeededs = [FANodeValidateNeed.Self]
@@ -26,7 +26,7 @@ class FANode_text_print(FABaseNode):
             for pid in self.data.getContent("payloads").order:
                 item: VFNodeContentData = self.data.getContent("payloads").byId[pid]
                 if item.type == VFNodeContentDataType.List:
-                    for refdata in item.data:
+                    for refdata in item.data.value:
                         if refdata not in selfVars:
                             error_msgs.append(f"变量未定义{refdata}")
                         pass

@@ -13,14 +13,14 @@ import subprocess
 from enum import Enum
 from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
-from app.schemas.vfnode_contentdata import Single_CodeInput
+from app.schemas.vfnode_contentdata import Single_VarInput,VarType
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
     FANodeUpdateData,
 )
 from app.utils.tools import read_yaml
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 
 
@@ -88,12 +88,12 @@ async def SimplePythonRun(code, evaltype: EvalType, snekboxUrl: str = ""):
                 return CodeOutput(success=False, error="代码执行失败，请检查代码输出")
 
     elif evaltype == EvalType.SnekBox:
-        pass
+        raise Exception(f"不支持的执行类型{evaltype}")
     else:
         raise Exception(f"不支持的执行类型{evaltype}")
 
 
-class FANode_code_interpreter(FABaseNode):
+class FANode_code_interpreter(FATaskNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
         self.validateNeededs = [FANodeValidateNeed.Self]
@@ -110,71 +110,57 @@ class FANode_code_interpreter(FABaseNode):
             CodeOutputArgs = []
             node_payloads = self.data.getContent("payloads")
             node_results = self.data.getContent("results")
-            for pid in node_payloads.order:
-                item: VFNodeContentData = node_payloads.byId[pid]
-                if item.type == VFNodeContentDataType.CodeInput:
-                    idata: List[Single_CodeInput] = item.data
-                    for var_dict in idata:
-                        var = Single_CodeInput.model_validate(var_dict)
-                        if var.refdata not in selfVars:
-                            error_msgs.append(f"变量未定义{var.refdata}")
-                        else:
-                            CodeInputArgs.add(var.key)
+
+            D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
+            for var_dict in D_VARSINPUT.data.value:
+                var = Single_VarInput.model_validate(var_dict)
+                if var.type == VarType.ref and var.value not in selfVars:
+                    error_msgs.append(f"变量未定义{var.value}")
+                else:
+                    CodeInputArgs.add(var.key)
             for pid in node_results.order:
                 item: VFNodeContentData = node_results.byId[pid]
                 CodeOutputArgs.append(item.key)
                 pass
-            for pid in node_payloads.order:
-                item: VFNodeContentData = node_payloads.byId[pid]
-                if item.type == VFNodeContentDataType.CodePython:
-                    if not isinstance(item.data, str):
-                        raise Exception(f"Python代码格式错误")
-                    try:
-                        tree = ast.parse(item.data)
-                        hasMain = False
-                        for node in ast.walk(tree):
-                            if (
-                                isinstance(node, ast.FunctionDef)
-                                and node.name == "main"
-                            ):
-                                hasMain = True
-                                # 检查输入名字是否对上
-                                input_params = [arg.arg for arg in node.args.args]
-                                for in_arg in input_params:
-                                    if in_arg not in CodeInputArgs:
-                                        raise Exception(f"缺少输入参数【{in_arg}】")
-                                    pass
-                                # 检查输出名字是否对上
-                                return_statements = [
-                                    n
-                                    for n in ast.walk(node)
-                                    if isinstance(n, ast.Return)
-                                ]
-                                for return_node in return_statements:
-                                    if isinstance(return_node.value, ast.Dict):
-                                        outputs = set(
-                                            [key.s for key in return_node.value.keys]
+
+            D_CODE: VFNodeContentData = node_payloads.byId["D_CODE"]
+            if not isinstance(D_CODE.data.value, str):
+                raise Exception(f"Python代码格式错误")
+            try:
+                tree = ast.parse(D_CODE.data.value)
+                hasMain = False
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.FunctionDef) and node.name == "main":
+                        hasMain = True
+                        # 检查输入名字是否对上
+                        input_params = [arg.arg for arg in node.args.args]
+                        for in_arg in input_params:
+                            if in_arg not in CodeInputArgs:
+                                raise Exception(f"缺少输入参数【{in_arg}】")
+                            pass
+                        # 检查输出名字是否对上
+                        return_statements = [
+                            n for n in ast.walk(node) if isinstance(n, ast.Return)
+                        ]
+                        for return_node in return_statements:
+                            if isinstance(return_node.value, ast.Dict):
+                                outputs = set([key.s for key in return_node.value.keys])
+                                for out_arg in CodeOutputArgs:
+                                    if out_arg not in outputs:
+                                        raise Exception(
+                                            f"返回值缺少输出参数【{out_arg}】"
                                         )
-                                        for out_arg in CodeOutputArgs:
-                                            if out_arg not in outputs:
-                                                raise Exception(
-                                                    f"返回值缺少输出参数【{out_arg}】"
-                                                )
-                                            pass
-                                    else:
-                                        raise Exception(f"main函数返回值必须为字典")
                                     pass
-                                break
-                        if not hasMain:
-                            raise Exception(f"未找到main函数")
-                    except SyntaxError:
-                        error_msgs.append(f"Python代码格式错误")
-                    except Exception as e:
-                        error_msgs.append(str(e))
-                elif item.type == VFNodeContentDataType.CodeJavaScript:
-                    if not isinstance(item.data, str):
-                        error_msgs.append(f"JavaScript代码格式错误")
-                    pass
+                            else:
+                                raise Exception(f"main函数返回值必须为字典")
+                            pass
+                        break
+                if not hasMain:
+                    raise Exception(f"未找到main函数")
+            except SyntaxError:
+                error_msgs.append(f"Python代码格式错误")
+            except Exception as e:
+                error_msgs.append(str(e))
             return error_msgs
         except Exception as e:
             errmsg = traceback.format_exc()
@@ -195,23 +181,20 @@ class FANode_code_interpreter(FABaseNode):
         CodeInputArgs = {}
         node_payloads = self.data.getContent("payloads")
         node_results = self.data.getContent("results")
-        CodeStr: str = ""
-        for pid in node_payloads.order:
-            item: VFNodeContentData = node_payloads.byId[pid]
-            if item.type == VFNodeContentDataType.CodeInput:
-                idata: List[Single_CodeInput] = item.data
-                for var_dict in idata:
-                    var = Single_CodeInput.model_validate(var_dict)
-                    CodeInputArgs[var.key] = await self.getRefData(var.refdata)
-            elif item.type == VFNodeContentDataType.CodePython:
-                CodeStr = item.data
+
+        D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
+        for var_dict in D_VARSINPUT.data.value:
+            var = Single_VarInput.model_validate(var_dict)
+            CodeInputArgs[var.key] = await self.getVar(var)
+        D_CODE: VFNodeContentData = node_payloads.byId["D_CODE"]
+
         # 开始执行代码
         code_in_args = json.dumps(CodeInputArgs, ensure_ascii=False)
         code_in_args_b64 = base64.b64encode(code_in_args.encode("utf-8")).decode(
             "utf-8"
         )
         code_run: str = copy.deepcopy(CODE_TEMPLATE)
-        code_run = code_run.replace(CODE_TEMPLATE_FUNCTION, CodeStr).replace(
+        code_run = code_run.replace(CODE_TEMPLATE_FUNCTION, D_CODE.data.value).replace(
             CODE_TEMPLATE_INPUT, code_in_args_b64
         )
         # 需要返回输出结果
@@ -230,25 +213,10 @@ class FANode_code_interpreter(FABaseNode):
                     )
                 )
                 # 更新内部数据
-                self.data.results.byId[rid].data = codeResult.output[item.key]
+                self.data.results.byId[rid].data.value = codeResult.output[item.key]
             # 返回之前先设置好输出handle状态
             self.setAllOutputStatus(FANodeStatus.Success)
             return returnUpdateData
         else:
             raise Exception(f"执行代码失败：{codeResult.error}")
-
-    def getCurData(self) -> Optional[List[FANodeUpdateData]]:
-        return [
-            FANodeUpdateData(
-                type=FANodeUpdateType.overwrite,
-                path=["state", "status"],
-                data=self.runStatus,
-            )
-        ] + [
-            FANodeUpdateData(
-                type=FANodeUpdateType.overwrite,
-                path=["results", "byId", rid, "data"],
-                data=self.data.results.byId[rid].data,
-            )
-            for rid in self.data.results.order
-        ]
+        pass
