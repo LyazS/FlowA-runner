@@ -17,7 +17,6 @@ from decimal import Decimal
 from datetime import datetime
 from app.db.base import Base
 from app.schemas.fanode import FARunnerStatus
-
 import json
 
 
@@ -57,6 +56,7 @@ class FAWorkflowModel(Base):
 
 class FAWorkflowResultModel(Base):
     __tablename__ = "faworkflow_result"
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     tid: Mapped[str] = mapped_column(String(255), index=True)
     usedvflow: Mapped[Optional[dict]] = mapped_column(BigJSONType, nullable=True)
@@ -64,9 +64,9 @@ class FAWorkflowResultModel(Base):
     starttime: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     endtime: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
-    # 外键关联到FAWorkflowModel
+    # 修改: 添加 ondelete="CASCADE"
     wid: Mapped[int] = mapped_column(
-        Integer, ForeignKey("faworkflow.wid"), nullable=False
+        Integer, ForeignKey("faworkflow.wid", ondelete="CASCADE"), nullable=False
     )
 
     # 反向关系
@@ -74,8 +74,8 @@ class FAWorkflowResultModel(Base):
         "FAWorkflowModel", back_populates="results"
     )
 
-    # 反向关系到节点结果
-    noderesults: Mapped[List[FAWorkflowNodeResultModel]] = relationship(
+    # 修改: 添加 passive_deletes=True
+    noderesults: Mapped[List["FAWorkflowNodeResultModel"]] = relationship(
         "FAWorkflowNodeResultModel",
         back_populates="result",
         cascade="all, delete-orphan",
@@ -84,6 +84,7 @@ class FAWorkflowResultModel(Base):
 
 class FAWorkflowNodeResultModel(Base):
     __tablename__ = "faworkflow_noderesult"
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     nid: Mapped[str] = mapped_column(String(255), index=True)
     oriid: Mapped[str] = mapped_column(String(255))
@@ -92,9 +93,9 @@ class FAWorkflowNodeResultModel(Base):
     parentNode: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     runStatus: Mapped[str] = mapped_column(String(255))  # Assuming it's a string enum
 
-    # 外键关联到FAWorkflowResultModel
+    # 修改: 添加 ondelete="CASCADE"
     tid: Mapped[int] = mapped_column(
-        Integer, ForeignKey("faworkflow_result.tid"), nullable=False
+        Integer, ForeignKey("faworkflow_result.tid", ondelete="CASCADE"), nullable=False
     )
 
     # 反向关系
