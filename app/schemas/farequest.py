@@ -38,12 +38,13 @@ class FANodeUpdateType(Enum):
     overwrite = "overwrite"
     append = "append"
     remove = "remove"
+    dontcare = "dontcare"
     pass
 
 
 class FANodeUpdateData(BaseModel):
     type: FANodeUpdateType
-    path: Optional[List[str]] = None
+    path: Optional[List[Union[str, int]]] = None
     data: Optional[Any] = None
     pass
 
@@ -73,7 +74,11 @@ class SSEResponse(BaseModel):
         if isinstance(self.data, SSEResponseData):
             data = self.data.model_dump_json()
         elif isinstance(self.data, list):
-            model_datas = [json.loads(d.model_dump_json()) for d in self.data]
+            model_datas = []
+            for d in self.data:
+                d_json = d.model_dump_json()
+                model_datas.append(json.loads(d_json))
+            # model_datas = [json.loads(d.model_dump_json()) for d in self.data]
             data = json.dumps(model_datas)
         return {
             "event": self.event.value,
@@ -147,8 +152,29 @@ class FAResultBaseInfo(BaseModel):
     pass
 
 
+class FAWorkflowNodeRequest(BaseModel):
+    wid: int
+    tid: str
+    nid: str
+    request: dict
+    pass
+
+
 class FAWorkflowOperationResponse(BaseModel):
     success: bool
     message: Optional[str] = None
     data: Optional[Any] = None
+    pass
+
+
+class FAProgressNodeType(Enum):
+    ALL_TASK_NODE = "ALL_TASK_NODE"
+    SELECTED = "SELECTED"
+    pass
+
+
+class FAProgressRequest(BaseModel):
+    tid: str
+    node_type: FAProgressNodeType
+    selected_nids: Optional[List[str]] = None
     pass

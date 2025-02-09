@@ -1,4 +1,4 @@
-from .basenode import FABaseNode
+from .tasknode import FATaskNode
 
 from .FANode_attached_node_callbackFunc import FANode_attached_node_callbackFunc
 from .FANode_attached_node_callbackUser import FANode_attached_node_callbackUser
@@ -10,9 +10,11 @@ from .FANode_code_interpreter import FANode_code_interpreter
 from .FANode_cond_branch import FANode_cond_branch
 from .FANode_iter_run import FANode_iter_run
 from .FANode_LLM_inference import FANode_LLM_inference
+from .FANode_http_requests import FANode_http_requests
 from .FANode_text_input import FANode_text_input
-from .FANode_text_print import FANode_text_print
 from .FANode_branch_aggregate import FANode_branch_aggregate
+
+from .FANode_jinja2_template import FANode_jinja2_template
 
 FANODECOLLECTION = {
     "attached_node_callbackFunc": FANode_attached_node_callbackFunc,
@@ -24,7 +26,8 @@ FANODECOLLECTION = {
     "cond_branch": FANode_cond_branch,
     "iter_run": FANode_iter_run,
     "LLM_inference": FANode_LLM_inference,
+    "http_requests": FANode_http_requests,
     "text_input": FANode_text_input,
-    "text_print": FANode_text_print,
-    "branch_aggregate": FANode_branch_aggregate
+    "branch_aggregate": FANode_branch_aggregate,
+    "jinja2_template": FANode_jinja2_template,
 }

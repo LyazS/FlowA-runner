@@ -36,6 +36,7 @@ from app.schemas.farequest import (
     FAWorkflowOperationResponse,
     FAWorkflowBaseInfo,
     FAResultBaseInfo,
+    FAWorkflowNodeRequest,
 )
 from app.services.FARunner import FARunner
 from app.db.session import get_db_ctxmgr
@@ -199,13 +200,14 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
 async def delete_workflow(wid: int):
     try:
         async with get_db_ctxmgr() as db:
-            stmt = select(exists().where(FAWorkflowModel.wid == wid))
-            db_result = await db.execute(stmt)
-            db_exists = db_result.scalar()
-            if db_exists:
-                await db.execute(
-                    delete(FAWorkflowModel).where(FAWorkflowModel.wid == wid)
-                )
+            # 使用 ORM 查询
+            stmt = select(FAWorkflowModel).where(FAWorkflowModel.wid == wid)
+            result = await db.execute(stmt)
+            workflow = result.scalar()
+
+            if workflow:
+                # 使用 ORM 的 delete 方法
+                await db.delete(workflow)
                 await db.commit()
                 return FAWorkflowOperationResponse(success=True)
             else:
@@ -282,9 +284,7 @@ async def read_all_results(wid: int):
                 )
         # 将result按照开始时间最新在前排序
         result.sort(
-            key=lambda x: x.starttime.replace(
-                tzinfo=ZoneInfo("Asia/Shanghai")
-            ),
+            key=lambda x: x.starttime.replace(tzinfo=ZoneInfo("Asia/Shanghai")),
             reverse=True,
         )
         return FAWorkflowOperationResponse(success=True, data=result)

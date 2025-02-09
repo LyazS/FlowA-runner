@@ -37,10 +37,10 @@ async def get_db():
     async with AsyncSessionFactory() as session:
         try:
             yield session
-            logger.debug("Database session created")
+            # logger.debug("Database session created")
         finally:
             await session.close()
-            logger.debug("Database session closed")
+            # logger.debug("Database session closed")
 
 
 @asynccontextmanager
@@ -48,10 +48,10 @@ async def get_db_ctxmgr():
     async with AsyncSessionFactory() as session:
         try:
             yield session
-            logger.debug("Database session created")
+            # logger.debug("Database session created")
         finally:
             await session.close()
-            logger.debug("Database session closed")
+            # logger.debug("Database session closed")
 
 
 async def close_db_connection():

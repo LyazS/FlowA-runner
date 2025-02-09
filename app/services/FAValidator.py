@@ -6,12 +6,12 @@ from app.schemas.vfnode import (
     VFNodeConnectionDataAttachedType,
 )
 from app.schemas.fanode import FANodeValidateNeed
-from app.nodes import FABaseNode, FANODECOLLECTION
+from app.nodes import FATaskNode, FANODECOLLECTION
 
 
 class FAValidator:
     def __init__(self):
-        self.nodes: Dict[str, FABaseNode] = {}
+        self.nodes: Dict[str, FATaskNode] = {}
         self.connectGraph = {}
         pass
 

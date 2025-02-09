@@ -27,14 +27,14 @@ class Settings(BaseSettings):
     # 其他配置
     DEBUG: bool = Field(default=False, description="是否开启调试模式")
 
-    # 工作流文件夹
-    WORKFLOW_FOLDER: str = Field(default="workflows", description="工作流文件夹")
-
     # 数据库配置
     DATABASE_URL: str = Field(
         default="sqlite+aiosqlite:///data.db", description="数据库连接字符串"
     )
     DATABASE_POOL_SIZE: int = Field(default=20, description="数据库连接池大小")
+
+    # SSE回传最多消息
+    SSE_MAX_MSG: int = Field(default=2, description="SSE回传最多消息")
 
     class Config:
         env_file = ".env"  # 读取.env文件中的环境变量
