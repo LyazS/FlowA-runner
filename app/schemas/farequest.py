@@ -120,7 +120,7 @@ class FAWorkflow(BaseModel):
 class FAWorkflowLocation(Enum):
     name = "name"
     vflow = "vflow"
-    results = "results"
+    release = "release"
     pass
 
 
@@ -133,14 +133,14 @@ class FAWorkflowUpdateRequset(BaseModel):
 class FAWorkflowReadRequest(BaseModel):
     wid: int
     locations: List[FAWorkflowLocation]
-    tid: Optional[str] = None
+    rwid: Optional[str] = None
     pass
 
 
 class FAWorkflowBaseInfo(BaseModel):
     wid: int
     name: str
-    last_modified: Optional[datetime]
+    lastModified: Optional[datetime]
     pass
 
 

@@ -42,8 +42,8 @@ from app.services.FARunner import FARunner
 from app.db.session import get_db_ctxmgr
 from app.models.fastore import (
     FAWorkflowModel,
-    FAWorkflowResultModel,
-    FAWorkflowNodeResultModel,
+    FAReleasedWorkflowModel,
+    FANodeCacheModel,
 )
 from sqlalchemy import select, update, exc, exists, delete
 
@@ -57,7 +57,7 @@ async def create_workflow(create_request: FAWorkflow):
             db_wf = FAWorkflowModel(
                 name=create_request.name,
                 vflow=create_request.vflow,
-                last_modified=datetime.now(ZoneInfo("Asia/Shanghai")),
+                lastModified=datetime.now(ZoneInfo("Asia/Shanghai")),
             )
             db.add(db_wf)
             await db.commit()
@@ -74,21 +74,21 @@ async def read_all_workflows():
     try:
         async with get_db_ctxmgr() as db:
             stmt = select(
-                FAWorkflowModel.wid, FAWorkflowModel.name, FAWorkflowModel.last_modified
+                FAWorkflowModel.wid, FAWorkflowModel.name, FAWorkflowModel.lastModified
             )
             db_result = await db.execute(stmt)
             db_workflows = db_result.mappings().all()
-            result = []
+            result: List[FAWorkflowBaseInfo] = []
             for db_wf in db_workflows:
                 result.append(
                     FAWorkflowBaseInfo(
                         wid=db_wf["wid"],
                         name=db_wf["name"],
-                        last_modified=db_wf["last_modified"],
+                        lastModified=db_wf["lastModified"],
                     )
                 )
             # 按照最近修改时间排序
-            result.sort(key=lambda x: x.last_modified, reverse=True)
+            result.sort(key=lambda x: x.lastModified, reverse=True)
             return FAWorkflowOperationResponse(success=True, data=result)
     except Exception as e:
         errmsg = traceback.format_exc()
@@ -114,29 +114,29 @@ async def read_workflow(read_request: FAWorkflowReadRequest):
                         name = db_result.scalars().first()
                         result.append(name)
                     elif location == FAWorkflowLocation.vflow:
-                        stmt = select(FAWorkflowModel.vflow).filter(
+                        stmt = select(FAWorkflowModel.curVFlow).filter(
                             FAWorkflowModel.wid == read_request.wid
                         )
                         db_result = await db.execute(stmt)
                         vflow = db_result.scalars().first()
                         result.append(vflow)
-                    elif location == FAWorkflowLocation.results:
-                        stmt = (
-                            select(FAWorkflowResultModel)
-                            .filter(FAWorkflowResultModel.tid == read_request.tid)
-                            .filter(FAWorkflowResultModel.wid == read_request.wid)
-                        )
-                        db_result = await db.execute(stmt)
-                        db_result = db_result.scalars().first()
-                        wfresult = FAWorkflowResult(
-                            tid=db_result.tid,
-                            usedvflow=db_result.usedvflow,
-                            noderesult=db_result.noderesults,
-                            status=db_result.status,
-                            starttime=db_result.starttime,
-                            endtime=db_result.endtime,
-                        )
-                        result.append(wfresult)
+                    # elif location == FAWorkflowLocation.release:
+                    #     stmt = (
+                    #         select(FAReleasedWorkflowModel)
+                    #         .filter(FAReleasedWorkflowModel.rwid == read_request.rwid)
+                    #         .filter(FAReleasedWorkflowModel.wid == read_request.wid)
+                    #     )
+                    #     db_result = await db.execute(stmt)
+                    #     db_result = db_result.scalars().first()
+                    #     wfresult = FAWorkflowResult(
+                    #         tid=db_result.tid,
+                    #         usedvflow=db_result.usedvflow,
+                    #         noderesult=db_result.noderesults,
+                    #         status=db_result.status,
+                    #         starttime=db_result.starttime,
+                    #         endtime=db_result.endtime,
+                    #     )
+                    #     result.append(wfresult)
                 return FAWorkflowOperationResponse(success=True, data=result)
             else:
                 return FAWorkflowOperationResponse(
@@ -181,7 +181,7 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
                 await db.execute(
                     update(FAWorkflowModel)
                     .where(FAWorkflowModel.wid == update_request.wid)
-                    .values(last_modified=datetime.now(ZoneInfo("Asia/Shanghai")))
+                    .values(lastModified=datetime.now(ZoneInfo("Asia/Shanghai")))
                 )
                 await db.commit()
                 return FAWorkflowOperationResponse(success=True)

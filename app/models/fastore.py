@@ -112,6 +112,7 @@ class FAWorkflowModel(Base):
     name: Mapped[str] = mapped_column(String(255))
     curVFlow: Mapped[Optional[dict]] = mapped_column(BigJSONType)
     lastModified: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    isRunning: Mapped[bool] = mapped_column(Boolean, default=False)
     # 反向关系到历史记录
     releasedVFlows: Mapped[List[FAReleasedWorkflowModel]] = relationship(
         "FAReleasedWorkflowModel",
@@ -149,7 +150,7 @@ class FANodeCacheModel(Base):
     data: Mapped[dict] = mapped_column(BigJSONType, nullable=False)
     ntype: Mapped[str] = mapped_column(String(255))
     parentNode: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    runStatus: Mapped[str] = mapped_column(String(255))  # Assuming it's a string enum
+    runStatus: Mapped[str] = mapped_column(String(255))
 
     # 修改: 添加 ondelete="CASCADE"
     wid: Mapped[str] = mapped_column(
