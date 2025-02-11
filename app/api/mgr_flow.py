@@ -55,7 +55,6 @@ router = APIRouter()
 async def create_workflow(create_request: FAWorkflow):
     try:
         async with get_db_ctxmgr() as db:
-
             db_wf = FAWorkflowModel(
                 wid=uuid7str().replace("-", ""),
                 name=create_request.name,
@@ -191,7 +190,7 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
                     await db.execute(
                         update(FAWorkflowModel)
                         .where(FAWorkflowModel.wid == update_request.wid)
-                        .values(vflow=update_request.data)
+                        .values(curVFlow=update_request.data)
                     )
                     await db.commit()
                 else:
