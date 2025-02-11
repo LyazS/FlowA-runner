@@ -34,8 +34,8 @@ from app.schemas.farequest import (
     FAWorkflowUpdateRequset,
     FAWorkflowReadRequest,
     FAWorkflowOperationResponse,
-    FAWorkflowBaseInfo,
-    FAResultBaseInfo,
+    FAWorkflowInfo,
+    FAReleaseWorkflowInfo,
     FAWorkflowNodeRequest,
 )
 from app.services.FARunner import FARunner
@@ -46,6 +46,7 @@ from app.models.fastore import (
     FANodeCacheModel,
 )
 from sqlalchemy import select, update, exc, exists, delete
+from uuid_extensions import uuid7str
 
 router = APIRouter()
 
@@ -54,9 +55,11 @@ router = APIRouter()
 async def create_workflow(create_request: FAWorkflow):
     try:
         async with get_db_ctxmgr() as db:
+
             db_wf = FAWorkflowModel(
+                wid=uuid7str().replace("-", ""),
                 name=create_request.name,
-                vflow=create_request.vflow,
+                curVFlow=create_request.vflow,
                 lastModified=datetime.now(ZoneInfo("Asia/Shanghai")),
             )
             db.add(db_wf)
@@ -78,10 +81,10 @@ async def read_all_workflows():
             )
             db_result = await db.execute(stmt)
             db_workflows = db_result.mappings().all()
-            result: List[FAWorkflowBaseInfo] = []
+            result: List[FAWorkflowInfo] = []
             for db_wf in db_workflows:
                 result.append(
-                    FAWorkflowBaseInfo(
+                    FAWorkflowInfo(
                         wid=db_wf["wid"],
                         name=db_wf["name"],
                         lastModified=db_wf["lastModified"],
@@ -104,7 +107,7 @@ async def read_workflow(read_request: FAWorkflowReadRequest):
             db_result = await db.execute(stmt)
             db_exists = db_result.scalar()
             if db_exists:
-                result = []
+                result = {}
                 for location in read_request.locations:
                     if location == FAWorkflowLocation.name:
                         stmt = select(FAWorkflowModel.name).filter(
@@ -112,31 +115,48 @@ async def read_workflow(read_request: FAWorkflowReadRequest):
                         )
                         db_result = await db.execute(stmt)
                         name = db_result.scalars().first()
-                        result.append(name)
+                        result[location.value] = name
                     elif location == FAWorkflowLocation.vflow:
                         stmt = select(FAWorkflowModel.curVFlow).filter(
                             FAWorkflowModel.wid == read_request.wid
                         )
                         db_result = await db.execute(stmt)
                         vflow = db_result.scalars().first()
-                        result.append(vflow)
-                    # elif location == FAWorkflowLocation.release:
-                    #     stmt = (
-                    #         select(FAReleasedWorkflowModel)
-                    #         .filter(FAReleasedWorkflowModel.rwid == read_request.rwid)
-                    #         .filter(FAReleasedWorkflowModel.wid == read_request.wid)
-                    #     )
-                    #     db_result = await db.execute(stmt)
-                    #     db_result = db_result.scalars().first()
-                    #     wfresult = FAWorkflowResult(
-                    #         tid=db_result.tid,
-                    #         usedvflow=db_result.usedvflow,
-                    #         noderesult=db_result.noderesults,
-                    #         status=db_result.status,
-                    #         starttime=db_result.starttime,
-                    #         endtime=db_result.endtime,
-                    #     )
-                    #     result.append(wfresult)
+                        result[location.value] = vflow
+                    elif location == FAWorkflowLocation.release:
+                        stmt = (
+                            select(FAReleasedWorkflowModel)
+                            .filter(FAReleasedWorkflowModel.rwid == read_request.rwid)
+                            .filter(FAReleasedWorkflowModel.wid == read_request.wid)
+                        )
+                        db_result = await db.execute(stmt)
+                        db_result = db_result.scalars().first()
+                        wfresult = FAReleaseWorkflowInfo(
+                            rwid=db_result.rwid,
+                            releaseTime=db_result.releaseTime,
+                            name=db_result.name,
+                            description=db_result.description,
+                        )
+                        result[location.value] = wfresult
+                    elif location == FAWorkflowLocation.allReleases:
+                        stmt = (
+                            select(FAReleasedWorkflowModel)
+                            .filter(FAReleasedWorkflowModel.wid == read_request.wid)
+                            .order_by(FAReleasedWorkflowModel.releaseTime.desc())
+                        )
+                        db_result = await db.execute(stmt)
+                        db_results = db_result.scalars().all()
+                        wfresults = []
+                        for db_res in db_results:
+                            wfresults.append(
+                                FAReleaseWorkflowInfo(
+                                    rwid=db_res.rwid,
+                                    releaseTime=db_res.releaseTime,
+                                    name=db_res.name,
+                                    description=db_res.description,
+                                )
+                            )
+                        result[location.value] = wfresults
                 return FAWorkflowOperationResponse(success=True, data=result)
             else:
                 return FAWorkflowOperationResponse(

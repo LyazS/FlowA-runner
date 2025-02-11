@@ -31,8 +31,8 @@ from app.schemas.farequest import (
 from app.db.session import get_db_ctxmgr
 from app.models.fastore import (
     FAWorkflowModel,
-    FAWorkflowResultModel,
-    FAWorkflowNodeResultModel,
+    FAReleasedWorkflowModel,
+    FANodeCacheModel,
 )
 from sqlalchemy import select, update, exc, exists, delete
 
@@ -166,7 +166,7 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
             for nid in fetch_nids:
                 await farunner.nodes[nid].stopReport()
                 pass
-            logger.info(f"task done {task_name}" )
+            logger.info(f"task done {task_name}")
             pass
 
     return EventSourceResponse(event_generator())

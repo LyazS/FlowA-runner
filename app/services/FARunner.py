@@ -26,8 +26,8 @@ from app.schemas.farequest import (
 from app.db.session import get_db_ctxmgr
 from app.models.fastore import (
     FAWorkflowModel,
-    FAWorkflowResultModel,
-    FAWorkflowNodeResultModel,
+    FAReleasedWorkflowModel,
+    FANodeCacheModel,
 )
 from sqlalchemy import select, update, exc, exists, delete
 from sqlalchemy.orm import selectinload

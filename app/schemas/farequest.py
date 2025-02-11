@@ -110,7 +110,7 @@ class FAWorkflowResult(BaseModel):
 
 
 class FAWorkflow(BaseModel):
-    wid: Optional[int] = None
+    wid: Optional[str] = None
     name: Optional[str] = None
     vflow: Optional[dict] = None
     results: Optional[List[FAWorkflowResult]] = None
@@ -121,39 +121,40 @@ class FAWorkflowLocation(Enum):
     name = "name"
     vflow = "vflow"
     release = "release"
+    allReleases = "allReleases"
     pass
 
 
 class FAWorkflowUpdateRequset(BaseModel):
-    wid: int
+    wid: str
     location: FAWorkflowLocation
     data: Optional[Any] = None
 
 
 class FAWorkflowReadRequest(BaseModel):
-    wid: int
+    wid: str
     locations: List[FAWorkflowLocation]
     rwid: Optional[str] = None
     pass
 
 
-class FAWorkflowBaseInfo(BaseModel):
-    wid: int
+class FAWorkflowInfo(BaseModel):
+    wid: str
     name: str
     lastModified: Optional[datetime]
     pass
 
 
-class FAResultBaseInfo(BaseModel):
-    tid: str
-    status: Optional[str]
-    starttime: Optional[datetime]
-    endtime: Optional[datetime]
+class FAReleaseWorkflowInfo(BaseModel):
+    rwid: str
+    releaseTime: datetime
+    name: str
+    description: str
     pass
 
 
 class FAWorkflowNodeRequest(BaseModel):
-    wid: int
+    wid: str
     tid: str
     nid: str
     request: dict
