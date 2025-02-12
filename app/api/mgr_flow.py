@@ -216,7 +216,7 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
 
 
 @router.post("/delete")
-async def delete_workflow(wid: int):
+async def delete_workflow(wid: str):
     try:
         async with get_db_ctxmgr() as db:
             # 使用 ORM 查询
@@ -240,7 +240,7 @@ async def delete_workflow(wid: int):
 
 
 @router.post("/deleteresult")
-async def delete_result(wid: int, tid: str):
+async def delete_result(wid: str, tid: str):
     try:
         farunner: FARunner = await ALL_TASKS_MGR.get(tid)
         if farunner:
@@ -262,7 +262,7 @@ async def delete_result(wid: int, tid: str):
 
 
 @router.get("/readallresults")
-async def read_all_results(wid: int):
+async def read_all_results(wid: str):
     try:
         result = []
         addedtid = set()
@@ -314,7 +314,7 @@ async def read_all_results(wid: int):
 
 
 @router.post("/loadresult")
-async def load_result(wid: int, tid: str):
+async def load_result(wid: str, tid: str):
     try:
         test_farunner: FARunner = await ALL_TASKS_MGR.get(tid)
         if test_farunner:
