@@ -113,7 +113,22 @@ class FAWorkflow(BaseModel):
     wid: Optional[str] = None
     name: Optional[str] = None
     vflow: Optional[dict] = None
-    results: Optional[List[FAWorkflowResult]] = None
+    pass
+
+
+class FAWorkflowCreateType(Enum):
+    new = "new"
+    upload = "upload"
+    release = "release"
+    pass
+
+
+class FAWorkflowCreateRequest(BaseModel):
+    type: FAWorkflowCreateType
+    wid: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    vflow: Optional[dict] = None
     pass
 
 

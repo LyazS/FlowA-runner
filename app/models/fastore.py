@@ -124,7 +124,7 @@ class FAReleasedWorkflowModel(Base):
     __tablename__ = "fa_released_workflow"
 
     rwid: Mapped[str] = mapped_column(String(255), primary_key=True)
-    vflow: Mapped[Optional[dict]] = mapped_column(BigJSONType)
+    vflow: Mapped[dict] = mapped_column(BigJSONType)
     releaseTime: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(TEXT)

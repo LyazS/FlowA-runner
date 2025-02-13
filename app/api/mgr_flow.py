@@ -33,10 +33,12 @@ from app.schemas.farequest import (
     FAWorkflowLocation,
     FAWorkflowUpdateRequset,
     FAWorkflowReadRequest,
+    FAWorkflowCreateRequest,
     FAWorkflowOperationResponse,
     FAWorkflowInfo,
     FAReleaseWorkflowInfo,
     FAWorkflowNodeRequest,
+    FAWorkflowCreateType,
 )
 from app.services.FARunner import FARunner
 from app.db.session import get_db_ctxmgr
@@ -52,15 +54,48 @@ router = APIRouter()
 
 
 @router.post("/create")
-async def create_workflow(create_request: FAWorkflow):
+async def create_workflow(create_request: FAWorkflowCreateRequest):
     try:
         async with get_db_ctxmgr() as db:
-            db_wf = FAWorkflowModel(
-                wid=uuid7str().replace("-", ""),
-                name=create_request.name,
-                curVFlow=create_request.vflow,
-                lastModified=datetime.now(ZoneInfo("Asia/Shanghai")),
-            )
+            db_wf = None
+            if create_request.type == FAWorkflowCreateType.new:
+                if create_request.name is None:
+                    raise ValueError("name is required for new workflow")
+                db_wf = FAWorkflowModel(
+                    wid=uuid7str().replace("-", ""),
+                    name=create_request.name,
+                    lastModified=datetime.now(ZoneInfo("Asia/Shanghai")),
+                )
+            elif create_request.type == FAWorkflowCreateType.upload:
+                if create_request.name is None:
+                    raise ValueError("name is required for upload workflow")
+                if create_request.vflow is None:
+                    raise ValueError("vflow is required for upload workflow")
+                db_wf = FAWorkflowModel(
+                    wid=uuid7str().replace("-", ""),
+                    name=create_request.name,
+                    curVFlow=create_request.vflow,
+                    lastModified=datetime.now(ZoneInfo("Asia/Shanghai")),
+                )
+            elif create_request.type == FAWorkflowCreateType.release:
+                if create_request.wid is None:
+                    raise ValueError("wid is required for release workflow")
+                if create_request.name is None:
+                    raise ValueError("name is required for release workflow")
+                if create_request.description is None:
+                    raise ValueError("description is required for release workflow")
+                if create_request.vflow is None:
+                    raise ValueError("vflow is required for release workflow")
+                db_wf = FAReleasedWorkflowModel(
+                    wid=create_request.wid,
+                    rwid=uuid7str().replace("-", ""),
+                    name=create_request.name,
+                    description=create_request.description,
+                    vflow=create_request.vflow,
+                    releaseTime=datetime.now(ZoneInfo("Asia/Shanghai")),
+                )
+            if db_wf is None:
+                raise ValueError("invalid create type")
             db.add(db_wf)
             await db.commit()
             await db.refresh(db_wf)
@@ -124,19 +159,13 @@ async def read_workflow(read_request: FAWorkflowReadRequest):
                         result[location.value] = vflow
                     elif location == FAWorkflowLocation.release:
                         stmt = (
-                            select(FAReleasedWorkflowModel)
+                            select(FAReleasedWorkflowModel.vflow)
                             .filter(FAReleasedWorkflowModel.rwid == read_request.rwid)
                             .filter(FAReleasedWorkflowModel.wid == read_request.wid)
                         )
                         db_result = await db.execute(stmt)
-                        db_result = db_result.scalars().first()
-                        wfresult = FAReleaseWorkflowInfo(
-                            rwid=db_result.rwid,
-                            releaseTime=db_result.releaseTime,
-                            name=db_result.name,
-                            description=db_result.description,
-                        )
-                        result[location.value] = wfresult
+                        rvflow = db_result.scalars().first()
+                        result[location.value] = rvflow
                     elif location == FAWorkflowLocation.allReleases:
                         stmt = (
                             select(FAReleasedWorkflowModel)
