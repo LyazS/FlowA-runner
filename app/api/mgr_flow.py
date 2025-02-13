@@ -143,7 +143,7 @@ async def read_workflow(read_request: FAWorkflowReadRequest):
             if db_exists:
                 result = {}
                 for location in read_request.locations:
-                    if location == FAWorkflowLocation.name:
+                    if location == FAWorkflowLocation.wfname:
                         stmt = select(FAWorkflowModel.name).filter(
                             FAWorkflowModel.wid == read_request.wid
                         )
@@ -204,27 +204,47 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
             db_result = await db.execute(stmt)
             db_exists = db_result.scalar()
             if db_exists:
-                if update_request.location == FAWorkflowLocation.name and isinstance(
-                    update_request.data, str
-                ):
-                    await db.execute(
-                        update(FAWorkflowModel)
-                        .where(FAWorkflowModel.wid == update_request.wid)
-                        .values(name=update_request.data)
-                    )
-                    await db.commit()
-                elif update_request.location == FAWorkflowLocation.vflow and isinstance(
-                    update_request.data, dict
-                ):
-                    await db.execute(
-                        update(FAWorkflowModel)
-                        .where(FAWorkflowModel.wid == update_request.wid)
-                        .values(curVFlow=update_request.data)
-                    )
-                    await db.commit()
-                else:
+                for item in update_request.items:
+                    if item.location == FAWorkflowLocation.wfname and isinstance(
+                        item.data, str
+                    ):
+                        await db.execute(
+                            update(FAWorkflowModel)
+                            .where(FAWorkflowModel.wid == update_request.wid)
+                            .values(name=item.data)
+                        )
+                        await db.commit()
+                    elif item.location == FAWorkflowLocation.vflow and isinstance(
+                        item.data, dict
+                    ):
+                        await db.execute(
+                            update(FAWorkflowModel)
+                            .where(FAWorkflowModel.wid == update_request.wid)
+                            .values(curVFlow=item.data)
+                        )
+                        await db.commit()
+                    elif item.location == FAWorkflowLocation.rwfname and isinstance(
+                        item.data, str
+                    ):
+                        await db.execute(
+                            update(FAReleasedWorkflowModel)
+                            .where(FAReleasedWorkflowModel.rwid == item.rwid)
+                            .values(name=item.data)
+                        )
+                        await db.commit()
+                    elif item.location == FAWorkflowLocation.rwfdescription and isinstance(
+                        item.data, str
+                    ):
+                        await db.execute(
+                            update(FAReleasedWorkflowModel)
+                            .where(FAReleasedWorkflowModel.rwid == item.rwid)
+                            .values(description=item.data)
+                        )
+                        await db.commit()
+                    else:
+                        pass
                     pass
-                pass
+                    pass
                 # 更新最近时间
                 await db.execute(
                     update(FAWorkflowModel)

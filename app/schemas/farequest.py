@@ -133,17 +133,26 @@ class FAWorkflowCreateRequest(BaseModel):
 
 
 class FAWorkflowLocation(Enum):
-    name = "name"
+    wfname = "wfname"
+    rwfname = "rwfname"
+    rwfdescription = "rwfdescription"
     vflow = "vflow"
     release = "release"
     allReleases = "allReleases"
     pass
 
 
-class FAWorkflowUpdateRequset(BaseModel):
-    wid: str
+class FAWorkflowUpdateItem(BaseModel):
     location: FAWorkflowLocation
     data: Optional[Any] = None
+    rwid: Optional[str] = None
+    pass
+
+
+class FAWorkflowUpdateRequset(BaseModel):
+    wid: str
+    items: List[FAWorkflowUpdateItem]
+    pass
 
 
 class FAWorkflowReadRequest(BaseModel):
