@@ -34,14 +34,13 @@ from app.schemas.farequest import (
     FAWorkflowUpdateRequset,
     FAWorkflowReadRequest,
     FAWorkflowOperationResponse,
-    FAWorkflowBaseInfo,
-    FAResultBaseInfo,
+    FAWorkflowInfo,
     FAWorkflowNodeRequest,
 )
 from app.models.fastore import (
     FAWorkflowModel,
-    FAWorkflowResultModel,
-    FAWorkflowNodeResultModel,
+    FAReleasedWorkflowModel,
+    FANodeCacheModel,
 )
 from app.nodes import FANODECOLLECTION
 from app.nodes.basenode import FABaseNode

@@ -110,50 +110,80 @@ class FAWorkflowResult(BaseModel):
 
 
 class FAWorkflow(BaseModel):
-    wid: Optional[int] = None
+    wid: Optional[str] = None
     name: Optional[str] = None
     vflow: Optional[dict] = None
-    results: Optional[List[FAWorkflowResult]] = None
     pass
 
 
-class FAWorkflowLocation(Enum):
-    name = "name"
-    vflow = "vflow"
+class FAWorkflowCreateType(Enum):
+    new = "new"
+    upload = "upload"
     release = "release"
     pass
 
 
-class FAWorkflowUpdateRequset(BaseModel):
-    wid: int
+class FAWorkflowCreateRequest(BaseModel):
+    type: FAWorkflowCreateType
+    wid: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    vflow: Optional[dict] = None
+    pass
+
+
+class FAWorkflowLocation(Enum):
+    wfname = "wfname"
+    rwfname = "rwfname"
+    rwfdescription = "rwfdescription"
+    vflow = "vflow"
+    release = "release"
+    allReleases = "allReleases"
+    pass
+
+
+class FAWorkflowUpdateItem(BaseModel):
     location: FAWorkflowLocation
     data: Optional[Any] = None
-
-
-class FAWorkflowReadRequest(BaseModel):
-    wid: int
-    locations: List[FAWorkflowLocation]
     rwid: Optional[str] = None
     pass
 
 
-class FAWorkflowBaseInfo(BaseModel):
-    wid: int
+class FAWorkflowUpdateRequset(BaseModel):
+    wid: str
+    items: List[FAWorkflowUpdateItem]
+    pass
+
+
+class FAWorkflowReadRequest(BaseModel):
+    wid: str
+    locations: List[FAWorkflowLocation]
+    rwid: Optional[str] = None
+    pass
+
+class FAWorkflowDeleteRequest(BaseModel):
+    wid: str
+    rwid: Optional[str] = None
+    pass
+
+
+class FAWorkflowInfo(BaseModel):
+    wid: str
     name: str
     lastModified: Optional[datetime]
     pass
 
 
-class FAResultBaseInfo(BaseModel):
-    tid: str
-    status: Optional[str]
-    starttime: Optional[datetime]
-    endtime: Optional[datetime]
+class FAReleaseWorkflowInfo(BaseModel):
+    rwid: str
+    releaseTime: datetime
+    name: str
+    description: str
     pass
 
 
 class FAWorkflowNodeRequest(BaseModel):
-    wid: int
+    wid: str
     tid: str
     nid: str
     request: dict

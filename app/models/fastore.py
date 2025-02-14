@@ -112,7 +112,6 @@ class FAWorkflowModel(Base):
     name: Mapped[str] = mapped_column(String(255))
     curVFlow: Mapped[Optional[dict]] = mapped_column(BigJSONType)
     lastModified: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    isRunning: Mapped[bool] = mapped_column(Boolean, default=False)
     # 反向关系到历史记录
     releasedVFlows: Mapped[List[FAReleasedWorkflowModel]] = relationship(
         "FAReleasedWorkflowModel",
@@ -125,9 +124,10 @@ class FAReleasedWorkflowModel(Base):
     __tablename__ = "fa_released_workflow"
 
     rwid: Mapped[str] = mapped_column(String(255), primary_key=True)
-    vflow: Mapped[Optional[dict]] = mapped_column(BigJSONType)
+    vflow: Mapped[dict] = mapped_column(BigJSONType)
     releaseTime: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    version: Mapped[str] = mapped_column(String(255))
+    name: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(TEXT)
     # 修改: 添加 ondelete="CASCADE"
     wid: Mapped[str] = mapped_column(
         String(255), ForeignKey("fa_workflow.wid", ondelete="CASCADE"), nullable=False
