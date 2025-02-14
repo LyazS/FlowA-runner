@@ -161,6 +161,11 @@ class FAWorkflowReadRequest(BaseModel):
     rwid: Optional[str] = None
     pass
 
+class FAWorkflowDeleteRequest(BaseModel):
+    wid: str
+    rwid: Optional[str] = None
+    pass
+
 
 class FAWorkflowInfo(BaseModel):
     wid: str

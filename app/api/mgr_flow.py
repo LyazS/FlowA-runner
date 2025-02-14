@@ -39,6 +39,7 @@ from app.schemas.farequest import (
     FAReleaseWorkflowInfo,
     FAWorkflowNodeRequest,
     FAWorkflowCreateType,
+    FAWorkflowDeleteRequest,
 )
 from app.services.FARunner import FARunner
 from app.db.session import get_db_ctxmgr
@@ -144,24 +145,23 @@ async def read_workflow(read_request: FAWorkflowReadRequest):
                 result = {}
                 for location in read_request.locations:
                     if location == FAWorkflowLocation.wfname:
-                        stmt = select(FAWorkflowModel.name).filter(
+                        stmt = select(FAWorkflowModel.name).where(
                             FAWorkflowModel.wid == read_request.wid
                         )
                         db_result = await db.execute(stmt)
                         name = db_result.scalars().first()
                         result[location.value] = name
                     elif location == FAWorkflowLocation.vflow:
-                        stmt = select(FAWorkflowModel.curVFlow).filter(
+                        stmt = select(FAWorkflowModel.curVFlow).where(
                             FAWorkflowModel.wid == read_request.wid
                         )
                         db_result = await db.execute(stmt)
                         vflow = db_result.scalars().first()
                         result[location.value] = vflow
                     elif location == FAWorkflowLocation.release:
-                        stmt = (
-                            select(FAReleasedWorkflowModel.vflow)
-                            .filter(FAReleasedWorkflowModel.rwid == read_request.rwid)
-                            .filter(FAReleasedWorkflowModel.wid == read_request.wid)
+                        stmt = select(FAReleasedWorkflowModel.vflow).where(
+                            FAReleasedWorkflowModel.rwid == read_request.rwid,
+                            FAReleasedWorkflowModel.wid == read_request.wid,
                         )
                         db_result = await db.execute(stmt)
                         rvflow = db_result.scalars().first()
@@ -169,7 +169,7 @@ async def read_workflow(read_request: FAWorkflowReadRequest):
                     elif location == FAWorkflowLocation.allReleases:
                         stmt = (
                             select(FAReleasedWorkflowModel)
-                            .filter(FAReleasedWorkflowModel.wid == read_request.wid)
+                            .where(FAReleasedWorkflowModel.wid == read_request.wid)
                             .order_by(FAReleasedWorkflowModel.releaseTime.desc())
                         )
                         db_result = await db.execute(stmt)
@@ -213,7 +213,6 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
                             .where(FAWorkflowModel.wid == update_request.wid)
                             .values(name=item.data)
                         )
-                        await db.commit()
                     elif item.location == FAWorkflowLocation.vflow and isinstance(
                         item.data, dict
                     ):
@@ -222,7 +221,6 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
                             .where(FAWorkflowModel.wid == update_request.wid)
                             .values(curVFlow=item.data)
                         )
-                        await db.commit()
                     elif item.location == FAWorkflowLocation.rwfname and isinstance(
                         item.data, str
                     ):
@@ -231,19 +229,17 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
                             .where(FAReleasedWorkflowModel.rwid == item.rwid)
                             .values(name=item.data)
                         )
-                        await db.commit()
-                    elif item.location == FAWorkflowLocation.rwfdescription and isinstance(
-                        item.data, str
+                    elif (
+                        item.location == FAWorkflowLocation.rwfdescription
+                        and isinstance(item.data, str)
                     ):
                         await db.execute(
                             update(FAReleasedWorkflowModel)
                             .where(FAReleasedWorkflowModel.rwid == item.rwid)
                             .values(description=item.data)
                         )
-                        await db.commit()
                     else:
                         pass
-                    pass
                     pass
                 # 更新最近时间
                 await db.execute(
@@ -265,11 +261,19 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
 
 
 @router.post("/delete")
-async def delete_workflow(wid: str):
+async def delete_workflow(delete_request: FAWorkflowDeleteRequest):
     try:
         async with get_db_ctxmgr() as db:
             # 使用 ORM 查询
-            stmt = select(FAWorkflowModel).where(FAWorkflowModel.wid == wid)
+            if delete_request.rwid is None:
+                stmt = select(FAWorkflowModel).where(
+                    FAWorkflowModel.wid == delete_request.wid
+                )
+            else:
+                stmt = select(FAReleasedWorkflowModel).where(
+                    FAReleasedWorkflowModel.wid == delete_request.wid,
+                    FAReleasedWorkflowModel.rwid == delete_request.rwid,
+                )
             result = await db.execute(stmt)
             workflow = result.scalar()
 
@@ -335,7 +339,7 @@ async def read_all_results(wid: str):
                 FAWorkflowResultModel.status,
                 FAWorkflowResultModel.starttime,
                 FAWorkflowResultModel.endtime,
-            ).filter(FAWorkflowResultModel.wid == wid)
+            ).where(FAWorkflowResultModel.wid == wid)
             db_result = await db.execute(stmt)
             db_results = db_result.mappings().all()
             for db_res in db_results:
