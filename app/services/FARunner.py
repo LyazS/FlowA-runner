@@ -1,4 +1,4 @@
-from typing import Dict, List, TYPE_CHECKING
+from typing import Dict, List, TYPE_CHECKING, Set
 import asyncio
 import aiofiles
 from aiofiles import os as aiofiles_os
@@ -47,6 +47,9 @@ class FARunner:
         # 时间戳
         self.starttime = None
         self.endtime = None
+
+        self._cancel_event = asyncio.Event()
+        self._running_tasks: Set[asyncio.Task] = set()  # 跟踪所有节点任务
         pass
 
     def addNode(self, nid, node: "FATaskNode"):
@@ -105,12 +108,22 @@ class FARunner:
         self.buildNodes()
         # 启动所有节点
         self.status = FARunnerStatus.Running
-        tasks = []
-        # 当前只有根节点，所以直接启动即可
-        for nid in self.nodes:
-            tasks.append(self.nodes[nid].invoke())
-        # 等待所有节点完成
-        await asyncio.gather(*tasks)
+        # tasks = []
+        # # 当前只有根节点，所以直接启动即可
+        # for nid in self.nodes:
+        #     tasks.append(self.nodes[nid].invoke())
+        # # 等待所有节点完成
+        # await asyncio.gather(*tasks)
+
+        self._running_tasks = {
+            asyncio.create_task(node.invoke()) for node in self.nodes.values()
+        }
+
+        try:
+            await asyncio.gather(*self._running_tasks)
+        finally:
+            self._running_tasks.clear()  # 防止内存泄漏
+
         self.endtime = datetime.now(ZoneInfo("Asia/Shanghai"))
         self.status = FARunnerStatus.Success
         # 保存历史记录
@@ -123,6 +136,13 @@ class FARunner:
             ),
         )
         pass
+
+    async def stop(self):
+        self._cancel_event.set()
+        # 取消所有关联任务
+        for task in self._running_tasks:
+            task.cancel()
+        await asyncio.gather(*self._running_tasks, return_exceptions=True)
 
     async def saveResult(self) -> FAWorkflow:
         try:

@@ -88,7 +88,7 @@ class FANode_jinja2_template(FABaseNode):
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
-                if var.type == VarType.ref:
+                if var.type == VarType.Ref:
                     refdata: str = var.value
                     nid, contentname, ctid = refdata.split("/")
                     thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
@@ -117,7 +117,7 @@ class FANode_jinja2_template(FABaseNode):
         D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
         for var_dict in D_VARSINPUT.data.value:
             var = Single_VarInput.model_validate(var_dict)
-            if var.type == VarType.ref:
+            if var.type == VarType.Ref:
                 refdata: str = var.value
                 nid, contentname, ctid = refdata.split("/")
                 thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
@@ -161,7 +161,7 @@ class FANode_jinja2_template(FABaseNode):
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
-                if var.type == VarType.ref and var.value not in selfVars:
+                if var.type == VarType.Ref and var.value not in selfVars:
                     error_msgs.append(f"变量未定义{var.value}")
         except Exception as e:
             errmsg = traceback.format_exc()

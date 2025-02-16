@@ -168,12 +168,12 @@ class FAValidator:
 
     async def validate(
         self,
-        tid: str,
+        wid: str,
         flowdata: VFlowData,
     ) -> Dict[str, ValidationError]:
         # 初始化所有节点
         for nodeinfo in flowdata.nodes:
-            node = (FANODECOLLECTION[nodeinfo.data.ntype])(tid, nodeinfo)
+            node = (FANODECOLLECTION[nodeinfo.data.ntype])(wid, nodeinfo)
             self.nodes[nodeinfo.id] = node
             pass
         # 构建节点连接关系

@@ -4,7 +4,7 @@ from enum import Enum
 
 
 class VarType(Enum):
-    ref = "ref"
+    Ref = "Ref"
     String = "String"
     Integer = "Integer"
     Number = "Number"
@@ -34,9 +34,9 @@ class LLMRole(Enum):
 
 
 class Single_LLMModelConfig_type(Enum):
-    VALUE = "value"
-    REF = "ref"
-    NULL = "null"
+    Value = "Value"
+    Ref = "Ref"
+    Null = "Null"
     pass
 
 
@@ -163,6 +163,9 @@ class VFNodeContentDataType(Enum):
     Boolean = "Boolean"  # bool
     List = "List"
     Dict = "Dict"  # dict
+    Ref = "Ref"
+    Value = "Value"
+    Null = "Null"
     # CodeContentDataType
     CodePython = "CodePython"
     CodeJavaScript = "CodeJavaScript"

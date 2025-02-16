@@ -114,7 +114,7 @@ class FANode_code_interpreter(FATaskNode):
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
-                if var.type == VarType.ref and var.value not in selfVars:
+                if var.type == VarType.Ref and var.value not in selfVars:
                     error_msgs.append(f"变量未定义{var.value}")
                 else:
                     CodeInputArgs.add(var.key)

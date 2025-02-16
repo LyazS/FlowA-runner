@@ -55,7 +55,7 @@ class FANode_cond_branch(FATaskNode):
                         if refdata not in selfVars:
                             error_msgs.append(f"变量未定义{refdata}")
                         pass
-                        if condition.comparetype == VarType.ref:
+                        if condition.comparetype == VarType.Ref:
                             if condition.value not in selfVars:
                                 error_msgs.append(f"变量未定义{refdata}")
                             pass

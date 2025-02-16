@@ -29,9 +29,9 @@ from app.services.taskMgr import ALL_TASKS_MGR
 
 
 class FABaseNode(ABC):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo):
         cpnodeinfo = copy.deepcopy(nodeinfo)
-        self.tid = tid
+        self.wid = wid
         self.id = cpnodeinfo.id
         self.oriid = copy.deepcopy(cpnodeinfo.id)
         self.data: VFNodeData = copy.deepcopy(cpnodeinfo.data)

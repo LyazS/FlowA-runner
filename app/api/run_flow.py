@@ -27,6 +27,9 @@ from app.schemas.farequest import (
     FAWorkflowOperationResponse,
     FAProgressNodeType,
     FAProgressRequest,
+    FAWorkflowRunRequest,
+    FAWorkflowRunReqType,
+    FAWorkflowRunResponse,
 )
 from app.db.session import get_db_ctxmgr
 from app.models.fastore import (
@@ -41,31 +44,46 @@ router = APIRouter()
 
 @router.post("/run")
 async def run_flow(
-    fa_req: FAWorkflow,
+    run_req: FAWorkflowRunRequest,
     background_tasks: BackgroundTasks,
 ) -> FAWorkflowOperationResponse:
     if settings.DEBUG:
         await asyncio.sleep(1)
-    taskid = str(uuid.uuid4()).replace("-", "")
     fav = FAValidator()
-    flowdata = VFlowData.model_validate(fa_req.vflow)
-    validate_result = await fav.validate(taskid, flowdata)
+    flowdata = VFlowData.model_validate(run_req.vflow)
+
+    # 检查工作流是否有效 =============================================
+    validate_result = await fav.validate(run_req.wid, flowdata)
     if len(validate_result) > 0:
         return FAWorkflowOperationResponse(
-            success=True, data={"validation_errors": validate_result}
+            success=True,
+            data=FAWorkflowRunResponse(
+                type=FAWorkflowRunReqType.validation,
+                validation_errors=validate_result,
+            ),
         )
 
-    # 通过检查 =============================================
-    await ALL_TASKS_MGR.create(taskid)
-    background_tasks.add_task(ALL_TASKS_MGR.run, taskid, fa_req)
+    # 检查是否还在运行 =============================================
+    if await ALL_TASKS_MGR.isRunning(run_req.wid):
+        return FAWorkflowOperationResponse(
+            success=False,
+            message="Workflow is running",
+            data=FAWorkflowRunResponse(
+                type=FAWorkflowRunReqType.isrunning,
+            ),
+        )
+    
+    # 开始运行 =============================================
+    await ALL_TASKS_MGR.create(run_req.wid)
+    background_tasks.add_task(ALL_TASKS_MGR.run, taskid, run_req)
     try:
         async with get_db_ctxmgr() as db:
             await db.execute(
                 update(FAWorkflowModel)
-                .where(FAWorkflowModel.wid == fa_req.wid)
+                .where(FAWorkflowModel.wid == run_req.wid)
                 .values(
-                    vflow=fa_req.vflow,
-                    last_modified=datetime.now(ZoneInfo("Asia/Shanghai")),
+                    curVFlow=run_req.vflow,
+                    lastModified=datetime.now(ZoneInfo("Asia/Shanghai")),
                 )
             )
             await db.commit()
@@ -73,8 +91,19 @@ async def run_flow(
     except Exception as e:
         errmsg = traceback.format_exc()
         logger.error(f"update workflow error: {errmsg}")
-        return FAWorkflowOperationResponse(success=False, message=errmsg)
-    return FAWorkflowOperationResponse(success=True, data={"tid": taskid})
+        return FAWorkflowOperationResponse(
+            success=False,
+            message=errmsg,
+            data=FAWorkflowRunResponse(
+                type=FAWorkflowRunReqType.internalerror,
+            ),
+        )
+    return FAWorkflowOperationResponse(
+        success=True,
+        data=FAWorkflowRunResponse(
+            type=FAWorkflowRunReqType.success,
+        ),
+    )
 
 
 @router.post("/progress")

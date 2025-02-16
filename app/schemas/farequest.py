@@ -1,4 +1,4 @@
-from typing import List, Optional, Any, Union
+from typing import List, Optional, Any, Union, Dict
 import json
 from datetime import datetime
 from pydantic import BaseModel
@@ -123,6 +123,26 @@ class FAWorkflowCreateType(Enum):
     pass
 
 
+class FAWorkflowRunRequest(BaseModel):
+    wid: str
+    vflow: dict
+    pass
+
+
+class FAWorkflowRunReqType(Enum):
+    validation = "validation"
+    isrunning = "isrunning"
+    internalerror = "internalerror"
+    success = "success"
+    pass
+
+
+class FAWorkflowRunResponse(BaseModel):
+    type: FAWorkflowRunReqType
+    validation_errors: Dict[str, ValidationError]
+    pass
+
+
 class FAWorkflowCreateRequest(BaseModel):
     type: FAWorkflowCreateType
     wid: Optional[str] = None
@@ -160,6 +180,7 @@ class FAWorkflowReadRequest(BaseModel):
     locations: List[FAWorkflowLocation]
     rwid: Optional[str] = None
     pass
+
 
 class FAWorkflowDeleteRequest(BaseModel):
     wid: str

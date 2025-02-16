@@ -47,53 +47,14 @@ class NodeCancelException(Exception):
 class FATaskNode(FABaseNode):
     def __init__(self, tid: str, nodeinfo: VFNodeInfo):
         super().__init__(tid, nodeinfo)
-        # cpnodeinfo = copy.deepcopy(nodeinfo)
-        # self.tid = tid
-        # self.id = cpnodeinfo.id
-        # self.oriid = copy.deepcopy(cpnodeinfo.id)
-        # self.data: VFNodeData = copy.deepcopy(cpnodeinfo.data)
-        # self.ntype: str = cpnodeinfo.data.ntype
-        # self.parentNode = cpnodeinfo.parentNode
-
+        # 本节点的完成事件
         self.doneEvent = asyncio.Event()
+        # 其他节点的输出handle的状态
+        self.waitStatus: List[FANodeWaitStatus] = []
         # 其他节点的doneEvent会存在该节点的waitEvents列表里
         self.waitEvents: List[asyncio.Event] = []
         self.waitType = FANodeWaitType.AND
-
-        # 其他节点的输出handle的状态
-        self.waitStatus: List[FANodeWaitStatus] = []
-        # # 该节点的输出handle的状态
-        # self.outputStatus: Dict[str, FANodeStatus] = {
-        #     oname: FANodeStatus.Pending
-        #     for oname in self.data.connections.outputs.keys()
-        # }
-        # # 该节点的运行状态
-        # self.runStatus = FANodeStatus.Pending
-
-        # # 该节点需求的验证内容
-        # self.validateNeededs: List[FANodeValidateNeed] = []
         pass
-
-    # def store(self):
-    #     return FAWorkflowNodeResult(
-    #         tid=self.tid,
-    #         id=self.id,
-    #         oriid=self.oriid,
-    #         data=self.data,
-    #         ntype=self.ntype,
-    #         parentNode=self.parentNode,
-    #         runStatus=self.runStatus,
-    #     )
-
-    # def restore(self, data: FAWorkflowNodeResult):
-    #     self.tid = data.tid
-    #     self.id = data.id
-    #     self.oriid = data.oriid
-    #     self.data = data.data
-    #     self.ntype = data.ntype
-    #     self.parentNode = data.parentNode
-    #     self.runStatus = data.runStatus
-    #     pass
 
     def setNewID(self, newid: str):
         self.id = newid
@@ -243,7 +204,7 @@ class FATaskNode(FABaseNode):
             return bool(var.value)
         elif var.type == VarType.Integer:
             return int(var.value)
-        elif var.type == VarType.ref:
+        elif var.type == VarType.Ref:
             return await self.getRefData(var.value)
         pass
 
@@ -266,6 +227,12 @@ class FATaskNode(FABaseNode):
         self,
         validateVars: Dict[FANodeValidateNeed, Any],
     ) -> Optional[ValidationError]:
+        return None
+
+    async def processRequest(
+        self,
+        request: FAWorkflowNodeRequest,
+    ) -> Optional[FAWorkflowOperationResponse]:
         return None
 
     @staticmethod

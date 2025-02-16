@@ -83,7 +83,7 @@ class FANode_LLM_inference(FATaskNode):
         pass
 
     def validateConfigVar(self, s_config: Single_LLMModelConfig, selfVars):
-        if s_config.type == Single_LLMModelConfig_type.REF:
+        if s_config.type == Single_LLMModelConfig_type.Ref:
             if s_config.value not in selfVars:
                 return False
         return True
@@ -100,7 +100,7 @@ class FANode_LLM_inference(FATaskNode):
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
-                if var.type == VarType.ref and var.value not in selfVars:
+                if var.type == VarType.Ref and var.value not in selfVars:
                     error_msgs.append(f"变量未定义{var.value}")
             D_MODELCONFIG: VFNodeContentData = node_payloads.byId["D_MODELCONFIG"]
             model_cfg = LLMModelConfig.model_validate(D_MODELCONFIG.data.value)
@@ -130,18 +130,18 @@ class FANode_LLM_inference(FATaskNode):
         return None
 
     async def getConfigVar(self, s_config: Single_LLMModelConfig):
-        if s_config.type == Single_LLMModelConfig_type.REF:
+        if s_config.type == Single_LLMModelConfig_type.Ref:
             return await self.getVar(
                 Single_VarInput(
                     key="",
-                    type=VarType.ref,
+                    type=VarType.Ref,
                     value=s_config.value,
                 )
             )
             pass
-        elif s_config.type == Single_LLMModelConfig_type.VALUE:
+        elif s_config.type == Single_LLMModelConfig_type.Value:
             return s_config.value
-        elif s_config.type == Single_LLMModelConfig_type.NULL:
+        elif s_config.type == Single_LLMModelConfig_type.Null:
             return NotGiven
         return NotGiven
 
