@@ -1,10 +1,10 @@
-from typing import List, Dict, Optional, Set
+from typing import List, Dict, Optional, Set, TYPE_CHECKING
 import asyncio
 import re
 from pydantic import BaseModel
 import traceback
 from loguru import logger
-from app.schemas.fanode import FANodeStatus, FANodeWaitType
+from app.schemas.fanode import FARunStatus, FANodeWaitType
 from app.schemas.vfnode import (
     VFNodeInfo,
     VFEdgeInfo,
@@ -26,10 +26,13 @@ from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 from .tasknode import FATaskNode
 
+if TYPE_CHECKING:
+    from app.services import FARunner
+
 
 class FANode_iter_run(FATaskNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo, runner)
         self.iter_var_len = 0
         self.iter_var = []
         pass
@@ -216,7 +219,7 @@ class FANode_iter_run(FATaskNode):
         pass
         task_output = asyncio.create_task(attach_nodes["attached_node_output"].invoke())
         await task_output
-        if attach_nodes["attached_node_output"].runStatus == FANodeStatus.Success:
+        if attach_nodes["attached_node_output"].runStatus == FARunStatus.Success:
             returnUpdateData = []
             # node_results = self.data.getContent("results")
             # Niter_pattern = r"#(\w+)"
@@ -254,7 +257,7 @@ class FANode_iter_run(FATaskNode):
             #     )
             #     pass
 
-            self.setAllOutputStatus(FANodeStatus.Success)
+            self.setAllOutputStatus(FARunStatus.Success)
             return returnUpdateData
         else:
             error_msg = traceback.format_exc()

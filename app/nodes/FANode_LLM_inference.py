@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, Any, Optional, cast
+from typing import List, Union, Dict, Any, Optional, cast, TYPE_CHECKING
 from pydantic import BaseModel
 import asyncio
 import os
@@ -17,7 +17,7 @@ from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from enum import Enum
 from decimal import Decimal
 from app.utils.tools import replace_vars
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import (
     VFNodeInfo,
     VFNodeContentData,
@@ -39,6 +39,10 @@ from app.schemas.farequest import (
 from app.utils.tools import read_yaml
 from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
+
+
+if TYPE_CHECKING:
+    from app.services import FARunner
 
 
 class LLMModes(BaseModel):
@@ -77,8 +81,8 @@ AsyncOAIClient = AsyncOpenAI(base_url=BASE_URL, api_key=API_KEY)
 
 
 class FANode_LLM_inference(FATaskNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo,runner)
         self.validateNeededs = [FANodeValidateNeed.Self]
         pass
 
@@ -219,7 +223,7 @@ class FANode_LLM_inference(FATaskNode):
                 )
                 if isJson:
                     json.loads(D_ANSWER.data.value)
-                self.setAllOutputStatus(FANodeStatus.Success)
+                self.setAllOutputStatus(FARunStatus.Success)
                 return
             except json.JSONDecodeError:
                 if try_count >= 5:

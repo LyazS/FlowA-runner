@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, Any, Optional
+from typing import List, Union, Dict, Any, Optional, TYPE_CHECKING
 from pydantic import BaseModel
 import asyncio
 import os
@@ -11,9 +11,9 @@ import traceback
 import base64
 import subprocess
 from enum import Enum
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
-from app.schemas.vfnode_contentdata import Single_VarInput,VarType
+from app.schemas.vfnode_contentdata import Single_VarInput, VarType
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
@@ -22,6 +22,9 @@ from app.schemas.farequest import (
 from app.utils.tools import read_yaml
 from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
+
+if TYPE_CHECKING:
+    from app.services import FARunner
 
 
 class EvalType(str, Enum):
@@ -94,8 +97,8 @@ async def SimplePythonRun(code, evaltype: EvalType, snekboxUrl: str = ""):
 
 
 class FANode_code_interpreter(FATaskNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo, runner)
         self.validateNeededs = [FANodeValidateNeed.Self]
         pass
 
@@ -215,7 +218,7 @@ class FANode_code_interpreter(FATaskNode):
                 # 更新内部数据
                 self.data.results.byId[rid].data.value = codeResult.output[item.key]
             # 返回之前先设置好输出handle状态
-            self.setAllOutputStatus(FANodeStatus.Success)
+            self.setAllOutputStatus(FARunStatus.Success)
             return returnUpdateData
         else:
             raise Exception(f"执行代码失败：{codeResult.error}")

@@ -4,7 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel
 from enum import Enum
 from .vfnode import VFlowData, VFNodeData
-from .fanode import FARunnerStatus, FANodeStatus
+from .fanode import FARunStatus
 
 
 class VarItem(BaseModel):
@@ -95,7 +95,7 @@ class FAWorkflowNodeResult(BaseModel):
     data: VFNodeData
     ntype: str
     parentNode: Optional[str]
-    runStatus: FANodeStatus
+    runStatus: FARunStatus
     pass
 
 
@@ -103,7 +103,7 @@ class FAWorkflowResult(BaseModel):
     tid: str
     usedvflow: Optional[dict]
     noderesult: Optional[List[FAWorkflowNodeResult]]
-    status: FARunnerStatus
+    status: FARunStatus
     starttime: datetime
     endtime: datetime
     pass
@@ -125,7 +125,7 @@ class FAWorkflowCreateType(Enum):
 
 class FAWorkflowRunRequest(BaseModel):
     wid: str
-    vflow: dict
+    vflow: Optional[dict] = None
     pass
 
 
@@ -139,7 +139,7 @@ class FAWorkflowRunReqType(Enum):
 
 class FAWorkflowRunResponse(BaseModel):
     type: FAWorkflowRunReqType
-    validation_errors: Dict[str, ValidationError]
+    validation_errors: Dict[str, ValidationError] = None
     pass
 
 

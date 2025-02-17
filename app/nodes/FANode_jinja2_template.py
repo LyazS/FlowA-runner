@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, Any, Optional
+from typing import List, Union, Dict, Any, Optional, TYPE_CHECKING
 from pydantic import BaseModel
 import asyncio
 import os
@@ -12,7 +12,7 @@ import base64
 from loguru import logger
 import subprocess
 from enum import Enum
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.vfnode_contentdata import Single_VarInput, VarType
 from app.schemas.farequest import (
@@ -31,12 +31,15 @@ from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 from app.utils.vueRef import serialize_ref, RefOptions, RefTriggerData
 
+if TYPE_CHECKING:
+    from app.services import FARunner
+
 
 class FANode_jinja2_template(FABaseNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo, runner)
         self.validateNeededs = [FANodeValidateNeed.Self]
-        self.runStatus = FANodeStatus.Passive
+        self.runStatus = FARunStatus.Passive
         self.inReporting = False
         pass
 

@@ -173,7 +173,7 @@ class FAValidator:
     ) -> Dict[str, ValidationError]:
         # 初始化所有节点
         for nodeinfo in flowdata.nodes:
-            node = (FANODECOLLECTION[nodeinfo.data.ntype])(wid, nodeinfo)
+            node = (FANODECOLLECTION[nodeinfo.data.ntype])(wid, nodeinfo, None)
             self.nodes[nodeinfo.id] = node
             pass
         # 构建节点连接关系

@@ -7,7 +7,7 @@ import traceback
 import json
 import copy
 from loguru import logger
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode_contentdata import Single_VarInput, VarType
 from app.schemas.vfnode import VFNodeData
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentDataType
@@ -30,6 +30,7 @@ from app.nodes.basenode import FABaseNode
 
 if TYPE_CHECKING:
     from app.nodes import FANode_iter_run
+    from app.services import FARunner
 
 
 class FANodeWaitStatus(BaseModel):
@@ -45,8 +46,8 @@ class NodeCancelException(Exception):
 
 
 class FATaskNode(FABaseNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo, runner)
         # 本节点的完成事件
         self.doneEvent = asyncio.Event()
         # 其他节点的输出handle的状态
@@ -80,15 +81,15 @@ class FATaskNode(FABaseNode):
                         thiswstatus.nid
                     )
                     thisowstatus = thenode.outputStatus[thiswstatus.output]
-                    preNodeSuccess.append(thisowstatus == FANodeStatus.Success)
+                    preNodeSuccess.append(thisowstatus == FARunStatus.Success)
 
                 canRunNode = waitFunc(preNodeSuccess)
                 # 前置节点出错或取消，本节点取消运行
                 if not canRunNode:
                     raise NodeCancelException("前置节点出错或取消，本节点取消运行")
                 # logger.debug(f"can run {self.data.label} {self.id}")
-            self.setAllOutputStatus(FANodeStatus.Running)
-            self.putNodeStatus(FANodeStatus.Running)
+            self.setAllOutputStatus(FARunStatus.Running)
+            self.putNodeStatus(FARunStatus.Running)
 
             # 前置节点全部成功，本节点开始运行
             updateDatas = await self.run()
@@ -96,7 +97,7 @@ class FATaskNode(FABaseNode):
             # logger.debug(f"run success {self.data.label} {self.id}")
             # self.setAllOutputStatus(FANodeStatus.Success)
             # 各个输出handle的成功需要由子类函数来设置
-            self.putNodeStatus(FANodeStatus.Success)
+            self.putNodeStatus(FARunStatus.Success)
             nodeUpdateDatas = []
             if updateDatas:
                 nodeUpdateDatas.extend(updateDatas)
@@ -115,28 +116,28 @@ class FATaskNode(FABaseNode):
             pass
         except NodeCancelException as e:
             logger.debug(f"node cancel {self.data.label} {self.id} {e.message}")
-            self.setAllOutputStatus(FANodeStatus.Canceled)
-            self.putNodeStatus(FANodeStatus.Canceled)
+            self.setAllOutputStatus(FARunStatus.Canceled)
+            self.putNodeStatus(FARunStatus.Canceled)
             pass
         except Exception as e:
             error_message = traceback.format_exc()
             logger.error(f"node error {self.data.label} {error_message} {self.id}")
-            self.setAllOutputStatus(FANodeStatus.Error)
-            self.putNodeStatus(FANodeStatus.Error)
+            self.setAllOutputStatus(FARunStatus.Error)
+            self.putNodeStatus(FARunStatus.Error)
         finally:
             self.doneEvent.set()
         pass
 
-    def setAllOutputStatus(self, status: FANodeStatus):
+    def setAllOutputStatus(self, status: FARunStatus):
         for oname in self.outputStatus:
             self.outputStatus[oname] = status
         pass
 
-    def setOutputStatus(self, oname: str, status: FANodeStatus):
+    def setOutputStatus(self, oname: str, status: FARunStatus):
         self.outputStatus[oname] = status
         pass
 
-    def putNodeStatus(self, status: FANodeStatus):
+    def putNodeStatus(self, status: FARunStatus):
         self.runStatus = status
         ALL_MESSAGES_MGR.put(
             self.tid,
@@ -211,7 +212,7 @@ class FATaskNode(FABaseNode):
     # 需要子类实现的函数 ===============================================================
     # @abstractmethod
     async def run(self) -> List[FANodeUpdateData]:
-        self.setAllOutputStatus(FANodeStatus.Success)
+        self.setAllOutputStatus(FARunStatus.Success)
         pass
 
     async def getCurData(self) -> Optional[List[FANodeUpdateData]]:

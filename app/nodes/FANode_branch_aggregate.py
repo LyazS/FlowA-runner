@@ -1,9 +1,9 @@
-from typing import List, Union, Dict, Optional, Any
+from typing import List, Union, Dict, Optional, Any, TYPE_CHECKING
 import traceback
 import asyncio
 import ast
 from loguru import logger
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.vfnode_contentdata import (
     Single_ConditionDict,
@@ -20,10 +20,13 @@ from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 
+if TYPE_CHECKING:
+    from app.services import FARunner
+
 
 class FANode_branch_aggregate(FATaskNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo, runner)
         self.waitType = FANodeWaitType.OR
         self.validateNeededs = [
             FANodeValidateNeed.Self,
@@ -72,7 +75,7 @@ class FANode_branch_aggregate(FATaskNode):
             for thiswstatus in self.waitStatus:
                 thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(thiswstatus.nid)
                 thisowstatus = thenode.outputStatus[thiswstatus.output]
-                if thisowstatus == FANodeStatus.Success:
+                if thisowstatus == FARunStatus.Success:
                     preNodeSuccess.add(thiswstatus.nid)
             D_BRANCHES: VFNodeContentData = self.data.payloads.byId["D_BRANCHES"]
             for item in D_BRANCHES.data.value:
@@ -82,7 +85,7 @@ class FANode_branch_aggregate(FATaskNode):
                     refdata = await self.getRefData(branch.refdata)
                     self.data.results.byId["D_OUTPUT"].data.value = refdata
                     break
-            self.setAllOutputStatus(FANodeStatus.Success)
+            self.setAllOutputStatus(FARunStatus.Success)
             return []
 
         except Exception as e:

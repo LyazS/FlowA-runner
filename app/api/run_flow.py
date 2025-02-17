@@ -10,7 +10,7 @@ from sse_starlette.sse import EventSourceResponse
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from app.core.config import settings
-from app.schemas.fanode import FARunnerStatus
+from app.schemas.fanode import FARunStatus
 from app.schemas.vfnode import VFlowData, VFNodeFlag
 from app.services.FARunner import FARunner
 from app.services.FAValidator import FAValidator
@@ -43,10 +43,7 @@ router = APIRouter()
 
 
 @router.post("/run")
-async def run_flow(
-    run_req: FAWorkflowRunRequest,
-    background_tasks: BackgroundTasks,
-) -> FAWorkflowOperationResponse:
+async def run_flow(run_req: FAWorkflowRunRequest) -> FAWorkflowOperationResponse:
     if settings.DEBUG:
         await asyncio.sleep(1)
     fav = FAValidator()
@@ -56,7 +53,7 @@ async def run_flow(
     validate_result = await fav.validate(run_req.wid, flowdata)
     if len(validate_result) > 0:
         return FAWorkflowOperationResponse(
-            success=True,
+            success=False,
             data=FAWorkflowRunResponse(
                 type=FAWorkflowRunReqType.validation,
                 validation_errors=validate_result,
@@ -72,10 +69,11 @@ async def run_flow(
                 type=FAWorkflowRunReqType.isrunning,
             ),
         )
-    
+
     # 开始运行 =============================================
-    await ALL_TASKS_MGR.create(run_req.wid)
-    background_tasks.add_task(ALL_TASKS_MGR.run, taskid, run_req)
+    await ALL_TASKS_MGR.start_run(run_req.wid, run_req.vflow)
+    logger.debug(f"running workflow: {ALL_TASKS_MGR.tasks.keys()}")
+
     try:
         async with get_db_ctxmgr() as db:
             await db.execute(
@@ -104,6 +102,26 @@ async def run_flow(
             type=FAWorkflowRunReqType.success,
         ),
     )
+
+
+@router.post("/stop")
+async def stop_flow(stop_req: FAWorkflowRunRequest) -> FAWorkflowOperationResponse:
+    if await ALL_TASKS_MGR.isRunning(stop_req.wid):
+        await ALL_TASKS_MGR.stop(stop_req.wid)
+        logger.debug(f"running workflow: {ALL_TASKS_MGR.tasks.keys()}")
+        return FAWorkflowOperationResponse(success=True)
+    else:
+        return FAWorkflowOperationResponse(success=False)
+    pass
+
+
+@router.get("/status")
+async def get_flow_status(wid: str) -> FAWorkflowOperationResponse:
+    if await ALL_TASKS_MGR.isRunning(wid):
+        return FAWorkflowOperationResponse(success=True)
+    else:
+        return FAWorkflowOperationResponse(success=False)
+    pass
 
 
 @router.post("/progress")
@@ -164,7 +182,7 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
                     data=all_sse_data,
                 ),
             )
-            if farunner.status == FARunnerStatus.Success:
+            if farunner.status == FARunStatus.Success:
                 ALL_MESSAGES_MGR.put(
                     task_name,
                     SSEResponse(

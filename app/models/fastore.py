@@ -17,7 +17,6 @@ from typing import List, Optional
 from decimal import Decimal
 from datetime import datetime
 from app.db.base import Base
-from app.schemas.fanode import FARunnerStatus
 import json
 
 

@@ -10,7 +10,7 @@ import traceback
 from loguru import logger
 from app.core.config import settings
 from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData, VFNodeFlag
-from app.schemas.fanode import FARunnerStatus
+from app.schemas.fanode import FARunStatus
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.schemas.farequest import (
     ValidationError,
@@ -37,13 +37,12 @@ if TYPE_CHECKING:
 
 
 class FARunner:
-    def __init__(self, tid: str):
-        self.tid = tid
-        self.wid = None
-        self.oriflowdata = None
-        self.flowdata: VFlowData = None
+    def __init__(self, wid: str, vflowdata: dict):
+        self.wid = wid
+        self.oriflowdata = vflowdata
+        self.flowdata: VFlowData = VFlowData.model_validate(vflowdata)
         self.nodes: Dict[str, "FATaskNode"] = {}
-        self.status: FARunnerStatus = FARunnerStatus.Pending
+        self.status: FARunStatus = FARunStatus.Pending
         # 时间戳
         self.starttime = None
         self.endtime = None
@@ -69,8 +68,9 @@ class FARunner:
                 self.addNode(
                     nodeinfo.id,
                     (FANODECOLLECTION[nodeinfo.data.ntype])(
-                        self.tid,
+                        self.wid,
                         nodeinfo,
+                        self,
                     ),
                 )
             pass
@@ -100,41 +100,36 @@ class FARunner:
                 )
         pass
 
-    async def run(self, vflow: FAWorkflow):
+    async def run(self):
         self.starttime = datetime.now(ZoneInfo("Asia/Shanghai"))
-        self.wid = vflow.wid
-        self.oriflowdata = vflow.vflow
-        self.flowdata = VFlowData.model_validate(self.oriflowdata)
-        self.buildNodes()
-        # 启动所有节点
-        self.status = FARunnerStatus.Running
-        # tasks = []
-        # # 当前只有根节点，所以直接启动即可
-        # for nid in self.nodes:
-        #     tasks.append(self.nodes[nid].invoke())
-        # # 等待所有节点完成
-        # await asyncio.gather(*tasks)
+        # self.buildNodes()
+        # # 启动所有节点
+        # self.status = FARunStatus.Running
+ 
+        # self._running_tasks = {
+        #     asyncio.create_task(node.invoke()) for node in self.nodes.values()
+        # }
 
-        self._running_tasks = {
-            asyncio.create_task(node.invoke()) for node in self.nodes.values()
-        }
+        # try:
+        #     await asyncio.gather(*self._running_tasks)
+        # finally:
+        #     self._running_tasks.clear()  # 防止内存泄漏
 
-        try:
-            await asyncio.gather(*self._running_tasks)
-        finally:
-            self._running_tasks.clear()  # 防止内存泄漏
-
+        # test
+        logger.info(f"workflow {self.wid} run start")
+        await asyncio.sleep(5)
         self.endtime = datetime.now(ZoneInfo("Asia/Shanghai"))
-        self.status = FARunnerStatus.Success
-        # 保存历史记录
-        await self.saveResult()
-        ALL_MESSAGES_MGR.put(
-            self.tid,
-            SSEResponse(
-                event=SSEResponseType.flowfinish,
-                data=None,
-            ),
-        )
+        logger.info(f"workflow {self.wid} run success")
+        # self.status = FARunStatus.Success
+        # # 保存历史记录
+        # await self.saveResult()
+        # ALL_MESSAGES_MGR.put(
+        #     self.wid,
+        #     SSEResponse(
+        #         event=SSEResponseType.flowfinish,
+        #         data=None,
+        #     ),
+        # )
         pass
 
     async def stop(self):

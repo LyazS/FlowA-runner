@@ -7,7 +7,7 @@ import traceback
 import json
 import copy
 from loguru import logger
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode_contentdata import Single_VarInput, VarType
 from app.schemas.vfnode import VFNodeData
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentDataType
@@ -27,9 +27,13 @@ from app.schemas.farequest import (
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 
+if TYPE_CHECKING:
+    from app.services import FARunner
+
 
 class FABaseNode(ABC):
-    def __init__(self, wid: str, nodeinfo: VFNodeInfo):
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        self.runner = runner
         cpnodeinfo = copy.deepcopy(nodeinfo)
         self.wid = wid
         self.id = cpnodeinfo.id
@@ -39,12 +43,12 @@ class FABaseNode(ABC):
         self.parentNode = cpnodeinfo.parentNode
 
         # 该节点的输出handle的状态
-        self.outputStatus: Dict[str, FANodeStatus] = {
-            oname: FANodeStatus.Pending
+        self.outputStatus: Dict[str, FARunStatus] = {
+            oname: FARunStatus.Pending
             for oname in self.data.connections.outputs.keys()
         }
         # 该节点的运行状态
-        self.runStatus = FANodeStatus.Pending
+        self.runStatus = FARunStatus.Pending
 
         # 该节点需求的验证内容
         self.validateNeededs: List[FANodeValidateNeed] = []
@@ -76,14 +80,6 @@ class FABaseNode(ABC):
         pass
 
     @abstractmethod
-    async def startReport(self):
-        pass
-
-    @abstractmethod
-    async def stopReport(self):
-        pass
-
-    @abstractmethod
     async def getCurData(self) -> Optional[List[FANodeUpdateData]]:
         return []
 
@@ -92,6 +88,12 @@ class FABaseNode(ABC):
         self,
         validateVars: Dict[FANodeValidateNeed, Any],
     ) -> Optional[ValidationError]:
+        return None
+
+    async def processRequest(
+        self,
+        request: FAWorkflowNodeRequest,
+    ) -> Optional[FAWorkflowOperationResponse]:
         return None
 
     @staticmethod
