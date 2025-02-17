@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from typing import List, Any, Dict, Optional
+from typing import List, Any, Dict, Optional, Union
 from enum import Enum, Flag
 from pydantic import BaseModel
 import json
@@ -100,7 +100,7 @@ class VFNodeFlag(Flag):
 
 class VFNodeAttaching(BaseModel):
     type: str
-    pos: str
+    pos: List[Union[str, int]]
     label: str
     pass
 
