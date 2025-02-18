@@ -109,9 +109,15 @@ async def stop_flow(stop_req: FAWorkflowRunRequest) -> FAWorkflowOperationRespon
     if await ALL_TASKS_MGR.isRunning(stop_req.wid):
         await ALL_TASKS_MGR.stop(stop_req.wid)
         logger.debug(f"running workflow: {ALL_TASKS_MGR.tasks.keys()}")
-        return FAWorkflowOperationResponse(success=True)
+        return FAWorkflowOperationResponse(
+            success=True,
+            message="Workflow stopped",
+        )
     else:
-        return FAWorkflowOperationResponse(success=False)
+        return FAWorkflowOperationResponse(
+            success=True,
+            message="Not found the Workflow",
+        )
     pass
 
 

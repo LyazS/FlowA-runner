@@ -27,7 +27,7 @@ from app.services.taskMgr import ALL_TASKS_MGR
 from .tasknode import FATaskNode
 
 if TYPE_CHECKING:
-    from app.services import FARunner
+    from app.services.FARunner import FARunner
 
 
 class FANode_iter_run(FATaskNode):

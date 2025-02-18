@@ -6,7 +6,7 @@ from app.schemas.farequest import ValidationError
 from .tasknode import FATaskNode
 
 if TYPE_CHECKING:
-    from app.services import FARunner
+    from app.services.FARunner import FARunner
 
 
 class FANode_text_input(FATaskNode):

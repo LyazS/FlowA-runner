@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, TYPE_CHECKING, Any
+from typing import List, Dict, Optional, TYPE_CHECKING, Any, cast
 from abc import ABC, abstractmethod
 import asyncio
 import re
@@ -30,7 +30,7 @@ from app.nodes.basenode import FABaseNode
 
 if TYPE_CHECKING:
     from app.nodes import FANode_iter_run
-    from app.services import FARunner
+    from app.services.FARunner import FARunner
 
 
 class FANodeWaitStatus(BaseModel):
@@ -61,25 +61,37 @@ class FATaskNode(FABaseNode):
         self.id = newid
         pass
 
-    async def startReport(self):
-        pass
-
-    async def stopReport(self):
-        pass
-
     async def invoke(self):
-        # logger.debug(f"invoke {self.data.label} {self.id}")
-        await asyncio.gather(*(event.wait() for event in self.waitEvents))
-        # logger.debug(f"wait done {self.data.label} {self.id}")
         try:
+            # logger.debug(f"invoke {self.data.label} {self.id}")
+
+            runner = self.runner()
+            if runner is None:
+                logger.error(f"runner is None {self.data.label} {self.id}")
+                raise NodeCancelException("runner is None")
+
+            all_events_task = asyncio.gather(
+                *(event.wait() for event in self.waitEvents),
+                return_exceptions=False,  # 如果任一事件抛出异常，则整体失败
+            )
+            cancel_task = asyncio.create_task(runner.cancel_event.wait())
+            done, pending = await asyncio.wait(
+                [
+                    all_events_task,
+                    cancel_task,
+                ],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            if cancel_task in done:
+                raise NodeCancelException("cancel event")
+            logger.debug(f"wait done {self.data.label} {self.id}")
+
             if len(self.waitStatus) > 0:
                 # 如果是AND，要求不能出现任何error或cancel状态
                 waitFunc = all if self.waitType == FANodeWaitType.AND else any
                 preNodeSuccess = []
                 for thiswstatus in self.waitStatus:
-                    thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(
-                        thiswstatus.nid
-                    )
+                    thenode = runner.getNode(thiswstatus.nid)
                     thisowstatus = thenode.outputStatus[thiswstatus.output]
                     preNodeSuccess.append(thisowstatus == FARunStatus.Success)
 
@@ -103,7 +115,7 @@ class FATaskNode(FABaseNode):
                 nodeUpdateDatas.extend(updateDatas)
                 pass
             ALL_MESSAGES_MGR.put(
-                self.tid,
+                self.wid,
                 SSEResponse(
                     event=SSEResponseType.updatenode,
                     data=SSEResponseData(
@@ -113,6 +125,11 @@ class FATaskNode(FABaseNode):
                     ),
                 ),
             )
+            pass
+        except asyncio.CancelledError as e:
+            logger.debug(f"node cancel {self.data.label} {self.id}")
+            self.setAllOutputStatus(FARunStatus.Canceled)
+            self.putNodeStatus(FARunStatus.Canceled)
             pass
         except NodeCancelException as e:
             logger.debug(f"node cancel {self.data.label} {self.id} {e.message}")
@@ -140,7 +157,7 @@ class FATaskNode(FABaseNode):
     def putNodeStatus(self, status: FARunStatus):
         self.runStatus = status
         ALL_MESSAGES_MGR.put(
-            self.tid,
+            self.wid,
             SSEResponse(
                 event=SSEResponseType.updatenode,
                 data=SSEResponseData(
@@ -171,7 +188,7 @@ class FATaskNode(FABaseNode):
         nid_replace = nid.split("#", 1)[0] + "".join(
             map(lambda x: "#" + str(x), nid_matches)
         )
-        thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid_replace)
+        thenode = self.runner().getNode(nid_replace)
         content = thenode.data.getContent(contentname).byId[ctid]
         rtype = content.type
         rdata = None

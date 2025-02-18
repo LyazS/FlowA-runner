@@ -47,8 +47,8 @@ class FARunner:
         self.starttime = None
         self.endtime = None
 
-        self._cancel_event = asyncio.Event()
-        self._running_tasks: Set[asyncio.Task] = set()  # 跟踪所有节点任务
+        self.cancel_event = asyncio.Event()
+        self.running_tasks: Set[asyncio.Task] = set()  # 跟踪所有节点任务
         pass
 
     def addNode(self, nid, node: "FATaskNode"):
@@ -101,43 +101,43 @@ class FARunner:
         pass
 
     async def run(self):
-        self.starttime = datetime.now(ZoneInfo("Asia/Shanghai"))
-        # self.buildNodes()
-        # # 启动所有节点
-        # self.status = FARunStatus.Running
- 
-        # self._running_tasks = {
-        #     asyncio.create_task(node.invoke()) for node in self.nodes.values()
-        # }
+        try:
+            self.starttime = datetime.now(ZoneInfo("Asia/Shanghai"))
+            logger.info(f"workflow {self.wid} run start")
+            self.buildNodes()
+            # 启动所有节点
+            self.status = FARunStatus.Running
+            self.running_tasks = {
+                asyncio.create_task(node.invoke()) for node in self.nodes.values()
+            }
+            await asyncio.gather(*self.running_tasks)
 
-        # try:
-        #     await asyncio.gather(*self._running_tasks)
-        # finally:
-        #     self._running_tasks.clear()  # 防止内存泄漏
-
-        # test
-        logger.info(f"workflow {self.wid} run start")
-        await asyncio.sleep(5)
-        self.endtime = datetime.now(ZoneInfo("Asia/Shanghai"))
-        logger.info(f"workflow {self.wid} run success")
-        # self.status = FARunStatus.Success
-        # # 保存历史记录
-        # await self.saveResult()
-        # ALL_MESSAGES_MGR.put(
-        #     self.wid,
-        #     SSEResponse(
-        #         event=SSEResponseType.flowfinish,
-        #         data=None,
-        #     ),
-        # )
+            self.endtime = datetime.now(ZoneInfo("Asia/Shanghai"))
+            logger.info(f"workflow {self.wid} run success")
+            self.status = FARunStatus.Success
+            ALL_MESSAGES_MGR.put(
+                self.wid,
+                SSEResponse(
+                    event=SSEResponseType.flowfinish,
+                    data=None,
+                ),
+            )
+        except asyncio.CancelledError:
+            logger.debug(f"workflow {self.wid} call to canceled")
+            await self.stop()
+            self.status = FARunStatus.Canceled
+        finally:
+            pass
         pass
 
     async def stop(self):
-        self._cancel_event.set()
+        self.cancel_event.set()
         # 取消所有关联任务
-        for task in self._running_tasks:
+        tasks = list(self.running_tasks)
+        self.running_tasks.clear()
+        for task in tasks:
             task.cancel()
-        await asyncio.gather(*self._running_tasks, return_exceptions=True)
+        await asyncio.gather(*tasks, return_exceptions=True)
 
     async def saveResult(self) -> FAWorkflow:
         try:

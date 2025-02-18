@@ -24,7 +24,7 @@ from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 
 if TYPE_CHECKING:
-    from app.services import FARunner
+    from app.services.FARunner import FARunner
 
 
 class CompareException(Exception):

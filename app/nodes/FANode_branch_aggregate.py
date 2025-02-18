@@ -21,7 +21,7 @@ from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 
 if TYPE_CHECKING:
-    from app.services import FARunner
+    from app.services.FARunner import FARunner
 
 
 class FANode_branch_aggregate(FATaskNode):

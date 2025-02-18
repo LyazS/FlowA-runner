@@ -5,6 +5,7 @@ import re
 from pydantic import BaseModel
 import traceback
 import json
+from weakref import ref
 import copy
 from loguru import logger
 from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
@@ -28,12 +29,15 @@ from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 
 if TYPE_CHECKING:
-    from app.services import FARunner
+    from app.services.FARunner import FARunner
 
 
 class FABaseNode(ABC):
     def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
-        self.runner = runner
+        if runner:
+            self.runner = ref(runner)
+        else:
+            self.runner = None
         cpnodeinfo = copy.deepcopy(nodeinfo)
         self.wid = wid
         self.id = cpnodeinfo.id
@@ -44,8 +48,7 @@ class FABaseNode(ABC):
 
         # 该节点的输出handle的状态
         self.outputStatus: Dict[str, FARunStatus] = {
-            oname: FARunStatus.Pending
-            for oname in self.data.connections.outputs.keys()
+            oname: FARunStatus.Pending for oname in self.data.connections.outputs.keys()
         }
         # 该节点的运行状态
         self.runStatus = FARunStatus.Pending
