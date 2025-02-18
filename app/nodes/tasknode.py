@@ -39,7 +39,7 @@ class FANodeWaitStatus(BaseModel):
     pass
 
 
-class NodeCancelException(Exception):
+class NodeCancelException(asyncio.CancelledError):
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
@@ -127,12 +127,10 @@ class FATaskNode(FABaseNode):
             )
             pass
         except asyncio.CancelledError as e:
-            logger.debug(f"node cancel {self.data.label} {self.id}")
-            self.setAllOutputStatus(FARunStatus.Canceled)
-            self.putNodeStatus(FARunStatus.Canceled)
-            pass
-        except NodeCancelException as e:
-            logger.debug(f"node cancel {self.data.label} {self.id} {e.message}")
+            if isinstance(e, NodeCancelException):
+                logger.debug(f"node cancel {self.data.label} {self.id} due to {e.message}")
+            else:
+                logger.debug(f"node cancel {self.data.label} {self.id} due to runner cancel")
             self.setAllOutputStatus(FARunStatus.Canceled)
             self.putNodeStatus(FARunStatus.Canceled)
             pass

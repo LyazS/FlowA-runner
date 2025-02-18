@@ -123,7 +123,7 @@ class FARunner:
                 ),
             )
         except asyncio.CancelledError:
-            logger.debug(f"workflow {self.wid} call to canceled")
+            logger.debug(f"workflow {self.wid} canceled")
             await self.stop()
             self.status = FARunStatus.Canceled
         finally:

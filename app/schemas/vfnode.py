@@ -91,13 +91,6 @@ class VFNodeFlag(Flag):
     pass
 
 
-# class VFNodeFlags(BaseModel):
-#     isNested: bool
-#     isAttached: bool
-#     isTask: bool
-#     isDisabled: bool
-
-
 class VFNodeAttaching(BaseModel):
     type: str
     pos: List[Union[str, int]]

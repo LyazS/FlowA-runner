@@ -53,8 +53,9 @@ class TaskMgr:
                     task_model.cancel()
                     try:
                         await task_model  # 等待任务完全终止
-                    except asyncio.CancelledError:
                         logger.debug(f"Task {wid} cancelled successfully.")
+                    except asyncio.CancelledError:
+                        logger.error(f"Task {wid} cancelled in unexpected way.")
                         pass  # 预期内的取消异常
                     except Exception as e:
                         logger.error(f"Task {wid} failed: {e}")
