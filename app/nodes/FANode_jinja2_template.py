@@ -22,7 +22,6 @@ from app.schemas.farequest import (
     SSEResponse,
     SSEResponseData,
     SSEResponseType,
-    FAWorkflowNodeRequest,
     FAWorkflowOperationResponse,
 )
 from app.utils.tools import read_yaml
@@ -40,14 +39,6 @@ class FANode_jinja2_template(FABaseNode):
         super().__init__(wid, nodeinfo, runner)
         self.validateNeededs = [FANodeValidateNeed.Self]
         self.runStatus = FARunStatus.Passive
-        self.inReporting = False
-        pass
-
-    async def startReport(self):
-        self.inReporting = True
-        pass
-
-    async def stopReport(self):
         self.inReporting = False
         pass
 
@@ -181,3 +172,13 @@ class FANode_jinja2_template(FABaseNode):
     @staticmethod
     def getNodeConfig():
         return {}
+
+    async def processRequest(
+        self,
+        request: dict,
+    ) -> Optional[FAWorkflowOperationResponse]:
+        if request.get("action") == "start":
+            self.inReporting = True
+        else:
+            self.inReporting = False
+        return FAWorkflowOperationResponse(success=True, message="start report")

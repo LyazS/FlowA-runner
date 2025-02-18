@@ -22,7 +22,6 @@ from app.schemas.farequest import (
     FAWorkflowNodeResult,
     FAWorkflowResult,
     FAWorkflow,
-    FAWorkflowNodeRequest,
     FAWorkflowOperationResponse,
 )
 from app.services.messageMgr import ALL_MESSAGES_MGR
@@ -95,7 +94,7 @@ class FABaseNode(ABC):
 
     async def processRequest(
         self,
-        request: FAWorkflowNodeRequest,
+        request: dict,
     ) -> Optional[FAWorkflowOperationResponse]:
         return None
 

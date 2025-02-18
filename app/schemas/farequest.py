@@ -205,7 +205,6 @@ class FAReleaseWorkflowInfo(BaseModel):
 
 class FAWorkflowNodeRequest(BaseModel):
     wid: str
-    tid: str
     nid: str
     request: dict
     pass

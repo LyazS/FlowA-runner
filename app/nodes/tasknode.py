@@ -247,7 +247,7 @@ class FATaskNode(FABaseNode):
 
     async def processRequest(
         self,
-        request: FAWorkflowNodeRequest,
+        request: dict,
     ) -> Optional[FAWorkflowOperationResponse]:
         return None
 

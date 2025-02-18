@@ -62,6 +62,15 @@ class TaskMgr:
                 del self.tasks[wid]
             pass
 
+    async def get(self, wid: str) -> Optional[FARunner]:
+        """获取任务"""
+        async with self.lock:
+            if wid in self.tasks:
+                return self.tasks[wid].runner
+            else:
+                return None
+        pass
+
     # 获取所用正在运行的任务
     async def getAllTaskID(self):
         async with self.lock:

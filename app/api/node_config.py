@@ -33,8 +33,6 @@ from app.schemas.farequest import (
     FAWorkflowUpdateRequset,
     FAWorkflowReadRequest,
     FAWorkflowOperationResponse,
-    FAWorkflowInfo,
-    FAWorkflowNodeRequest,
 )
 from app.models.fastore import (
     FAWorkflowModel,

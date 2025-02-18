@@ -30,6 +30,7 @@ from app.schemas.farequest import (
     FAWorkflowRunRequest,
     FAWorkflowRunReqType,
     FAWorkflowRunResponse,
+    FAWorkflowNodeRequest,
 )
 from app.db.session import get_db_ctxmgr
 from app.models.fastore import (
@@ -130,11 +131,35 @@ async def get_flow_status(wid: str) -> FAWorkflowOperationResponse:
     pass
 
 
+@router.post("/noderequest")
+async def node_request(node_req: FAWorkflowNodeRequest) -> FAWorkflowOperationResponse:
+    if not await ALL_TASKS_MGR.isRunning(node_req.wid):
+        return FAWorkflowOperationResponse(
+            success=False,
+            message="Workflow not running",
+        )
+
+    if farunner := await ALL_TASKS_MGR.get(node_req.wid):
+        if node := farunner.getNode(node_req.nid):
+            return node.processRequest(node_req.request)
+        else:
+            return FAWorkflowOperationResponse(
+                success=False,
+                message="Node not found",
+            )
+    else:
+        return FAWorkflowOperationResponse(
+            success=False,
+            message="Workflow not found",
+        )
+        pass
+    pass
+
+
 @router.post("/progress")
 async def get_task_progress(prequest_body: Annotated[str, Body()]):
     prequest = FAProgressRequest.model_validate_json(prequest_body)
     task_name = prequest.tid
-    logger.debug(f"get_task_progress {task_name}")
 
     async def event_generator():
         if await ALL_MESSAGES_MGR.has(task_name):
@@ -149,9 +174,10 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
             tnames = task_name.split("/")
             if len(tnames) == 2:
                 taskid, tasktype = tnames
-                logger.debug(f"get progress {taskid} {tasktype}")
             else:
                 taskid = tnames[0]
+                tasktype = "NORMAL"
+            logger.debug(f"get progress {taskid} {tasktype}")
             farunner: FARunner = await ALL_TASKS_MGR.get(taskid)
             if farunner is None:
                 raise Exception("Task not found")
