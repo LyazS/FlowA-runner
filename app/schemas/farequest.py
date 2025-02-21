@@ -27,13 +27,6 @@ class ValidationError(BaseModel):
     pass
 
 
-# class FARunResponse(BaseModel):
-#     success: bool
-#     tid: Optional[str] = None
-#     validation_errors: Optional[List[ValidationError]] = None
-#     pass
-
-
 class FANodeUpdateType(Enum):
     overwrite = "overwrite"
     append = "append"

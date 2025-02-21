@@ -170,6 +170,15 @@ async def read_workflow(read_request: FAWorkflowReadRequest):
                         db_result = await db.execute(stmt)
                         vflow = db_result.scalars().first()
                         result[location.value] = vflow
+                    
+                    elif location == FAWorkflowLocation.rwfname:
+                        stmt = select(FAReleasedWorkflowModel.name).where(
+                            FAReleasedWorkflowModel.rwid == read_request.rwid,
+                            FAReleasedWorkflowModel.wid == read_request.wid,
+                        )
+                        db_result = await db.execute(stmt)
+                        rwfname = db_result.scalars().first()
+                        result[location.value] = rwfname
                     elif location == FAWorkflowLocation.release:
                         stmt = select(FAReleasedWorkflowModel.vflow).where(
                             FAReleasedWorkflowModel.rwid == read_request.rwid,
