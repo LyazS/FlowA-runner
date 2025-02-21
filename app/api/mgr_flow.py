@@ -34,6 +34,7 @@ from app.schemas.farequest import (
     FAWorkflowReadRequest,
     FAWorkflowCreateRequest,
     FAWorkflowOperationResponse,
+    FAWorkflowOperationType,
     FAWorkflowInfo,
     FAReleaseWorkflowInfo,
     FAWorkflowNodeRequest,
@@ -99,11 +100,17 @@ async def create_workflow(create_request: FAWorkflowCreateRequest):
             db.add(db_wf)
             await db.commit()
             await db.refresh(db_wf)
-            return FAWorkflowOperationResponse(success=True, data=db_wf.wid)
+            return FAWorkflowOperationResponse(
+                type=FAWorkflowOperationType.success,
+                data=db_wf.wid,
+            )
     except Exception as e:
         errmsg = traceback.format_exc()
         logger.error(f"create workflow error: {errmsg}")
-        return FAWorkflowOperationResponse(success=False, message=errmsg)
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.error,
+            message=errmsg,
+        )
 
 
 @router.get("/readall")
@@ -126,11 +133,17 @@ async def read_all_workflows():
                 )
             # 按照最近修改时间排序
             result.sort(key=lambda x: x.lastModified, reverse=True)
-            return FAWorkflowOperationResponse(success=True, data=result)
+            return FAWorkflowOperationResponse(
+                type=FAWorkflowOperationType.success,
+                data=result,
+            )
     except Exception as e:
         errmsg = traceback.format_exc()
         logger.error(f"read all workflows error: {errmsg}")
-        return FAWorkflowOperationResponse(success=False, message=errmsg)
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.error,
+            message=errmsg,
+        )
 
 
 @router.post("/read")
@@ -184,15 +197,21 @@ async def read_workflow(read_request: FAWorkflowReadRequest):
                                 )
                             )
                         result[location.value] = wfresults
-                return FAWorkflowOperationResponse(success=True, data=result)
+                return FAWorkflowOperationResponse(
+                    type=FAWorkflowOperationType.success,
+                    data=result,
+                )
             else:
                 return FAWorkflowOperationResponse(
-                    success=False, message="Workflow not found"
+                    type=FAWorkflowOperationType.error,
+                    message="Workflow not found",
                 )
     except Exception as e:
         errmsg = traceback.format_exc()
         logger.error(f"read workflow error: {errmsg}")
-        return FAWorkflowOperationResponse(success=False, message=errmsg)
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.error, message=errmsg
+        )
 
 
 @router.post("/update")
@@ -247,16 +266,20 @@ async def update_workflow(update_request: FAWorkflowUpdateRequset):
                     .values(lastModified=datetime.now(ZoneInfo("Asia/Shanghai")))
                 )
                 await db.commit()
-                return FAWorkflowOperationResponse(success=True)
+                return FAWorkflowOperationResponse(type=FAWorkflowOperationType.success)
             else:
                 return FAWorkflowOperationResponse(
-                    success=False, message="Workflow not found"
+                    type=FAWorkflowOperationType.error,
+                    message="Workflow not found",
                 )
 
     except Exception as e:
         errmsg = traceback.format_exc()
         logger.error(f"update workflow error: {errmsg}")
-        return FAWorkflowOperationResponse(success=False, message=errmsg)
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.error,
+            message=errmsg,
+        )
 
 
 @router.post("/delete")
@@ -280,15 +303,19 @@ async def delete_workflow(delete_request: FAWorkflowDeleteRequest):
                 # 使用 ORM 的 delete 方法
                 await db.delete(workflow)
                 await db.commit()
-                return FAWorkflowOperationResponse(success=True)
+                return FAWorkflowOperationResponse(type=FAWorkflowOperationType.success)
             else:
                 return FAWorkflowOperationResponse(
-                    success=False, message="Workflow not found"
+                    type=FAWorkflowOperationType.error,
+                    message="Workflow not found",
                 )
     except Exception as e:
         errmsg = traceback.format_exc()
         logger.error(f"delete workflow error: {errmsg}")
-        return FAWorkflowOperationResponse(success=False, message=errmsg)
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.error,
+            message=errmsg,
+        )
 
 
 # @router.post("/deleteresult")

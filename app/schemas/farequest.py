@@ -210,8 +210,14 @@ class FAWorkflowNodeRequest(BaseModel):
     pass
 
 
+class FAWorkflowOperationType(Enum):
+    success = "success"
+    error = "error"
+    pass
+
+
 class FAWorkflowOperationResponse(BaseModel):
-    success: bool
+    type: FAWorkflowOperationType
     message: Optional[str] = None
     data: Optional[Any] = None
     pass

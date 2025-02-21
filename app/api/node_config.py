@@ -33,6 +33,7 @@ from app.schemas.farequest import (
     FAWorkflowUpdateRequset,
     FAWorkflowReadRequest,
     FAWorkflowOperationResponse,
+    FAWorkflowOperationType,
 )
 from app.models.fastore import (
     FAWorkflowModel,
@@ -49,9 +50,12 @@ router = APIRouter()
 async def nodeconfig(ntype: str):
     if ntype in FANODECOLLECTION:
         node: "FABaseNode" = FANODECOLLECTION[ntype]
-        return FAWorkflowOperationResponse(success=True, data=node.getNodeConfig())
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.success,
+            data=node.getNodeConfig(),
+        )
     else:
         return FAWorkflowOperationResponse(
-            success=False,
+            type=FAWorkflowOperationType.error,
             message=f"Node type {ntype} not found in FANODECOLLECTION",
         )

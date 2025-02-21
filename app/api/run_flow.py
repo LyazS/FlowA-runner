@@ -31,6 +31,7 @@ from app.schemas.farequest import (
     FAWorkflowRunReqType,
     FAWorkflowRunResponse,
     FAWorkflowNodeRequest,
+    FAWorkflowOperationType,
 )
 from app.db.session import get_db_ctxmgr
 from app.models.fastore import (
@@ -54,7 +55,7 @@ async def run_flow(run_req: FAWorkflowRunRequest) -> FAWorkflowOperationResponse
     validate_result = await fav.validate(run_req.wid, flowdata)
     if len(validate_result) > 0:
         return FAWorkflowOperationResponse(
-            success=False,
+            type=FAWorkflowOperationType.error,
             data=FAWorkflowRunResponse(
                 type=FAWorkflowRunReqType.validation,
                 validation_errors=validate_result,
@@ -64,7 +65,7 @@ async def run_flow(run_req: FAWorkflowRunRequest) -> FAWorkflowOperationResponse
     # 检查是否还在运行 =============================================
     if await ALL_TASKS_MGR.isRunning(run_req.wid):
         return FAWorkflowOperationResponse(
-            success=False,
+            type=FAWorkflowOperationType.error,
             message="Workflow is running",
             data=FAWorkflowRunResponse(
                 type=FAWorkflowRunReqType.isrunning,
@@ -91,14 +92,14 @@ async def run_flow(run_req: FAWorkflowRunRequest) -> FAWorkflowOperationResponse
         errmsg = traceback.format_exc()
         logger.error(f"update workflow error: {errmsg}")
         return FAWorkflowOperationResponse(
-            success=False,
+            type=FAWorkflowOperationType.error,
             message=errmsg,
             data=FAWorkflowRunResponse(
                 type=FAWorkflowRunReqType.internalerror,
             ),
         )
     return FAWorkflowOperationResponse(
-        success=True,
+        type=FAWorkflowOperationType.success,
         data=FAWorkflowRunResponse(
             type=FAWorkflowRunReqType.success,
         ),
@@ -111,12 +112,12 @@ async def stop_flow(stop_req: FAWorkflowRunRequest) -> FAWorkflowOperationRespon
         await ALL_TASKS_MGR.stop(stop_req.wid)
         logger.debug(f"running workflow: {ALL_TASKS_MGR.tasks.keys()}")
         return FAWorkflowOperationResponse(
-            success=True,
+            type=FAWorkflowOperationType.success,
             message="Workflow stopped",
         )
     else:
         return FAWorkflowOperationResponse(
-            success=True,
+            type=FAWorkflowOperationType.error,
             message="Not found the Workflow",
         )
     pass
@@ -125,9 +126,15 @@ async def stop_flow(stop_req: FAWorkflowRunRequest) -> FAWorkflowOperationRespon
 @router.get("/status")
 async def get_flow_status(wid: str) -> FAWorkflowOperationResponse:
     if await ALL_TASKS_MGR.isRunning(wid):
-        return FAWorkflowOperationResponse(success=True)
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.success,
+            data=True,
+        )
     else:
-        return FAWorkflowOperationResponse(success=False)
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.success,
+            data=False,
+        )
     pass
 
 
@@ -135,21 +142,24 @@ async def get_flow_status(wid: str) -> FAWorkflowOperationResponse:
 async def node_request(node_req: FAWorkflowNodeRequest) -> FAWorkflowOperationResponse:
     if not await ALL_TASKS_MGR.isRunning(node_req.wid):
         return FAWorkflowOperationResponse(
-            success=False,
+            type=FAWorkflowOperationType.error,
             message="Workflow not running",
         )
 
     if farunner := await ALL_TASKS_MGR.get(node_req.wid):
         if node := farunner.getNode(node_req.nid):
-            return node.processRequest(node_req.request)
+            return FAWorkflowOperationResponse(
+                type=FAWorkflowOperationType.success,
+                data=node.processRequest(node_req.request),
+            )
         else:
             return FAWorkflowOperationResponse(
-                success=False,
+                type=FAWorkflowOperationType.error,
                 message="Node not found",
             )
     else:
         return FAWorkflowOperationResponse(
-            success=False,
+            type=FAWorkflowOperationType.error,
             message="Workflow not found",
         )
         pass
