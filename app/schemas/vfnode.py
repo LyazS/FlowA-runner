@@ -125,7 +125,6 @@ class VFNodeNesting(BaseModel):
 class VFNodeData(BaseModel):
     ntype: str
     vtype: str
-    # flags: VFNodeFlags
     flag: VFNodeFlag
     label: str
     placeholderlabel: str

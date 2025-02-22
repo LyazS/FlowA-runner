@@ -23,6 +23,7 @@ from app.schemas.farequest import (
     SSEResponseData,
     SSEResponseType,
     FAWorkflowOperationResponse,
+    FAProgressRequestType,
 )
 from app.utils.tools import read_yaml
 from .basenode import FABaseNode
@@ -53,7 +54,7 @@ class FANode_jinja2_template(FABaseNode):
         if not self.inReporting:
             return
         ALL_MESSAGES_MGR.put(
-            f"{wid}/Jinja2",
+            f"{wid}/{FAProgressRequestType.JinJa.value}",
             SSEResponse(
                 event=SSEResponseType.updatenode,
                 data=SSEResponseData(

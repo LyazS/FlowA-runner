@@ -116,7 +116,16 @@ class FAWorkflowCreateType(Enum):
     pass
 
 
+class FAWorkflowRunType(Enum):
+    Full = "Full"
+    Incremental = "Incremental"
+    Api = "Api"
+    Stop = "Stop"
+    pass
+
+
 class FAWorkflowRunRequest(BaseModel):
+    type: FAWorkflowRunType
     wid: str
     vflow: Optional[dict] = None
     pass
@@ -216,14 +225,14 @@ class FAWorkflowOperationResponse(BaseModel):
     pass
 
 
-class FAProgressNodeType(Enum):
-    ALL_TASK_NODE = "ALL_TASK_NODE"
-    SELECTED = "SELECTED"
+class FAProgressRequestType(Enum):
+    VFlowUI = "VFlowUI"
+    JinJa = "JinJa"
     pass
 
 
 class FAProgressRequest(BaseModel):
-    tid: str
-    node_type: FAProgressNodeType
+    type: FAProgressRequestType
+    wid: str
     selected_nids: Optional[List[str]] = None
     pass

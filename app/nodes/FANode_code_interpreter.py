@@ -219,7 +219,8 @@ class FANode_code_interpreter(FATaskNode):
                 self.data.results.byId[rid].data.value = codeResult.output[item.key]
             # 返回之前先设置好输出handle状态
             self.setAllOutputStatus(FARunStatus.Success)
-            return returnUpdateData
+            # return returnUpdateData
+            return []
         else:
             raise Exception(f"执行代码失败：{codeResult.error}")
         pass

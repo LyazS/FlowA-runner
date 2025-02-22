@@ -23,6 +23,7 @@ from app.schemas.farequest import (
     FAWorkflow,
     FAWorkflowNodeRequest,
     FAWorkflowOperationResponse,
+    FAProgressRequestType,
 )
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
@@ -115,7 +116,7 @@ class FATaskNode(FABaseNode):
                 nodeUpdateDatas.extend(updateDatas)
                 pass
             ALL_MESSAGES_MGR.put(
-                self.wid,
+                f"{self.wid}/{FAProgressRequestType.VFlowUI.value}",
                 SSEResponse(
                     event=SSEResponseType.updatenode,
                     data=SSEResponseData(
@@ -155,7 +156,7 @@ class FATaskNode(FABaseNode):
     def putNodeStatus(self, status: FARunStatus):
         self.runStatus = status
         ALL_MESSAGES_MGR.put(
-            self.wid,
+            f"{self.wid}/{FAProgressRequestType.VFlowUI.value}",
             SSEResponse(
                 event=SSEResponseType.updatenode,
                 data=SSEResponseData(
