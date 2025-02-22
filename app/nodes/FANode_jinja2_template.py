@@ -24,6 +24,7 @@ from app.schemas.farequest import (
     SSEResponseType,
     FAWorkflowOperationResponse,
     FAProgressRequestType,
+    FAWorkflowOperationType,
 )
 from app.utils.tools import read_yaml
 from .basenode import FABaseNode
@@ -182,4 +183,7 @@ class FANode_jinja2_template(FABaseNode):
             self.inReporting = True
         else:
             self.inReporting = False
-        return FAWorkflowOperationResponse(success=True, message="start report")
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.success,
+            message="start report",
+        )
