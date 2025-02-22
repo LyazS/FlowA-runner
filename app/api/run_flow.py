@@ -55,7 +55,7 @@ async def run_flow(run_req: FAWorkflowRunRequest) -> FAWorkflowOperationResponse
     validate_result = await fav.validate(run_req.wid, flowdata)
     if len(validate_result) > 0:
         return FAWorkflowOperationResponse(
-            type=FAWorkflowOperationType.error,
+            type=FAWorkflowOperationType.success,
             data=FAWorkflowRunResponse(
                 type=FAWorkflowRunReqType.validation,
                 validation_errors=validate_result,
@@ -65,7 +65,7 @@ async def run_flow(run_req: FAWorkflowRunRequest) -> FAWorkflowOperationResponse
     # 检查是否还在运行 =============================================
     if await ALL_TASKS_MGR.isRunning(run_req.wid):
         return FAWorkflowOperationResponse(
-            type=FAWorkflowOperationType.error,
+            type=FAWorkflowOperationType.success,
             message="Workflow is running",
             data=FAWorkflowRunResponse(
                 type=FAWorkflowRunReqType.isrunning,

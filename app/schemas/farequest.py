@@ -141,7 +141,7 @@ class FAWorkflowRunReqType(Enum):
 
 class FAWorkflowRunResponse(BaseModel):
     type: FAWorkflowRunReqType
-    validation_errors: Dict[str, ValidationError] = None
+    validation_errors: List[ValidationError] = None
     pass
 
 

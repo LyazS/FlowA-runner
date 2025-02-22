@@ -73,7 +73,7 @@ class FANode_branch_aggregate(FATaskNode):
         try:
             preNodeSuccess = set()
             for thiswstatus in self.waitStatus:
-                thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(thiswstatus.nid)
+                thenode = self.runner().getNode(thiswstatus.nid)
                 thisowstatus = thenode.outputStatus[thiswstatus.output]
                 if thisowstatus == FARunStatus.Success:
                     preNodeSuccess.add(thiswstatus.nid)
