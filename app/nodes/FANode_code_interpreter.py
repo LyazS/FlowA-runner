@@ -118,7 +118,7 @@ class FANode_code_interpreter(FATaskNode):
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
                 if var.type == VarType.Ref and var.value not in selfVars:
-                    error_msgs.append(f"变量未定义{var.value}")
+                    error_msgs.append(f"没有该变量选项{var.value}")
                 else:
                     CodeInputArgs.add(var.key)
             for pid in node_results.order:
@@ -139,7 +139,7 @@ class FANode_code_interpreter(FATaskNode):
                         input_params = [arg.arg for arg in node.args.args]
                         for in_arg in input_params:
                             if in_arg not in CodeInputArgs:
-                                raise Exception(f"缺少输入参数【{in_arg}】")
+                                error_msgs.append(f"缺少输入参数【{in_arg}】")
                             pass
                         # 检查输出名字是否对上
                         return_statements = [
@@ -150,16 +150,16 @@ class FANode_code_interpreter(FATaskNode):
                                 outputs = set([key.s for key in return_node.value.keys])
                                 for out_arg in CodeOutputArgs:
                                     if out_arg not in outputs:
-                                        raise Exception(
-                                            f"返回值缺少输出参数【{out_arg}】"
+                                        error_msgs.append(
+                                            f"代码返回值缺少输出参数【{out_arg}】"
                                         )
                                     pass
                             else:
-                                raise Exception(f"main函数返回值必须为字典")
+                                error_msgs.append(f"main函数返回值必须为字典")
                             pass
                         break
                 if not hasMain:
-                    raise Exception(f"未找到main函数")
+                    error_msgs.append(f"未找到main函数")
             except SyntaxError:
                 error_msgs.append(f"Python代码格式错误")
             except Exception as e:
