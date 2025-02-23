@@ -99,6 +99,14 @@ class FATaskNode(FABaseNode):
                 canRunNode = waitFunc(preNodeSuccess)
                 # 前置节点出错或取消，本节点取消运行
                 if not canRunNode:
+                    # 找出是哪个节点出错或取消
+                    for thiswstatus in self.waitStatus:
+                        thenode = runner.getNode(thiswstatus.nid)
+                        thisowstatus = thenode.outputStatus[thiswstatus.output]
+                        logger.debug(
+                            f"pre node error or cancel {self.data.label} {self.id} due to {thiswstatus.nid} {thiswstatus.output} {thisowstatus}"
+                        )
+
                     raise NodeCancelException("前置节点出错或取消，本节点取消运行")
                 # logger.debug(f"can run {self.data.label} {self.id}")
             self.setAllOutputStatus(FARunStatus.Running)
@@ -129,9 +137,13 @@ class FATaskNode(FABaseNode):
             pass
         except asyncio.CancelledError as e:
             if isinstance(e, NodeCancelException):
-                logger.debug(f"node cancel {self.data.label} {self.id} due to {e.message}")
+                logger.debug(
+                    f"node cancel {self.data.label} {self.id} due to {e.message}"
+                )
             else:
-                logger.debug(f"node cancel {self.data.label} {self.id} due to runner cancel")
+                logger.debug(
+                    f"node cancel {self.data.label} {self.id} due to runner cancel"
+                )
             self.setAllOutputStatus(FARunStatus.Canceled)
             self.putNodeStatus(FARunStatus.Canceled)
             pass

@@ -214,6 +214,27 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
                 )
                 all_sse_data.append(sse_data)
                 pass
+            if prequest.type == FAProgressRequestType.VFlowUI:
+                # 这里连带Passive节点的状态一起推送
+                # 需要手动构建他的状态
+                for nid in farunner.nodes.keys():
+                    node = farunner.getNode(nid)
+                    if node.data.flag & VFNodeFlag.isPassive:
+                        sse_data = SSEResponseData(
+                            nid=nid,
+                            oriid=farunner.nodes[nid].oriid,
+                            data=[
+                                FANodeUpdateData(
+                                    type=FANodeUpdateType.overwrite,
+                                    path=["state", "status"],
+                                    data=FARunStatus.Passive,
+                                )
+                            ],
+                        )
+                        all_sse_data.append(sse_data)
+                        pass
+                    pass
+                pass
             ALL_MESSAGES_MGR.put(
                 wname,
                 SSEResponse(

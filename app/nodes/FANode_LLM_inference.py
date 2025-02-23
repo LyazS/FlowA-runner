@@ -262,6 +262,7 @@ class FANode_LLM_inference(FATaskNode):
                 pass
             except Exception as e:
                 errmsg = traceback.format_exc()
+                logger.warning(f"LLM节点运行失败：{errmsg}")
                 raise Exception(f"LLM节点运行失败：{errmsg}")
             pass
 
