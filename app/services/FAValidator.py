@@ -216,11 +216,11 @@ class FAValidator:
                     )
                 ]
                 pass
-            if FANodeValidateNeed.Attach in node.validateNeededs:
-                validateVarDict[FANodeValidateNeed.Attach] = [
+            if FANodeValidateNeed.AttachOutput in node.validateNeededs:
+                validateVarDict[FANodeValidateNeed.AttachOutput] = [
                     f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}"
                     for item in self.recursive_find_variables(
-                        nid, ["attach"], [], [], False, [], False, []
+                        nid, ["attach_output"], [], [], False, [], False, []
                     )
                 ]
                 pass

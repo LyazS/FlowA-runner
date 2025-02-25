@@ -22,7 +22,7 @@ class FANodeWaitType(Enum):
 
 class FANodeValidateNeed(Enum):
     Self = "Self"
-    Attach = "Attach"
+    AttachOutput = "AttachOutput"
     InputNodes = "InputNodes"
     InputNodesWVars = "InputNodesWVars"
     pass

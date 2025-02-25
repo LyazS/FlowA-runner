@@ -10,7 +10,7 @@ from app.utils.vueRef import RefType
 
 class VFNodeContentDataConfig(BaseModel):
     ref: Optional[str] = None
-
+    language: Optional[str] = None
 
 class VFNodeContentData(BaseModel):
     label: str

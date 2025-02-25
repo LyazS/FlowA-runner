@@ -1,10 +1,10 @@
-from typing import List, Dict, Optional, Set, TYPE_CHECKING
+from typing import List, Dict, Optional, Set, TYPE_CHECKING, Any
 import asyncio
 import re
 from pydantic import BaseModel
 import traceback
 from loguru import logger
-from app.schemas.fanode import FARunStatus, FANodeWaitType
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import (
     VFNodeInfo,
     VFEdgeInfo,
@@ -14,6 +14,7 @@ from app.schemas.vfnode import (
     VFNodeContentData,
     VFNodeFlag,
 )
+from app.schemas.vfnode_contentdata import Single_VarInput, VarType
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
@@ -33,9 +34,51 @@ if TYPE_CHECKING:
 class FANode_iter_run(FATaskNode):
     def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
         super().__init__(wid, nodeinfo, runner)
+        self.validateNeededs = [
+            FANodeValidateNeed.Self,
+            FANodeValidateNeed.AttachOutput,
+        ]
         self.iter_var_len = 0
         self.iter_var = []
         pass
+
+    def validate(
+        self,
+        validateVars: Dict[FANodeValidateNeed, Any],
+    ) -> Optional[ValidationError]:
+        error_msgs = []
+        try:
+            selfVars = validateVars[FANodeValidateNeed.Self]
+            node_payloads = self.data.getContent("payloads")
+
+            D_ITERLIST: VFNodeContentData = node_payloads.byId["D_ITERLIST"]
+            if len(D_ITERLIST.data.value) <= 0:
+                error_msgs.append("迭代列表不能为空")
+            else:
+                if D_ITERLIST.data.value not in selfVars:
+                    error_msgs.append(f"没有该迭代变量{D_ITERLIST.data.value}")
+
+            aoutputVars = validateVars[FANodeValidateNeed.AttachOutput]
+            node_results = self.data.getContent("results")
+            for rid in node_results.order:
+                ref_data = node_results.byId[rid].config.ref
+                if (
+                    ref_data is None
+                    or not isinstance(ref_data, str)
+                    or len(ref_data) <= 0
+                ):
+                    error_msgs.append(f"结果{rid}没有配置输出选项")
+                else:
+                    if ref_data not in aoutputVars:
+                        error_msgs.append(f"没有该输出选项{ref_data}")
+                pass
+        except Exception as e:
+            errmsg = traceback.format_exc()
+            error_msgs.append(f"获取内容失败{str(errmsg)}")
+        finally:
+            if len(error_msgs) > 0:
+                return ValidationError(nid=self.id, errors=error_msgs)
+            return None
 
     async def run(self) -> List[FANodeUpdateData]:
         from app.nodes.tasknode import FANodeWaitStatus
