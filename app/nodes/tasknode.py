@@ -64,7 +64,7 @@ class FATaskNode(FABaseNode):
 
     async def invoke(self):
         try:
-            # logger.debug(f"invoke {self.data.label} {self.id}")
+            logger.debug(f"invoke {self.data.label} {self.id}")
 
             runner = self.runner()
             if runner is None:
@@ -108,14 +108,14 @@ class FATaskNode(FABaseNode):
                         )
 
                     raise NodeCancelException("前置节点出错或取消，本节点取消运行")
-                # logger.debug(f"can run {self.data.label} {self.id}")
+            logger.debug(f"can run {self.data.label} {self.id}")
             self.setAllOutputStatus(FARunStatus.Running)
             self.putNodeStatus(FARunStatus.Running)
 
             # 前置节点全部成功，本节点开始运行
             updateDatas = await self.run()
             # 运行成功
-            # logger.debug(f"run success {self.data.label} {self.id}")
+            logger.debug(f"run success {self.data.label} {self.id}")
             # self.setAllOutputStatus(FANodeStatus.Success)
             # 各个输出handle的成功需要由子类函数来设置
             self.putNodeStatus(FARunStatus.Success)

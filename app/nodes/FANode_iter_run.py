@@ -41,6 +41,17 @@ class FANode_iter_run(FATaskNode):
         from app.nodes.tasknode import FANodeWaitStatus
         from app.nodes import FANODECOLLECTION
 
+        # 获取迭代数组 ===============================================
+        nest_layout = self.getNestLayout()
+        node_payloads = self.data.getContent("payloads")
+        D_ITERLIST: VFNodeContentData = node_payloads.byId["D_ITERLIST"]
+        self.iter_var = await self.getRefData(D_ITERLIST.data.value)
+        self.iter_var_len = len(self.iter_var)
+
+        node_results = self.data.getContent("results")
+        Niter_pattern = r"#(\w+)"
+
+        # 构建子图 ================================================
         flowdata: VFlowData = self.runner().flowdata
         child_node_infos: Dict[str, VFNodeInfo] = {}
         child_edge_infos: Dict[str, VFEdgeInfo] = {}
@@ -66,8 +77,8 @@ class FANode_iter_run(FATaskNode):
                 "attached_node_input",
                 "attached_node_output",
                 "attached_node_next",
-                "attached_node_callbackFunc",
-                "attached_node_callbackUser",
+                # "attached_node_callbackFunc",
+                # "attached_node_callbackUser",
             ]
         )
         attach_nodeinfo: Dict[str, VFNodeInfo] = {}
@@ -85,24 +96,18 @@ class FANode_iter_run(FATaskNode):
                 nodeinfo,
                 self.runner(),
             )
+            new_nid = node.id.split("#", 1)[0] + "".join(
+                map(lambda x: "#" + str(x), nest_layout)
+            )
+            node.setNewID(new_nid)
             attach_nodes[attached_name] = node
             self.runner().addNode(node.id, node)
             # 提前先启动附属节点
             if attached_name != "attached_node_output":
                 asyncio.create_task(self.runner().getNode(node.id).invoke())
-                # await self.runner().getNode(node.id).invoke()
                 logger.info(f"启动附属节点{attached_name} {node.id}")
                 pass
         pass
-        # 获取迭代数组
-        nest_layout = self.getNestLayout()
-        node_payloads = self.data.getContent("payloads")
-        D_ITERLIST: VFNodeContentData = node_payloads.byId["D_ITERLIST"]
-        self.iter_var = await self.getRefData(D_ITERLIST.data.value)
-        self.iter_var_len = len(self.iter_var)
-
-        node_results = self.data.getContent("results")
-        Niter_pattern = r"#(\w+)"
 
         # 开始迭代
         AllChildNodeNames: Set[str] = set()
@@ -114,12 +119,13 @@ class FANode_iter_run(FATaskNode):
                 nodeinfo_next,
                 self.runner(),
             )
-            new_nid = node_next.id + "".join(
+            new_nid = node_next.id.split("#", 1)[0] + "".join(
                 map(lambda x: "#" + str(x), nest_layout + [iter_idx])
             )
             node_next.setNewID(new_nid)
             self.runner().addNode(node_next.id, node_next)
 
+            # 构建结果数组
             node_results_dict = {}
             for rid in node_results.order:
                 item: VFNodeContentData = node_results.byId[rid]
@@ -158,6 +164,8 @@ class FANode_iter_run(FATaskNode):
                 self.runner().addNode(new_nid, child_node)
                 child_nodes[child_node.id] = child_node
                 AllChildNodeNames.add(child_node.id)
+                pass
+                # 真正将结果加入数组
                 for rid in node_results_dict.keys():
                     nid_pattern = node_results_dict[rid]["nid_pattern"]
                     if child_node.id.startswith(nid_pattern):
@@ -211,45 +219,8 @@ class FANode_iter_run(FATaskNode):
         task_output = asyncio.create_task(attach_nodes["attached_node_output"].invoke())
         await task_output
         if attach_nodes["attached_node_output"].runStatus == FARunStatus.Success:
-            returnUpdateData = []
-            # node_results = self.data.getContent("results")
-            # Niter_pattern = r"#(\w+)"
-            # for rid in node_results.order:
-            #     item: VFNodeContentData = node_results.byId[rid]
-            #     item_ref = item.config.ref
-            #     nidNiter, contentname, ctid = item_ref.split("/")
-            #     nid_matches = re.findall(Niter_pattern, nidNiter)
-            #     if len(nest_layout) != len(nid_matches) - 1:
-            #         raise Exception("迭代节点嵌套层数不匹配")
-            #     for level_idx in range(len(nest_layout)):
-            #         nid_matches[level_idx] = nest_layout[level_idx]
-            #         pass
-            #     nid_pattern = (
-            #         nidNiter.split("#", 1)[0]
-            #         + "".join(map(lambda x: "#" + str(x), nid_matches[:-1]))
-            #         + "#"
-            #     )
-            #     nids = [
-            #         item for item in AllChildNodeNames if item.startswith(nid_pattern)
-            #     ]
-            #     sort_nids = sorted(nids, key=lambda x: int(x.replace(nid_pattern, "")))
-            #     arraydata = []
-            #     for nid in sort_nids:
-            #         node = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
-            #         ndata = node.data.getContent(contentname).byId[ctid]
-            #         arraydata.append(ndata.data.value)
-            #     node_results.byId[rid].data.value = arraydata
-            #     returnUpdateData.append(
-            #         FANodeUpdateData(
-            #             type=FANodeUpdateType.overwrite,
-            #             path=["results", "byId", rid, "data"],
-            #             data=arraydata,
-            #         )
-            #     )
-            #     pass
-
             self.setAllOutputStatus(FARunStatus.Success)
-            return returnUpdateData
+            return []
         else:
             raise Exception(f"内部节点存在运行错误，迭代节点执行失败")
         pass

@@ -181,10 +181,10 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
             # 推送剩余情况
             # 在进度完成后，叫前端post获取一次完整结果
             await ALL_MESSAGES_MGR.create(wname)
-            logger.debug(f"get progress {wname}")
+            logger.info(f"subscribe progress {wname}")
 
             if not await ALL_TASKS_MGR.isRunning(prequest.wid):
-                raise Exception("Not found the Workflow")
+                raise Exception("Not found the Workflow, subscribe failed")
             farunner: FARunner = await ALL_TASKS_MGR.get(prequest.wid)
             all_sse_data: List[SSEResponseData] = []
             if prequest.type == FAProgressRequestType.VFlowUI:
@@ -276,7 +276,7 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
                     pass
                 pass
             pass
-            logger.info(f"task done {wname}")
+            logger.info(f"unsubscribe progress {wname}")
             pass
 
     return EventSourceResponse(event_generator())
