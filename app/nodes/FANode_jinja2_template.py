@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, Any, Optional
+from typing import List, Union, Dict, Any, Optional, TYPE_CHECKING
 from pydantic import BaseModel
 import asyncio
 import os
@@ -12,7 +12,7 @@ import base64
 from loguru import logger
 import subprocess
 from enum import Enum
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.vfnode_contentdata import Single_VarInput, VarType
 from app.schemas.farequest import (
@@ -22,8 +22,9 @@ from app.schemas.farequest import (
     SSEResponse,
     SSEResponseData,
     SSEResponseType,
-    FAWorkflowNodeRequest,
     FAWorkflowOperationResponse,
+    FAProgressRequestType,
+    FAWorkflowOperationType,
 )
 from app.utils.tools import read_yaml
 from .basenode import FABaseNode
@@ -31,20 +32,15 @@ from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 from app.utils.vueRef import serialize_ref, RefOptions, RefTriggerData
 
+if TYPE_CHECKING:
+    from app.services.FARunner import FARunner
+
 
 class FANode_jinja2_template(FABaseNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo, runner)
         self.validateNeededs = [FANodeValidateNeed.Self]
-        self.runStatus = FANodeStatus.Passive
-        self.inReporting = False
-        pass
-
-    async def startReport(self):
-        self.inReporting = True
-        pass
-
-    async def stopReport(self):
+        self.runStatus = FARunStatus.Passive
         self.inReporting = False
         pass
 
@@ -52,14 +48,14 @@ class FANode_jinja2_template(FABaseNode):
         self,
         triggerdata: RefTriggerData,
         key,
-        tid,
+        wid,
         nid,
         oriid,
     ):
         if not self.inReporting:
             return
         ALL_MESSAGES_MGR.put(
-            f"{tid}/Jinja2",
+            f"{wid}/{FAProgressRequestType.JinJa.value}",
             SSEResponse(
                 event=SSEResponseType.updatenode,
                 data=SSEResponseData(
@@ -84,20 +80,25 @@ class FANode_jinja2_template(FABaseNode):
 
     async def invoke(self):
         try:
+            runner = self.runner()
+            if runner is None:
+                logger.error(f"runner is None {self.data.label} {self.id}")
+                raise asyncio.CancelledError("runner is None")
+
             node_payloads = self.data.getContent("payloads")
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
-                if var.type == VarType.ref:
+                if var.type == VarType.Ref:
                     refdata: str = var.value
                     nid, contentname, ctid = refdata.split("/")
-                    thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
+                    thenode = runner.getNode(nid)
                     thenode.data.getContent(contentname).byId[ctid].data.add_dependency(
-                        lambda triggerdata, key=var.key, tid=self.tid, nid=self.id, oriid=self.oriid: (
+                        lambda triggerdata, key=var.key, wid=self.wid, nid=self.id, oriid=self.oriid: (
                             self.report(
                                 triggerdata,
                                 key,
-                                tid,
+                                wid,
                                 nid,
                                 oriid,
                             )
@@ -117,10 +118,10 @@ class FANode_jinja2_template(FABaseNode):
         D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
         for var_dict in D_VARSINPUT.data.value:
             var = Single_VarInput.model_validate(var_dict)
-            if var.type == VarType.ref:
+            if var.type == VarType.Ref:
                 refdata: str = var.value
                 nid, contentname, ctid = refdata.split("/")
-                thenode = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
+                thenode = self.runner().getNode(nid)
                 curData.append(
                     FANodeUpdateData(
                         type=FANodeUpdateType.dontcare,
@@ -161,7 +162,7 @@ class FANode_jinja2_template(FABaseNode):
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
-                if var.type == VarType.ref and var.value not in selfVars:
+                if var.type == VarType.Ref and var.value not in selfVars:
                     error_msgs.append(f"变量未定义{var.value}")
         except Exception as e:
             errmsg = traceback.format_exc()
@@ -173,3 +174,16 @@ class FANode_jinja2_template(FABaseNode):
     @staticmethod
     def getNodeConfig():
         return {}
+
+    async def processRequest(
+        self,
+        request: dict,
+    ) -> Optional[FAWorkflowOperationResponse]:
+        if request.get("action") == "start":
+            self.inReporting = True
+        else:
+            self.inReporting = False
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.success,
+            message="start report",
+        )

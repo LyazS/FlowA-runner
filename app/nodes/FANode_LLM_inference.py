@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, Any, Optional, cast
+from typing import List, Union, Dict, Any, Optional, cast, TYPE_CHECKING
 from pydantic import BaseModel
 import asyncio
 import os
@@ -17,7 +17,7 @@ from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from enum import Enum
 from decimal import Decimal
 from app.utils.tools import replace_vars
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import (
     VFNodeInfo,
     VFNodeContentData,
@@ -39,6 +39,10 @@ from app.schemas.farequest import (
 from app.utils.tools import read_yaml
 from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
+
+
+if TYPE_CHECKING:
+    from app.services.FARunner import FARunner
 
 
 class LLMModes(BaseModel):
@@ -77,13 +81,13 @@ AsyncOAIClient = AsyncOpenAI(base_url=BASE_URL, api_key=API_KEY)
 
 
 class FANode_LLM_inference(FATaskNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo,runner)
         self.validateNeededs = [FANodeValidateNeed.Self]
         pass
 
     def validateConfigVar(self, s_config: Single_LLMModelConfig, selfVars):
-        if s_config.type == Single_LLMModelConfig_type.REF:
+        if s_config.type == Single_LLMModelConfig_type.Ref:
             if s_config.value not in selfVars:
                 return False
         return True
@@ -100,7 +104,7 @@ class FANode_LLM_inference(FATaskNode):
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
-                if var.type == VarType.ref and var.value not in selfVars:
+                if var.type == VarType.Ref and var.value not in selfVars:
                     error_msgs.append(f"变量未定义{var.value}")
             D_MODELCONFIG: VFNodeContentData = node_payloads.byId["D_MODELCONFIG"]
             model_cfg = LLMModelConfig.model_validate(D_MODELCONFIG.data.value)
@@ -130,18 +134,18 @@ class FANode_LLM_inference(FATaskNode):
         return None
 
     async def getConfigVar(self, s_config: Single_LLMModelConfig):
-        if s_config.type == Single_LLMModelConfig_type.REF:
+        if s_config.type == Single_LLMModelConfig_type.Ref:
             return await self.getVar(
                 Single_VarInput(
                     key="",
-                    type=VarType.ref,
+                    type=VarType.Ref,
                     value=s_config.value,
                 )
             )
             pass
-        elif s_config.type == Single_LLMModelConfig_type.VALUE:
+        elif s_config.type == Single_LLMModelConfig_type.Value:
             return s_config.value
-        elif s_config.type == Single_LLMModelConfig_type.NULL:
+        elif s_config.type == Single_LLMModelConfig_type.Null:
             return NotGiven
         return NotGiven
 
@@ -219,7 +223,7 @@ class FANode_LLM_inference(FATaskNode):
                 )
                 if isJson:
                     json.loads(D_ANSWER.data.value)
-                self.setAllOutputStatus(FANodeStatus.Success)
+                self.setAllOutputStatus(FARunStatus.Success)
                 return
             except json.JSONDecodeError:
                 if try_count >= 5:
@@ -258,6 +262,7 @@ class FANode_LLM_inference(FATaskNode):
                 pass
             except Exception as e:
                 errmsg = traceback.format_exc()
+                logger.warning(f"LLM节点运行失败：{errmsg}")
                 raise Exception(f"LLM节点运行失败：{errmsg}")
             pass
 

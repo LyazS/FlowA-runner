@@ -1,10 +1,10 @@
-from typing import List, Dict, Optional, Set
+from typing import List, Dict, Optional, Set, TYPE_CHECKING, Any
 import asyncio
 import re
 from pydantic import BaseModel
 import traceback
 from loguru import logger
-from app.schemas.fanode import FANodeStatus, FANodeWaitType
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import (
     VFNodeInfo,
     VFEdgeInfo,
@@ -14,6 +14,7 @@ from app.schemas.vfnode import (
     VFNodeContentData,
     VFNodeFlag,
 )
+from app.schemas.vfnode_contentdata import Single_VarInput, VarType
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
@@ -26,19 +27,75 @@ from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 from .tasknode import FATaskNode
 
+if TYPE_CHECKING:
+    from app.services.FARunner import FARunner
+
 
 class FANode_iter_run(FATaskNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo, runner)
+        self.validateNeededs = [
+            FANodeValidateNeed.Self,
+            FANodeValidateNeed.AttachOutput,
+        ]
         self.iter_var_len = 0
         self.iter_var = []
         pass
+
+    def validate(
+        self,
+        validateVars: Dict[FANodeValidateNeed, Any],
+    ) -> Optional[ValidationError]:
+        error_msgs = []
+        try:
+            selfVars = validateVars[FANodeValidateNeed.Self]
+            node_payloads = self.data.getContent("payloads")
+
+            D_ITERLIST: VFNodeContentData = node_payloads.byId["D_ITERLIST"]
+            if len(D_ITERLIST.data.value) <= 0:
+                error_msgs.append("迭代列表不能为空")
+            else:
+                if D_ITERLIST.data.value not in selfVars:
+                    error_msgs.append(f"没有该迭代变量{D_ITERLIST.data.value}")
+
+            aoutputVars = validateVars[FANodeValidateNeed.AttachOutput]
+            node_results = self.data.getContent("results")
+            for rid in node_results.order:
+                ref_data = node_results.byId[rid].config.ref
+                if (
+                    ref_data is None
+                    or not isinstance(ref_data, str)
+                    or len(ref_data) <= 0
+                ):
+                    error_msgs.append(f"结果{rid}没有配置输出选项")
+                else:
+                    if ref_data not in aoutputVars:
+                        error_msgs.append(f"没有该输出选项{ref_data}")
+                pass
+        except Exception as e:
+            errmsg = traceback.format_exc()
+            error_msgs.append(f"获取内容失败{str(errmsg)}")
+        finally:
+            if len(error_msgs) > 0:
+                return ValidationError(nid=self.id, errors=error_msgs)
+            return None
 
     async def run(self) -> List[FANodeUpdateData]:
         from app.nodes.tasknode import FANodeWaitStatus
         from app.nodes import FANODECOLLECTION
 
-        flowdata: VFlowData = (await ALL_TASKS_MGR.get(self.tid)).flowdata
+        # 获取迭代数组 ===============================================
+        nest_layout = self.getNestLayout()
+        node_payloads = self.data.getContent("payloads")
+        D_ITERLIST: VFNodeContentData = node_payloads.byId["D_ITERLIST"]
+        self.iter_var = await self.getRefData(D_ITERLIST.data.value)
+        self.iter_var_len = len(self.iter_var)
+
+        node_results = self.data.getContent("results")
+        Niter_pattern = r"#(\w+)"
+
+        # 构建子图 ================================================
+        flowdata: VFlowData = self.runner().flowdata
         child_node_infos: Dict[str, VFNodeInfo] = {}
         child_edge_infos: Dict[str, VFEdgeInfo] = {}
         # 收集所有子节点
@@ -63,8 +120,8 @@ class FANode_iter_run(FATaskNode):
                 "attached_node_input",
                 "attached_node_output",
                 "attached_node_next",
-                "attached_node_callbackFunc",
-                "attached_node_callbackUser",
+                # "attached_node_callbackFunc",
+                # "attached_node_callbackUser",
             ]
         )
         attach_nodeinfo: Dict[str, VFNodeInfo] = {}
@@ -78,55 +135,40 @@ class FANode_iter_run(FATaskNode):
                 continue
             nodeinfo = attach_nodeinfo[attached_name]
             node: FATaskNode = (FANODECOLLECTION[nodeinfo.data.ntype])(
-                self.tid,
+                self.wid,
                 nodeinfo,
+                self.runner(),
             )
+            new_nid = node.id.split("#", 1)[0] + "".join(
+                map(lambda x: "#" + str(x), nest_layout)
+            )
+            node.setNewID(new_nid)
             attach_nodes[attached_name] = node
-            (await ALL_TASKS_MGR.get(self.tid)).addNode(node.id, node)
+            self.runner().addNode(node.id, node)
             # 提前先启动附属节点
             if attached_name != "attached_node_output":
-                asyncio.create_task(node.invoke())
+                asyncio.create_task(self.runner().getNode(node.id).invoke())
+                logger.info(f"启动附属节点{attached_name} {node.id}")
                 pass
         pass
-        # 获取迭代数组
-        nest_layout = self.getNestLayout()
-        node_payloads = self.data.getContent("payloads")
-        D_ITERLIST: VFNodeContentData = node_payloads.byId["D_ITERLIST"]
-        self.iter_var = await self.getRefData(D_ITERLIST.data.value)
-        self.iter_var_len = len(self.iter_var)
 
-        node_results = self.data.getContent("results")
-        Niter_pattern = r"#(\w+)"
-
-        # def update_callback(path, operation, new_value, old_value):
-        #     print(f"Update detected at path: {path}")
-        #     print(f"Operation: {operation}")
-        #     print(f"New value: {new_value}")
-        #     print(f"Old value: {old_value}")
-        #     print("------")
-
-        # for rid in node_results.order:
-        #     node_results.byId[rid].data.add_dependency(
-        #         lambda path, operation, new_value, old_value, rid=rid: {
-        #             print(rid, end=" | "),
-        #             update_callback(path, operation, new_value, old_value),
-        #         }
-        #     )
         # 开始迭代
         AllChildNodeNames: Set[str] = set()
         for iter_idx in range(self.iter_var_len):
             # 构建next附属节点
             nodeinfo_next = attach_nodeinfo["attached_node_next"]
             node_next: FATaskNode = (FANODECOLLECTION[nodeinfo_next.data.ntype])(
-                self.tid,
+                self.wid,
                 nodeinfo_next,
+                self.runner(),
             )
-            new_nid = node_next.id + "".join(
+            new_nid = node_next.id.split("#", 1)[0] + "".join(
                 map(lambda x: "#" + str(x), nest_layout + [iter_idx])
             )
             node_next.setNewID(new_nid)
-            (await ALL_TASKS_MGR.get(self.tid)).addNode(node_next.id, node_next)
+            self.runner().addNode(node_next.id, node_next)
 
+            # 构建结果数组
             node_results_dict = {}
             for rid in node_results.order:
                 item: VFNodeContentData = node_results.byId[rid]
@@ -154,16 +196,19 @@ class FANode_iter_run(FATaskNode):
                 if child_info.data.ntype in attach_node_name:
                     continue
                 child_node: FATaskNode = (FANODECOLLECTION[child_info.data.ntype])(
-                    self.tid,
+                    self.wid,
                     child_info,
+                    self.runner(),
                 )
                 new_nid = child_node.id.split("#", 1)[0] + "".join(
                     map(lambda x: "#" + str(x), nest_layout + [iter_idx])
                 )
                 child_node.setNewID(new_nid)
-                (await ALL_TASKS_MGR.get(self.tid)).addNode(new_nid, child_node)
+                self.runner().addNode(new_nid, child_node)
                 child_nodes[child_node.id] = child_node
                 AllChildNodeNames.add(child_node.id)
+                pass
+                # 真正将结果加入数组
                 for rid in node_results_dict.keys():
                     nid_pattern = node_results_dict[rid]["nid_pattern"]
                     if child_node.id.startswith(nid_pattern):
@@ -184,7 +229,7 @@ class FANode_iter_run(FATaskNode):
                     src_nid = edgeinfo.source.split("#", 1)[0] + "".join(
                         map(lambda x: "#" + str(x), nest_layout + [iter_idx])
                     )
-                    src_node = (await ALL_TASKS_MGR.get(self.tid)).getNode(src_nid)
+                    src_node = self.runner().getNode(src_nid)
                 if tgt_node_info.data.ntype == "attached_node_output":
                     tgt_node = attach_nodes["attached_node_output"]
                     pass
@@ -195,7 +240,7 @@ class FANode_iter_run(FATaskNode):
                     tgt_nid = edgeinfo.target.split("#", 1)[0] + "".join(
                         map(lambda x: "#" + str(x), nest_layout + [iter_idx])
                     )
-                    tgt_node = (await ALL_TASKS_MGR.get(self.tid)).getNode(tgt_nid)
+                    tgt_node = self.runner().getNode(tgt_nid)
                     pass
 
                 source_handle = edgeinfo.sourceHandle
@@ -216,47 +261,9 @@ class FANode_iter_run(FATaskNode):
         pass
         task_output = asyncio.create_task(attach_nodes["attached_node_output"].invoke())
         await task_output
-        if attach_nodes["attached_node_output"].runStatus == FANodeStatus.Success:
-            returnUpdateData = []
-            # node_results = self.data.getContent("results")
-            # Niter_pattern = r"#(\w+)"
-            # for rid in node_results.order:
-            #     item: VFNodeContentData = node_results.byId[rid]
-            #     item_ref = item.config.ref
-            #     nidNiter, contentname, ctid = item_ref.split("/")
-            #     nid_matches = re.findall(Niter_pattern, nidNiter)
-            #     if len(nest_layout) != len(nid_matches) - 1:
-            #         raise Exception("迭代节点嵌套层数不匹配")
-            #     for level_idx in range(len(nest_layout)):
-            #         nid_matches[level_idx] = nest_layout[level_idx]
-            #         pass
-            #     nid_pattern = (
-            #         nidNiter.split("#", 1)[0]
-            #         + "".join(map(lambda x: "#" + str(x), nid_matches[:-1]))
-            #         + "#"
-            #     )
-            #     nids = [
-            #         item for item in AllChildNodeNames if item.startswith(nid_pattern)
-            #     ]
-            #     sort_nids = sorted(nids, key=lambda x: int(x.replace(nid_pattern, "")))
-            #     arraydata = []
-            #     for nid in sort_nids:
-            #         node = (await ALL_TASKS_MGR.get(self.tid)).getNode(nid)
-            #         ndata = node.data.getContent(contentname).byId[ctid]
-            #         arraydata.append(ndata.data.value)
-            #     node_results.byId[rid].data.value = arraydata
-            #     returnUpdateData.append(
-            #         FANodeUpdateData(
-            #             type=FANodeUpdateType.overwrite,
-            #             path=["results", "byId", rid, "data"],
-            #             data=arraydata,
-            #         )
-            #     )
-            #     pass
-
-            self.setAllOutputStatus(FANodeStatus.Success)
-            return returnUpdateData
+        if attach_nodes["attached_node_output"].runStatus == FARunStatus.Success:
+            self.setAllOutputStatus(FARunStatus.Success)
+            return []
         else:
-            error_msg = traceback.format_exc()
-            raise Exception(f"迭代节点执行失败{error_msg}")
+            raise Exception(f"内部节点存在运行错误，迭代节点执行失败")
         pass

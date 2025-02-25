@@ -5,9 +5,10 @@ import re
 from pydantic import BaseModel
 import traceback
 import json
+from weakref import ref
 import copy
 from loguru import logger
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode_contentdata import Single_VarInput, VarType
 from app.schemas.vfnode import VFNodeData
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentDataType
@@ -21,17 +22,23 @@ from app.schemas.farequest import (
     FAWorkflowNodeResult,
     FAWorkflowResult,
     FAWorkflow,
-    FAWorkflowNodeRequest,
     FAWorkflowOperationResponse,
 )
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.services.taskMgr import ALL_TASKS_MGR
 
+if TYPE_CHECKING:
+    from app.services.FARunner import FARunner
+
 
 class FABaseNode(ABC):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        if runner:
+            self.runner = ref(runner)
+        else:
+            self.runner = None
         cpnodeinfo = copy.deepcopy(nodeinfo)
-        self.tid = tid
+        self.wid = wid
         self.id = cpnodeinfo.id
         self.oriid = copy.deepcopy(cpnodeinfo.id)
         self.data: VFNodeData = copy.deepcopy(cpnodeinfo.data)
@@ -39,12 +46,11 @@ class FABaseNode(ABC):
         self.parentNode = cpnodeinfo.parentNode
 
         # 该节点的输出handle的状态
-        self.outputStatus: Dict[str, FANodeStatus] = {
-            oname: FANodeStatus.Pending
-            for oname in self.data.connections.outputs.keys()
+        self.outputStatus: Dict[str, FARunStatus] = {
+            oname: FARunStatus.Pending for oname in self.data.connections.outputs.keys()
         }
         # 该节点的运行状态
-        self.runStatus = FANodeStatus.Pending
+        self.runStatus = FARunStatus.Pending
 
         # 该节点需求的验证内容
         self.validateNeededs: List[FANodeValidateNeed] = []
@@ -76,14 +82,6 @@ class FABaseNode(ABC):
         pass
 
     @abstractmethod
-    async def startReport(self):
-        pass
-
-    @abstractmethod
-    async def stopReport(self):
-        pass
-
-    @abstractmethod
     async def getCurData(self) -> Optional[List[FANodeUpdateData]]:
         return []
 
@@ -92,6 +90,12 @@ class FABaseNode(ABC):
         self,
         validateVars: Dict[FANodeValidateNeed, Any],
     ) -> Optional[ValidationError]:
+        return None
+
+    async def processRequest(
+        self,
+        request: dict,
+    ) -> Optional[FAWorkflowOperationResponse]:
         return None
 
     @staticmethod

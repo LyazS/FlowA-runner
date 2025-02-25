@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, Optional, Any
+from typing import List, Union, Dict, Optional, Any, TYPE_CHECKING
 import traceback
 import asyncio
 import aiohttp
@@ -10,11 +10,11 @@ import json
 from loguru import logger
 from urllib.parse import urlencode
 from app.utils.tools import replace_vars
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo
 from app.schemas.farequest import ValidationError
 from .tasknode import FATaskNode
-from app.schemas.fanode import FANodeStatus, FANodeWaitType
+from app.schemas.fanode import FARunStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.vfnode_contentdata import (
     Single_ConditionDict,
@@ -35,10 +35,13 @@ from app.schemas.farequest import (
 from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 
+if TYPE_CHECKING:
+    from app.services.FARunner import FARunner
+
 
 class FANode_http_requests(FATaskNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo, runner)
         self.validateNeededs = [FANodeValidateNeed.Self]
         pass
 
@@ -188,7 +191,7 @@ class FANode_http_requests(FATaskNode):
                     node_results.byId["DR_CONTENTTYPE"].data.value = content_type
                     node_results.byId["DR_RESPONSE"].data.value = response_data
 
-                    self.setAllOutputStatus(FANodeStatus.Success)
+                    self.setAllOutputStatus(FARunStatus.Success)
                     return [
                         FANodeUpdateData(
                             type=FANodeUpdateType.overwrite,

@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, Any, Optional
+from typing import List, Union, Dict, Any, Optional, TYPE_CHECKING
 from pydantic import BaseModel
 import asyncio
 import os
@@ -11,9 +11,9 @@ import traceback
 import base64
 import subprocess
 from enum import Enum
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
-from app.schemas.vfnode_contentdata import Single_VarInput,VarType
+from app.schemas.vfnode_contentdata import Single_VarInput, VarType
 from app.schemas.farequest import (
     ValidationError,
     FANodeUpdateType,
@@ -22,6 +22,9 @@ from app.schemas.farequest import (
 from app.utils.tools import read_yaml
 from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
+
+if TYPE_CHECKING:
+    from app.services.FARunner import FARunner
 
 
 class EvalType(str, Enum):
@@ -94,8 +97,8 @@ async def SimplePythonRun(code, evaltype: EvalType, snekboxUrl: str = ""):
 
 
 class FANode_code_interpreter(FATaskNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo, runner)
         self.validateNeededs = [FANodeValidateNeed.Self]
         pass
 
@@ -114,8 +117,8 @@ class FANode_code_interpreter(FATaskNode):
             D_VARSINPUT: VFNodeContentData = node_payloads.byId["D_VARSINPUT"]
             for var_dict in D_VARSINPUT.data.value:
                 var = Single_VarInput.model_validate(var_dict)
-                if var.type == VarType.ref and var.value not in selfVars:
-                    error_msgs.append(f"变量未定义{var.value}")
+                if var.type == VarType.Ref and var.value not in selfVars:
+                    error_msgs.append(f"没有该变量选项{var.value}")
                 else:
                     CodeInputArgs.add(var.key)
             for pid in node_results.order:
@@ -136,7 +139,7 @@ class FANode_code_interpreter(FATaskNode):
                         input_params = [arg.arg for arg in node.args.args]
                         for in_arg in input_params:
                             if in_arg not in CodeInputArgs:
-                                raise Exception(f"缺少输入参数【{in_arg}】")
+                                error_msgs.append(f"缺少输入参数【{in_arg}】")
                             pass
                         # 检查输出名字是否对上
                         return_statements = [
@@ -147,16 +150,16 @@ class FANode_code_interpreter(FATaskNode):
                                 outputs = set([key.s for key in return_node.value.keys])
                                 for out_arg in CodeOutputArgs:
                                     if out_arg not in outputs:
-                                        raise Exception(
-                                            f"返回值缺少输出参数【{out_arg}】"
+                                        error_msgs.append(
+                                            f"代码返回值缺少输出参数【{out_arg}】"
                                         )
                                     pass
                             else:
-                                raise Exception(f"main函数返回值必须为字典")
+                                error_msgs.append(f"main函数返回值必须为字典")
                             pass
                         break
                 if not hasMain:
-                    raise Exception(f"未找到main函数")
+                    error_msgs.append(f"未找到main函数")
             except SyntaxError:
                 error_msgs.append(f"Python代码格式错误")
             except Exception as e:
@@ -215,8 +218,9 @@ class FANode_code_interpreter(FATaskNode):
                 # 更新内部数据
                 self.data.results.byId[rid].data.value = codeResult.output[item.key]
             # 返回之前先设置好输出handle状态
-            self.setAllOutputStatus(FANodeStatus.Success)
-            return returnUpdateData
+            self.setAllOutputStatus(FARunStatus.Success)
+            # return returnUpdateData
+            return []
         else:
             raise Exception(f"执行代码失败：{codeResult.error}")
         pass

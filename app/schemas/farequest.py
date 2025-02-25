@@ -1,10 +1,10 @@
-from typing import List, Optional, Any, Union
+from typing import List, Optional, Any, Union, Dict
 import json
 from datetime import datetime
 from pydantic import BaseModel
 from enum import Enum
 from .vfnode import VFlowData, VFNodeData
-from .fanode import FARunnerStatus, FANodeStatus
+from .fanode import FARunStatus
 
 
 class VarItem(BaseModel):
@@ -25,13 +25,6 @@ class ValidationError(BaseModel):
     nid: str
     errors: List[str]  # 可能存在多条错误信息。如果isValid为True，则messages应该为空。
     pass
-
-
-# class FARunResponse(BaseModel):
-#     success: bool
-#     tid: Optional[str] = None
-#     validation_errors: Optional[List[ValidationError]] = None
-#     pass
 
 
 class FANodeUpdateType(Enum):
@@ -95,7 +88,7 @@ class FAWorkflowNodeResult(BaseModel):
     data: VFNodeData
     ntype: str
     parentNode: Optional[str]
-    runStatus: FANodeStatus
+    runStatus: FARunStatus
     pass
 
 
@@ -103,78 +96,143 @@ class FAWorkflowResult(BaseModel):
     tid: str
     usedvflow: Optional[dict]
     noderesult: Optional[List[FAWorkflowNodeResult]]
-    status: FARunnerStatus
+    status: FARunStatus
     starttime: datetime
     endtime: datetime
     pass
 
 
 class FAWorkflow(BaseModel):
-    wid: Optional[int] = None
+    wid: Optional[str] = None
     name: Optional[str] = None
     vflow: Optional[dict] = None
-    results: Optional[List[FAWorkflowResult]] = None
+    pass
+
+
+class FAWorkflowCreateType(Enum):
+    new = "new"
+    upload = "upload"
+    release = "release"
+    pass
+
+
+class FAWorkflowRunType(Enum):
+    Full = "Full"
+    Incremental = "Incremental"
+    Api = "Api"
+    Stop = "Stop"
+    pass
+
+
+class FAWorkflowRunRequest(BaseModel):
+    type: FAWorkflowRunType
+    wid: str
+    vflow: Optional[dict] = None
+    pass
+
+
+class FAWorkflowRunReqType(Enum):
+    validation = "validation"
+    isrunning = "isrunning"
+    internalerror = "internalerror"
+    success = "success"
+    pass
+
+
+class FAWorkflowRunResponse(BaseModel):
+    type: FAWorkflowRunReqType
+    validation_errors: List[ValidationError] = None
+    pass
+
+
+class FAWorkflowCreateRequest(BaseModel):
+    type: FAWorkflowCreateType
+    wid: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    vflow: Optional[dict] = None
     pass
 
 
 class FAWorkflowLocation(Enum):
-    name = "name"
+    wfname = "wfname"
+    rwfname = "rwfname"
+    rwfdescription = "rwfdescription"
     vflow = "vflow"
-    results = "results"
+    release = "release"
+    allReleases = "allReleases"
+    pass
+
+
+class FAWorkflowUpdateItem(BaseModel):
+    location: FAWorkflowLocation
+    data: Optional[Any] = None
+    rwid: Optional[str] = None
     pass
 
 
 class FAWorkflowUpdateRequset(BaseModel):
-    wid: int
-    location: FAWorkflowLocation
-    data: Optional[Any] = None
+    wid: str
+    items: List[FAWorkflowUpdateItem]
+    pass
 
 
 class FAWorkflowReadRequest(BaseModel):
-    wid: int
+    wid: str
     locations: List[FAWorkflowLocation]
-    tid: Optional[str] = None
+    rwid: Optional[str] = None
     pass
 
 
-class FAWorkflowBaseInfo(BaseModel):
-    wid: int
+class FAWorkflowDeleteRequest(BaseModel):
+    wid: str
+    rwid: Optional[str] = None
+    pass
+
+
+class FAWorkflowInfo(BaseModel):
+    wid: str
     name: str
-    last_modified: Optional[datetime]
+    lastModified: Optional[datetime]
     pass
 
 
-class FAResultBaseInfo(BaseModel):
-    tid: str
-    status: Optional[str]
-    starttime: Optional[datetime]
-    endtime: Optional[datetime]
+class FAReleaseWorkflowInfo(BaseModel):
+    rwid: str
+    releaseTime: datetime
+    name: str
+    description: str
     pass
 
 
 class FAWorkflowNodeRequest(BaseModel):
-    wid: int
-    tid: str
+    wid: str
     nid: str
     request: dict
     pass
 
 
+class FAWorkflowOperationType(Enum):
+    success = "success"
+    error = "error"
+    pass
+
+
 class FAWorkflowOperationResponse(BaseModel):
-    success: bool
+    type: FAWorkflowOperationType
     message: Optional[str] = None
     data: Optional[Any] = None
     pass
 
 
-class FAProgressNodeType(Enum):
-    ALL_TASK_NODE = "ALL_TASK_NODE"
-    SELECTED = "SELECTED"
+class FAProgressRequestType(Enum):
+    VFlowUI = "VFlowUI"
+    JinJa = "JinJa"
     pass
 
 
 class FAProgressRequest(BaseModel):
-    tid: str
-    node_type: FAProgressNodeType
+    type: FAProgressRequestType
+    wid: str
     selected_nids: Optional[List[str]] = None
     pass

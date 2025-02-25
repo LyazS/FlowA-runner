@@ -1,4 +1,4 @@
-from typing import Dict, List, TYPE_CHECKING
+from typing import Dict, List, TYPE_CHECKING, Set
 import asyncio
 import aiofiles
 from aiofiles import os as aiofiles_os
@@ -10,7 +10,7 @@ import traceback
 from loguru import logger
 from app.core.config import settings
 from app.schemas.vfnode import VFNodeConnectionDataType, VFlowData, VFNodeFlag
-from app.schemas.fanode import FARunnerStatus
+from app.schemas.fanode import FARunStatus
 from app.services.messageMgr import ALL_MESSAGES_MGR
 from app.schemas.farequest import (
     ValidationError,
@@ -26,8 +26,8 @@ from app.schemas.farequest import (
 from app.db.session import get_db_ctxmgr
 from app.models.fastore import (
     FAWorkflowModel,
-    FAWorkflowResultModel,
-    FAWorkflowNodeResultModel,
+    FAReleasedWorkflowModel,
+    FANodeCacheModel,
 )
 from sqlalchemy import select, update, exc, exists, delete
 from sqlalchemy.orm import selectinload
@@ -37,16 +37,18 @@ if TYPE_CHECKING:
 
 
 class FARunner:
-    def __init__(self, tid: str):
-        self.tid = tid
-        self.wid = None
-        self.oriflowdata = None
-        self.flowdata: VFlowData = None
+    def __init__(self, wid: str, vflowdata: dict):
+        self.wid = wid
+        self.oriflowdata = vflowdata
+        self.flowdata: VFlowData = VFlowData.model_validate(vflowdata)
         self.nodes: Dict[str, "FATaskNode"] = {}
-        self.status: FARunnerStatus = FARunnerStatus.Pending
+        self.status: FARunStatus = FARunStatus.Pending
         # 时间戳
         self.starttime = None
         self.endtime = None
+
+        self.cancel_event = asyncio.Event()
+        self.running_tasks: Set[asyncio.Task] = set()  # 跟踪所有节点任务
         pass
 
     def addNode(self, nid, node: "FATaskNode"):
@@ -66,8 +68,9 @@ class FARunner:
                 self.addNode(
                     nodeinfo.id,
                     (FANODECOLLECTION[nodeinfo.data.ntype])(
-                        self.tid,
+                        self.wid,
                         nodeinfo,
+                        self,
                     ),
                 )
             pass
@@ -97,32 +100,44 @@ class FARunner:
                 )
         pass
 
-    async def run(self, vflow: FAWorkflow):
-        self.starttime = datetime.now(ZoneInfo("Asia/Shanghai"))
-        self.wid = vflow.wid
-        self.oriflowdata = vflow.vflow
-        self.flowdata = VFlowData.model_validate(self.oriflowdata)
-        self.buildNodes()
-        # 启动所有节点
-        self.status = FARunnerStatus.Running
-        tasks = []
-        # 当前只有根节点，所以直接启动即可
-        for nid in self.nodes:
-            tasks.append(self.nodes[nid].invoke())
-        # 等待所有节点完成
-        await asyncio.gather(*tasks)
-        self.endtime = datetime.now(ZoneInfo("Asia/Shanghai"))
-        self.status = FARunnerStatus.Success
-        # 保存历史记录
-        await self.saveResult()
-        ALL_MESSAGES_MGR.put(
-            self.tid,
-            SSEResponse(
-                event=SSEResponseType.flowfinish,
-                data=None,
-            ),
-        )
+    async def run(self):
+        try:
+            self.starttime = datetime.now(ZoneInfo("Asia/Shanghai"))
+            logger.info(f"workflow {self.wid} run start")
+            self.buildNodes()
+            # 启动所有节点
+            self.status = FARunStatus.Running
+            self.running_tasks = {
+                asyncio.create_task(node.invoke()) for node in self.nodes.values()
+            }
+            await asyncio.gather(*self.running_tasks)
+
+            self.endtime = datetime.now(ZoneInfo("Asia/Shanghai"))
+            logger.info(f"workflow {self.wid} run success")
+            self.status = FARunStatus.Success
+            ALL_MESSAGES_MGR.put(
+                self.wid,
+                SSEResponse(
+                    event=SSEResponseType.flowfinish,
+                    data=None,
+                ),
+            )
+        except asyncio.CancelledError:
+            logger.debug(f"workflow {self.wid} canceled")
+            await self.stop()
+            self.status = FARunStatus.Canceled
+        finally:
+            pass
         pass
+
+    async def stop(self):
+        self.cancel_event.set()
+        # 取消所有关联任务
+        tasks = list(self.running_tasks)
+        self.running_tasks.clear()
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
 
     async def saveResult(self) -> FAWorkflow:
         try:

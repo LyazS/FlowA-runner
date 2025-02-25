@@ -168,12 +168,12 @@ class FAValidator:
 
     async def validate(
         self,
-        tid: str,
+        wid: str,
         flowdata: VFlowData,
     ) -> Dict[str, ValidationError]:
         # 初始化所有节点
         for nodeinfo in flowdata.nodes:
-            node = (FANODECOLLECTION[nodeinfo.data.ntype])(tid, nodeinfo)
+            node = (FANODECOLLECTION[nodeinfo.data.ntype])(wid, nodeinfo, None)
             self.nodes[nodeinfo.id] = node
             pass
         # 构建节点连接关系
@@ -216,11 +216,11 @@ class FAValidator:
                     )
                 ]
                 pass
-            if FANodeValidateNeed.Attach in node.validateNeededs:
-                validateVarDict[FANodeValidateNeed.Attach] = [
+            if FANodeValidateNeed.AttachOutput in node.validateNeededs:
+                validateVarDict[FANodeValidateNeed.AttachOutput] = [
                     f"{item.nodeId}/{item.dpath[0]}/{item.dpath[1]}"
                     for item in self.recursive_find_variables(
-                        nid, ["attach"], [], [], False, [], False, []
+                        nid, ["attach_output"], [], [], False, [], False, []
                     )
                 ]
                 pass

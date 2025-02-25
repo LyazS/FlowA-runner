@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from enum import Enum
 
 
-class FANodeStatus(Enum):
+class FARunStatus(Enum):
     Default = "Default"
     Pending = "Pending"
     Running = "Running"
@@ -11,15 +11,6 @@ class FANodeStatus(Enum):
     Canceled = "Canceled"
     Error = "Error"
     Passive = "Passive"
-    pass
-
-
-class FARunnerStatus(Enum):
-    Pending = "Pending"
-    Running = "Running"
-    Success = "Success"
-    Canceled = "Canceled"
-    Error = "Error"
     pass
 
 
@@ -31,7 +22,7 @@ class FANodeWaitType(Enum):
 
 class FANodeValidateNeed(Enum):
     Self = "Self"
-    Attach = "Attach"
+    AttachOutput = "AttachOutput"
     InputNodes = "InputNodes"
     InputNodesWVars = "InputNodesWVars"
     pass

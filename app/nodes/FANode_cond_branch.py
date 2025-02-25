@@ -1,13 +1,13 @@
-from typing import List, Union, Dict, Optional, Any
+from typing import List, Union, Dict, Optional, Any, TYPE_CHECKING
 import traceback
 import asyncio
 import ast
 from loguru import logger
-from app.schemas.fanode import FANodeStatus, FANodeWaitType, FANodeValidateNeed
+from app.schemas.fanode import FARunStatus, FANodeWaitType, FANodeValidateNeed
 from app.schemas.vfnode import VFNodeInfo
 from app.schemas.farequest import ValidationError
 from .tasknode import FATaskNode
-from app.schemas.fanode import FANodeStatus, FANodeWaitType
+from app.schemas.fanode import FARunStatus, FANodeWaitType
 from app.schemas.vfnode import VFNodeInfo, VFNodeContentData, VFNodeContentDataType
 from app.schemas.vfnode_contentdata import (
     Single_ConditionDict,
@@ -23,14 +23,17 @@ from app.schemas.farequest import (
 from .tasknode import FATaskNode
 from app.services.messageMgr import ALL_MESSAGES_MGR
 
+if TYPE_CHECKING:
+    from app.services.FARunner import FARunner
+
 
 class CompareException(Exception):
     pass
 
 
 class FANode_cond_branch(FATaskNode):
-    def __init__(self, tid: str, nodeinfo: VFNodeInfo):
-        super().__init__(tid, nodeinfo)
+    def __init__(self, wid: str, nodeinfo: VFNodeInfo, runner: "FARunner"):
+        super().__init__(wid, nodeinfo, runner)
         self.validateNeededs = [FANodeValidateNeed.Self]
         pass
 
@@ -55,7 +58,7 @@ class FANode_cond_branch(FATaskNode):
                         if refdata not in selfVars:
                             error_msgs.append(f"变量未定义{refdata}")
                         pass
-                        if condition.comparetype == VarType.ref:
+                        if condition.comparetype == VarType.Ref:
                             if condition.value not in selfVars:
                                 error_msgs.append(f"变量未定义{refdata}")
                             pass
@@ -147,12 +150,12 @@ class FANode_cond_branch(FATaskNode):
                     conditionResult = conditionFunc(isConditionMet)
                     if conditionResult:
                         isAnyConditionMet = True
-                        self.setAllOutputStatus(FANodeStatus.Canceled)
-                        self.setOutputStatus(iOutputKey, FANodeStatus.Success)
+                        self.setAllOutputStatus(FARunStatus.Canceled)
+                        self.setOutputStatus(iOutputKey, FARunStatus.Success)
                         break
             if not isAnyConditionMet:
-                self.setAllOutputStatus(FANodeStatus.Canceled)
-                self.setOutputStatus("output-else", FANodeStatus.Success)
+                self.setAllOutputStatus(FARunStatus.Canceled)
+                self.setOutputStatus("output-else", FARunStatus.Success)
             return []
         except Exception as e:
             errmsg = traceback.format_exc()

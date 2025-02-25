@@ -14,7 +14,6 @@ from zoneinfo import ZoneInfo
 from fastapi.background import BackgroundTasks
 from sse_starlette.sse import EventSourceResponse
 from app.core.config import settings
-from app.schemas.fanode import FARunnerStatus
 from app.schemas.vfnode import VFlowData
 from app.services.FARunner import FARunner
 from app.services.FAValidator import FAValidator
@@ -34,14 +33,12 @@ from app.schemas.farequest import (
     FAWorkflowUpdateRequset,
     FAWorkflowReadRequest,
     FAWorkflowOperationResponse,
-    FAWorkflowBaseInfo,
-    FAResultBaseInfo,
-    FAWorkflowNodeRequest,
+    FAWorkflowOperationType,
 )
 from app.models.fastore import (
     FAWorkflowModel,
-    FAWorkflowResultModel,
-    FAWorkflowNodeResultModel,
+    FAReleasedWorkflowModel,
+    FANodeCacheModel,
 )
 from app.nodes import FANODECOLLECTION
 from app.nodes.basenode import FABaseNode
@@ -53,9 +50,12 @@ router = APIRouter()
 async def nodeconfig(ntype: str):
     if ntype in FANODECOLLECTION:
         node: "FABaseNode" = FANODECOLLECTION[ntype]
-        return FAWorkflowOperationResponse(success=True, data=node.getNodeConfig())
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.success,
+            data=node.getNodeConfig(),
+        )
     else:
         return FAWorkflowOperationResponse(
-            success=False,
+            type=FAWorkflowOperationType.error,
             message=f"Node type {ntype} not found in FANODECOLLECTION",
         )

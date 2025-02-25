@@ -10,7 +10,7 @@ from sse_starlette.sse import EventSourceResponse
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from app.core.config import settings
-from app.schemas.fanode import FARunnerStatus
+from app.schemas.fanode import FARunStatus
 from app.schemas.vfnode import VFlowData, VFNodeFlag
 from app.services.FARunner import FARunner
 from app.services.FAValidator import FAValidator
@@ -25,14 +25,19 @@ from app.schemas.farequest import (
     SSEResponseType,
     FAWorkflow,
     FAWorkflowOperationResponse,
-    FAProgressNodeType,
+    FAProgressRequestType,
     FAProgressRequest,
+    FAWorkflowRunRequest,
+    FAWorkflowRunReqType,
+    FAWorkflowRunResponse,
+    FAWorkflowNodeRequest,
+    FAWorkflowOperationType,
 )
 from app.db.session import get_db_ctxmgr
 from app.models.fastore import (
     FAWorkflowModel,
-    FAWorkflowResultModel,
-    FAWorkflowNodeResultModel,
+    FAReleasedWorkflowModel,
+    FANodeCacheModel,
 )
 from sqlalchemy import select, update, exc, exists, delete
 
@@ -40,32 +45,45 @@ router = APIRouter()
 
 
 @router.post("/run")
-async def run_flow(
-    fa_req: FAWorkflow,
-    background_tasks: BackgroundTasks,
-) -> FAWorkflowOperationResponse:
+async def run_flow(run_req: FAWorkflowRunRequest) -> FAWorkflowOperationResponse:
     if settings.DEBUG:
         await asyncio.sleep(1)
-    taskid = str(uuid.uuid4()).replace("-", "")
     fav = FAValidator()
-    flowdata = VFlowData.model_validate(fa_req.vflow)
-    validate_result = await fav.validate(taskid, flowdata)
+    flowdata = VFlowData.model_validate(run_req.vflow)
+
+    # 检查工作流是否有效 =============================================
+    validate_result = await fav.validate(run_req.wid, flowdata)
     if len(validate_result) > 0:
         return FAWorkflowOperationResponse(
-            success=True, data={"validation_errors": validate_result}
+            type=FAWorkflowOperationType.success,
+            data=FAWorkflowRunResponse(
+                type=FAWorkflowRunReqType.validation,
+                validation_errors=validate_result,
+            ),
         )
 
-    # 通过检查 =============================================
-    await ALL_TASKS_MGR.create(taskid)
-    background_tasks.add_task(ALL_TASKS_MGR.run, taskid, fa_req)
+    # 检查是否还在运行 =============================================
+    if await ALL_TASKS_MGR.isRunning(run_req.wid):
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.success,
+            message="Workflow is running",
+            data=FAWorkflowRunResponse(
+                type=FAWorkflowRunReqType.isrunning,
+            ),
+        )
+
+    # 开始运行 =============================================
+    await ALL_TASKS_MGR.start_run(run_req.wid, run_req.vflow)
+    logger.debug(f"running workflow: {ALL_TASKS_MGR.tasks.keys()}")
+
     try:
         async with get_db_ctxmgr() as db:
             await db.execute(
                 update(FAWorkflowModel)
-                .where(FAWorkflowModel.wid == fa_req.wid)
+                .where(FAWorkflowModel.wid == run_req.wid)
                 .values(
-                    vflow=fa_req.vflow,
-                    last_modified=datetime.now(ZoneInfo("Asia/Shanghai")),
+                    curVFlow=run_req.vflow,
+                    lastModified=datetime.now(ZoneInfo("Asia/Shanghai")),
                 )
             )
             await db.commit()
@@ -73,51 +91,119 @@ async def run_flow(
     except Exception as e:
         errmsg = traceback.format_exc()
         logger.error(f"update workflow error: {errmsg}")
-        return FAWorkflowOperationResponse(success=False, message=errmsg)
-    return FAWorkflowOperationResponse(success=True, data={"tid": taskid})
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.error,
+            message=errmsg,
+            data=FAWorkflowRunResponse(
+                type=FAWorkflowRunReqType.internalerror,
+            ),
+        )
+    return FAWorkflowOperationResponse(
+        type=FAWorkflowOperationType.success,
+        data=FAWorkflowRunResponse(
+            type=FAWorkflowRunReqType.success,
+        ),
+    )
+
+
+@router.post("/stop")
+async def stop_flow(stop_req: FAWorkflowRunRequest) -> FAWorkflowOperationResponse:
+    if await ALL_TASKS_MGR.isRunning(stop_req.wid):
+        await ALL_TASKS_MGR.stop(stop_req.wid)
+        logger.debug(f"running workflow: {ALL_TASKS_MGR.tasks.keys()}")
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.success,
+            message="Workflow stopped",
+        )
+    else:
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.error,
+            message="Not found the Workflow",
+        )
+    pass
+
+
+@router.get("/status")
+async def get_flow_status(wid: str) -> FAWorkflowOperationResponse:
+    if await ALL_TASKS_MGR.isRunning(wid):
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.success,
+            data=True,
+        )
+    else:
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.success,
+            data=False,
+        )
+    pass
+
+
+@router.post("/noderequest")
+async def node_request(node_req: FAWorkflowNodeRequest) -> FAWorkflowOperationResponse:
+    if not await ALL_TASKS_MGR.isRunning(node_req.wid):
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.error,
+            message="Workflow not running",
+        )
+
+    if farunner := await ALL_TASKS_MGR.get(node_req.wid):
+        if node := farunner.getNode(node_req.nid):
+            return FAWorkflowOperationResponse(
+                type=FAWorkflowOperationType.success,
+                data=node.processRequest(node_req.request),
+            )
+        else:
+            return FAWorkflowOperationResponse(
+                type=FAWorkflowOperationType.error,
+                message="Node not found",
+            )
+    else:
+        return FAWorkflowOperationResponse(
+            type=FAWorkflowOperationType.error,
+            message="Workflow not found",
+        )
+        pass
+    pass
 
 
 @router.post("/progress")
 async def get_task_progress(prequest_body: Annotated[str, Body()]):
     prequest = FAProgressRequest.model_validate_json(prequest_body)
-    task_name = prequest.tid
-    logger.debug(f"get_task_progress {task_name}")
+    wname = f"{prequest.wid}/{prequest.type.value}"
 
     async def event_generator():
-        if await ALL_MESSAGES_MGR.has(task_name):
+        if await ALL_MESSAGES_MGR.has(wname):
             return
-        fetch_nids = []
         try:
+            fetch_nids = []
             # 第一步，创建消息管理器
             # 推送整体情况
             # 推送剩余情况
             # 在进度完成后，叫前端post获取一次完整结果
-            await ALL_MESSAGES_MGR.create(task_name)
-            tnames = task_name.split("/")
-            if len(tnames) == 2:
-                taskid, tasktype = tnames
-                logger.debug(f"get progress {taskid} {tasktype}")
-            else:
-                taskid = tnames[0]
-            farunner: FARunner = await ALL_TASKS_MGR.get(taskid)
-            if farunner is None:
-                raise Exception("Task not found")
+            await ALL_MESSAGES_MGR.create(wname)
+            logger.info(f"subscribe progress {wname}")
+
+            if not await ALL_TASKS_MGR.isRunning(prequest.wid):
+                raise Exception("Not found the Workflow, subscribe failed")
+            farunner: FARunner = await ALL_TASKS_MGR.get(prequest.wid)
             all_sse_data: List[SSEResponseData] = []
-            if prequest.node_type == FAProgressNodeType.ALL_TASK_NODE:
+            if prequest.type == FAProgressRequestType.VFlowUI:
                 for nid in farunner.nodes.keys():
                     node = farunner.getNode(nid)
                     if node.data.flag & VFNodeFlag.isTask:
                         fetch_nids.append(nid)
                     pass
                 pass
-            elif prequest.node_type == FAProgressNodeType.SELECTED:
+            elif prequest.type == FAProgressRequestType.JinJa:
                 fetch_nids = prequest.selected_nids
                 pass
             for nid in fetch_nids:
                 if nid not in farunner.nodes:
-                    logger.warning(f"node {nid} not found in task {taskid}")
+                    logger.warning(f"node {nid} not found in task {wname}")
                     continue
-                await farunner.nodes[nid].startReport()
+                if prequest.type == FAProgressRequestType.JinJa:
+                    await farunner.nodes[nid].processRequest({"action": "start"})
+                    pass
                 ndata = await farunner.nodes[nid].getCurData()
                 if ndata is None:
                     continue
@@ -128,16 +214,37 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
                 )
                 all_sse_data.append(sse_data)
                 pass
+            if prequest.type == FAProgressRequestType.VFlowUI:
+                # 这里连带Passive节点的状态一起推送
+                # 需要手动构建他的状态
+                for nid in farunner.nodes.keys():
+                    node = farunner.getNode(nid)
+                    if node.data.flag & VFNodeFlag.isPassive:
+                        sse_data = SSEResponseData(
+                            nid=nid,
+                            oriid=farunner.nodes[nid].oriid,
+                            data=[
+                                FANodeUpdateData(
+                                    type=FANodeUpdateType.overwrite,
+                                    path=["state", "status"],
+                                    data=FARunStatus.Passive,
+                                )
+                            ],
+                        )
+                        all_sse_data.append(sse_data)
+                        pass
+                    pass
+                pass
             ALL_MESSAGES_MGR.put(
-                task_name,
+                wname,
                 SSEResponse(
                     event=SSEResponseType.batchupdatenode,
                     data=all_sse_data,
                 ),
             )
-            if farunner.status == FARunnerStatus.Success:
+            if farunner.status == FARunStatus.Success:
                 ALL_MESSAGES_MGR.put(
-                    task_name,
+                    wname,
                     SSEResponse(
                         event=SSEResponseType.flowfinish,
                         data=None,
@@ -146,13 +253,13 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
             pass
             while True:
                 # 第二步,去检查各个未完成任务的进度
-                p_msg = await ALL_MESSAGES_MGR.get(task_name)
+                p_msg = await ALL_MESSAGES_MGR.get(wname)
                 # if p_msg is None:
                 #     continue
                 # if prequest.node_type == FAProgressNodeType.SELECTED:
                 #     logger.debug(p_msg.model_dump_json(indent=2))
                 yield p_msg.toSSEResponse()
-                ALL_MESSAGES_MGR.task_done(task_name)
+                ALL_MESSAGES_MGR.task_done(wname)
                 if p_msg.event == SSEResponseType.flowfinish:
                     break
                 pass
@@ -162,11 +269,14 @@ async def get_task_progress(prequest_body: Annotated[str, Body()]):
             logger.error(error_msg)
             pass
         finally:
-            await ALL_MESSAGES_MGR.remove(task_name)
-            for nid in fetch_nids:
-                await farunner.nodes[nid].stopReport()
+            await ALL_MESSAGES_MGR.remove(wname)
+            if prequest.type == FAProgressRequestType.JinJa:
+                for nid in fetch_nids:
+                    await farunner.nodes[nid].processRequest({"action": "stop"})
+                    pass
                 pass
-            logger.info(f"task done {task_name}" )
+            pass
+            logger.info(f"unsubscribe progress {wname}")
             pass
 
     return EventSourceResponse(event_generator())
