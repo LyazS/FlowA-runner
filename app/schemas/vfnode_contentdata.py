@@ -154,6 +154,15 @@ class HttpTimeoutModel(BaseModel):
     pass
 
 
+class RetryConfigModel(BaseModel):
+    num_retries: int
+    type: str
+    interval: float
+    exponential_base: float
+    exponential_growth: float
+    pass
+
+
 # ======= 让AI根据上边的内容自动生成就行了，不用手写schema ======
 class VFNodeContentDataType(Enum):
     # BaseContentDataType

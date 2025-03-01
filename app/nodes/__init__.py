@@ -13,7 +13,7 @@ from .FANode_LLM_inference import FANode_LLM_inference
 from .FANode_http_requests import FANode_http_requests
 from .FANode_text_input import FANode_text_input
 from .FANode_branch_aggregate import FANode_branch_aggregate
-
+from .FANode_retry_run import FANode_retry_run
 from .FANode_jinja2_template import FANode_jinja2_template
 
 FANODECOLLECTION = {
@@ -30,4 +30,5 @@ FANODECOLLECTION = {
     "text_input": FANode_text_input,
     "branch_aggregate": FANode_branch_aggregate,
     "jinja2_template": FANode_jinja2_template,
+    "retry_run": FANode_retry_run,
 }

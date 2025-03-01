@@ -55,6 +55,11 @@ class FARunner:
         self.nodes[nid] = node
         pass
 
+    def rmNode(self, nid):
+        if nid in self.nodes:
+            del self.nodes[nid]
+        pass
+
     def getNode(self, nid: str) -> "FATaskNode":
         return self.nodes[nid]
 
