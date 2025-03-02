@@ -30,7 +30,7 @@ from app.services.taskMgr import ALL_TASKS_MGR
 from app.nodes.basenode import FABaseNode
 
 if TYPE_CHECKING:
-    from app.nodes import FANode_iter_run
+    from app.nodes import FANode_iter_run,FANode_iter_retry_run
     from app.services.FARunner import FARunner
 
 
@@ -212,6 +212,11 @@ class FATaskNode(FABaseNode):
             nest_layout = self.getNestLayout()
             iterNode: "FANode_iter_run" = thenode
             rdata = iterNode.iter_var[nest_layout[nid_layout]]
+            pass
+        elif rtype == VFNodeContentDataType.IterRetryItem:
+            nest_layout = self.getNestLayout()
+            iterNode: "FANode_iter_retry_run" = thenode
+            rdata = iterNode.iter_item
             pass
         else:
             rdata = content.data.value

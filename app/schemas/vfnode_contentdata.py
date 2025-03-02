@@ -163,6 +163,12 @@ class RetryConfigModel(BaseModel):
     pass
 
 
+class RetryInOutModel(BaseModel):
+    input: str
+    output: str
+    pass
+
+
 # ======= 让AI根据上边的内容自动生成就行了，不用手写schema ======
 class VFNodeContentDataType(Enum):
     # BaseContentDataType
@@ -196,6 +202,7 @@ class VFNodeContentDataType(Enum):
     Prompts = "Prompts"
     IterIndex = "IterIndex"
     IterItem = "IterItem"
+    IterRetryItem = "IterRetryItem"
     AggregateBranch = "AggregateBranch"
     HttpRequestConfig = "HttpRequestConfig"
     HttpTimeoutConfig = "HttpTimeoutConfig"

@@ -43,6 +43,7 @@ class VFNodeConnectionDataAttachedType(Enum):
     attached_node_output = "attached_node_output"
     attached_node_next = "attached_node_next"
     attached_node_callbackFunc = "attached_node_callbackFunc"
+    attached_node_break = "attached_node_break"
     pass
 
 
@@ -59,6 +60,7 @@ class VFNodeConnectionType(Enum):
     self = "self"
     attach = "attach"
     next = "next"
+    breakIter = "break"
     inputs = "inputs"
     outputs = "outputs"
     callbackUsers = "callbackUsers"
